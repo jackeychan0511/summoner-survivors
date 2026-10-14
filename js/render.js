@@ -87,6 +87,11 @@ class GameRenderer {
       this.renderShockwaves(engine.shockwaves);
     }
 
+    // 9-2. ⚔️ 검사 초근접 검기 참격 호 (Slash Arc Effects)
+    if (engine.slashEffects && engine.slashEffects.length > 0) {
+      this.renderSlashEffects(engine.slashEffects);
+    }
+
     // 10. Local Tamer (Player)
     const myName = (typeof networkManager !== 'undefined' && networkManager.isHost) ? '👑 아빠 (호스트)' : ((player.subclassDef && player.subclassDef.name) || '🧙 테이머');
     this.renderTamer(player, myName, '#818cf8');
@@ -1323,6 +1328,57 @@ class GameRenderer {
       ctx.shadowColor = sw.color || '#facc15';
       ctx.globalAlpha = alpha;
       ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // ⚔️ 검사 초근접 검기 참격 호 렌더러 (Slash Arc Effects Renderer)
+  renderSlashEffects(slashEffects) {
+    const ctx = this.ctx;
+    ctx.save();
+    for (let i = 0; i < slashEffects.length; i++) {
+      const sl = slashEffects[i];
+      const progress = sl.age / sl.duration; // 0 -> 1
+      const alpha = Math.max(0, 1 - progress);
+      const curRange = sl.range * (0.88 + progress * 0.22); // 살짝 호가 퍼져나가는 타격감
+      const arcHalf = sl.arcSpan / 2;
+
+      ctx.save();
+      ctx.translate(sl.x, sl.y);
+      ctx.rotate(sl.angle);
+
+      // 1. 반투명 내부 참격 부채꼴 면적 (묵직한 볼륨감)
+      if (sl.arcSpan < Math.PI * 1.9) {
+        ctx.fillStyle = sl.color;
+        ctx.globalAlpha = alpha * 0.28;
+        ctx.beginPath();
+        ctx.arc(0, 0, curRange, -arcHalf, arcHalf, false);
+        ctx.arc(0, 0, Math.max(0, curRange - sl.width * 1.1), arcHalf, -arcHalf, true);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // 2. 외곽 네온 칼날 파동 호 (선명하고 두툼한 검기)
+      ctx.globalAlpha = alpha;
+      ctx.shadowBlur = 20 * alpha;
+      ctx.shadowColor = sl.color;
+      ctx.strokeStyle = sl.color;
+      ctx.lineWidth = Math.max(2, sl.width * (1 - progress * 0.35));
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(0, 0, curRange, -arcHalf, arcHalf, false);
+      ctx.stroke();
+
+      // 3. 중앙 백색 섬광 칼날 궤적 (날카로운 절단선)
+      ctx.shadowBlur = 8 * alpha;
+      ctx.shadowColor = '#ffffff';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = Math.max(1.5, sl.width * 0.3);
+      ctx.beginPath();
+      ctx.arc(0, 0, curRange, -arcHalf * 0.85, arcHalf * 0.85, false);
+      ctx.stroke();
+
+      ctx.restore();
     }
     ctx.restore();
   }

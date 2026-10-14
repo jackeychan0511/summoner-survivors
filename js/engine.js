@@ -129,6 +129,7 @@ class GameEngine {
     this.damageNumbers = [];
     this.particles = [];
     this.shockwaves = [];        // 화려한 원형 충격파 링 목록
+    this.slashEffects = [];      // ⚔️ 검사 근접 검기 참격 호 궤적 목록
     this.screenShakeIntensity = 0; // 화면 흔들림 강도
     this.screenShakeDuration = 0;  // 화면 흔들림 지속시간
     this.cinematicDimming = 0;     // 궁극기 발동 시 배경 순간 암전
@@ -456,6 +457,19 @@ class GameEngine {
     });
   }
 
+  // ⚔️ 검사 근접 부채꼴 검기 참격 효과 추가
+  addSlashEffect(x, y, angle, range = 85, color = '#ef4444', arcSpan = Math.PI * 0.88, width = 18, duration = 0.16) {
+    this.slashEffects.push({
+      x, y, angle,
+      range,
+      color,
+      arcSpan,
+      width,
+      age: 0,
+      duration
+    });
+  }
+
   hasSkill(id) {
     return this.pet && !!this.pet.skills[id];
   }
@@ -483,6 +497,17 @@ class GameEngine {
       sw.radius = (sw.age / sw.duration) * sw.maxRadius;
       if (sw.age >= sw.duration) {
         this.shockwaves.splice(i, 1);
+      }
+    }
+
+    // ⚔️ 검사 근접 검기 호 효과 감쇠
+    if (this.slashEffects) {
+      for (let i = this.slashEffects.length - 1; i >= 0; i--) {
+        const sl = this.slashEffects[i];
+        sl.age += dt;
+        if (sl.age >= sl.duration) {
+          this.slashEffects.splice(i, 1);
+        }
       }
     }
 
@@ -1278,49 +1303,117 @@ class GameEngine {
       }
     }
 
-    // [35] ⚔️ 쾌검 참격 (Frenzy Slash - 검사 광전사)
-    if (def.type === 'melee_arc') {
+    // [35] ⚔️ 대검 쾌참 (Frenzy Slash - 검사 광전사 초근접 참격)
+    if (def.type === 'melee_slash_arc') {
       this.audio.playShoot();
-      this.shakeScreen(3, 0.12);
+      this.shakeScreen(4, 0.14);
       const faceAngle = (this.player.facing === 1) ? 0 : Math.PI;
-      const originX = this.player.x;
-      const originY = this.player.y;
-      this.projectiles.push(new EngineProjectile(
-        originX, originY,
-        Math.cos(faceAngle) * 9, Math.sin(faceAngle) * 9,
-        dmg, 5, 'blade_arc'
-      ));
-      for (let k = 0; k < 5; k++) {
-        this.particles.push({
-          x: originX + Math.cos(faceAngle) * 35 + (Math.random() - 0.5) * 20,
-          y: originY + Math.sin(faceAngle) * 35 + (Math.random() - 0.5) * 20,
-          color: '#f43f5e', life: 0.2, maxLife: 0.2, size: 4
-        });
-      }
+      const range = def.range || 85;
+      const arcSpan = Math.PI * 0.88; // 약 160도
+      const arcHalf = arcSpan / 2;
+
+      // 시각 연출: 플레이어 앞 초승달 모양 붉은 검기 참격 호
+      this.addSlashEffect(this.player.x, this.player.y, faceAngle, range, '#ef4444', arcSpan, 20, 0.16);
+
+      // 초근접 부채꼴 판정 & 묵직한 넉백
+      let hitCount = 0;
+      this.enemies.forEach(e => {
+        const dx = e.x - this.player.x;
+        const dy = e.y - this.player.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= range + (e.radius || 15)) {
+          const enemyAngle = Math.atan2(dy, dx);
+          let diff = Math.abs(enemyAngle - faceAngle);
+          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+          if (diff <= arcHalf) {
+            e.takeDamage(dmg);
+            e.x += Math.cos(enemyAngle) * 35;
+            e.y += Math.sin(enemyAngle) * 35;
+            hitCount++;
+            for (let k = 0; k < 3; k++) {
+              this.particles.push({
+                x: e.x + (Math.random() - 0.5) * 16,
+                y: e.y + (Math.random() - 0.5) * 16,
+                color: '#f87171', life: 0.25, maxLife: 0.25, size: 4
+              });
+            }
+          }
+        }
+      });
+      if (hitCount > 0) this.audio.playHit();
     }
 
-    // [36] 🛡️ 방패 강타 (Shield Bash - 검사 성기사)
-    if (def.type === 'shield_wave') {
+    // [36] 🛡️ 방패 강타 (Shield Bash - 검사 성기사 초근접 강타 & 넉백/기절)
+    if (def.type === 'shield_bash_melee') {
       this.audio.playExplosion();
-      this.shakeScreen(5, 0.18);
+      this.shakeScreen(6, 0.2);
       const faceAngle = (this.player.facing === 1) ? 0 : Math.PI;
-      this.projectiles.push(new EngineProjectile(
-        this.player.x, this.player.y,
-        Math.cos(faceAngle) * (def.speed || 7), Math.sin(faceAngle) * (def.speed || 7),
-        dmg, 8, 'shield_wave'
-      ));
+      const range = def.range || 75;
+      const arcSpan = Math.PI * 0.72; // 약 130도
+      const arcHalf = arcSpan / 2;
+
+      // 시각 연출: 황금빛 방패 충격 호
+      this.addSlashEffect(this.player.x, this.player.y, faceAngle, range, '#fbbf24', arcSpan, 26, 0.2);
+
+      let hitCount = 0;
+      this.enemies.forEach(e => {
+        const dx = e.x - this.player.x;
+        const dy = e.y - this.player.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= range + (e.radius || 15)) {
+          const enemyAngle = Math.atan2(dy, dx);
+          let diff = Math.abs(enemyAngle - faceAngle);
+          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+          if (diff <= arcHalf) {
+            e.takeDamage(dmg);
+            // 초강력 넉백 & 잠시 밀쳐냄
+            e.x += Math.cos(enemyAngle) * 50;
+            e.y += Math.sin(enemyAngle) * 50;
+            hitCount++;
+            for (let k = 0; k < 4; k++) {
+              this.particles.push({
+                x: e.x + (Math.random() - 0.5) * 20,
+                y: e.y + (Math.random() - 0.5) * 20,
+                color: '#fef08a', life: 0.3, maxLife: 0.3, size: 5
+              });
+            }
+          }
+        }
+      });
+      if (hitCount > 0) this.audio.playHit();
     }
 
-    // [37] 🔮 마검 룬파동 (Rune Blade Wave - 검사 마검사)
-    if (def.type === 'rune_wave') {
+    // [37] 🔮 마검 회전참 (Rune Spin Slash - 검사 마검사 360도 초근접 회전베기)
+    if (def.type === 'rune_spin_slash') {
       this.audio.playShoot();
-      const target = this.getNearestEnemy(this.player.x, this.player.y);
-      const ang = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : (this.player.facing === 1 ? 0 : Math.PI);
-      this.projectiles.push(new EngineProjectile(
-        this.player.x, this.player.y,
-        Math.cos(ang) * (def.speed || 9), Math.sin(ang) * (def.speed || 9),
-        dmg, 6, 'rune_blade'
-      ));
+      this.shakeScreen(4, 0.16);
+      const range = def.range || 85;
+
+      // 시각 연출: 360도 신비로운 보랏빛 회전 룬 칼날 고리
+      const spinAngle = this.gameTime * 6;
+      this.addSlashEffect(this.player.x, this.player.y, spinAngle, range, '#c084fc', Math.PI * 2, 18, 0.18);
+
+      let hitCount = 0;
+      this.enemies.forEach(e => {
+        const dx = e.x - this.player.x;
+        const dy = e.y - this.player.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= range + (e.radius || 15)) {
+          const enemyAngle = Math.atan2(dy, dx);
+          e.takeDamage(dmg);
+          e.x += Math.cos(enemyAngle) * 25;
+          e.y += Math.sin(enemyAngle) * 25;
+          hitCount++;
+          for (let k = 0; k < 2; k++) {
+            this.particles.push({
+              x: e.x + (Math.random() - 0.5) * 16,
+              y: e.y + (Math.random() - 0.5) * 16,
+              color: '#e879f9', life: 0.2, maxLife: 0.2, size: 4
+            });
+          }
+        }
+      });
+      if (hitCount > 0) this.audio.playHit();
     }
 
     // [38] 🎯 관통 저격 (Pierce Snipe - 궁수 스나이퍼)
@@ -1369,58 +1462,109 @@ class GameEngine {
       this.projectiles.push(trapProj);
     }
 
-    // [41] 🩸 피의 대참격 (Blood Carnage - 검사 합성 진화)
+    // [41] 🩸 피의 대참격 (Blood Carnage - 검사 합성 진화: 초근접 난도질 대참격)
     if (def.type === 'melee_arc_mega') {
       this.audio.playExplosion();
-      this.shakeScreen(10, 0.3);
-      this.addShockwave(this.player.x, this.player.y, def.range || 160, '#ef4444', 0.35);
+      this.shakeScreen(12, 0.35);
+      const faceAngle = (this.player.facing === 1) ? 0 : Math.PI;
+      const range = def.range || 105;
+      const arcSpan = Math.PI * 0.95; // 약 170도 대형 참격
+      const arcHalf = arcSpan / 2;
+
+      // 시각 연출: 이중 핏빛 초승달 대참격 궤적
+      this.addSlashEffect(this.player.x, this.player.y, faceAngle - 0.15, range, '#dc2626', arcSpan, 28, 0.22);
+      this.addSlashEffect(this.player.x, this.player.y, faceAngle + 0.15, range * 0.85, '#ef4444', arcSpan, 20, 0.22);
+
+      let hitCount = 0;
       this.enemies.forEach(e => {
-        if (Math.hypot(e.x - this.player.x, e.y - this.player.y) < (def.range || 160)) {
-          e.takeDamage(dmg);
-          const pa = Math.atan2(e.y - this.player.y, e.x - this.player.x);
-          e.x += Math.cos(pa) * 30;
-          e.y += Math.sin(pa) * 30;
+        const dx = e.x - this.player.x;
+        const dy = e.y - this.player.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= range + (e.radius || 15)) {
+          const enemyAngle = Math.atan2(dy, dx);
+          let diff = Math.abs(enemyAngle - faceAngle);
+          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+          if (diff <= arcHalf) {
+            e.takeDamage(dmg);
+            e.x += Math.cos(enemyAngle) * 45;
+            e.y += Math.sin(enemyAngle) * 45;
+            hitCount++;
+            for (let k = 0; k < 5; k++) {
+              this.particles.push({
+                x: e.x + (Math.random() - 0.5) * 20,
+                y: e.y + (Math.random() - 0.5) * 20,
+                color: '#b91c1c', life: 0.35, maxLife: 0.35, size: 6
+              });
+            }
+          }
         }
       });
-      for (let i = 0; i < 20; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const d = Math.random() * (def.range || 160);
-        this.particles.push({
-          x: this.player.x + Math.cos(a) * d,
-          y: this.player.y + Math.sin(a) * d,
-          color: '#b91c1c', life: 0.4, maxLife: 0.4, size: 6
-        });
-      }
+      if (hitCount > 0) this.audio.playHit();
     }
 
-    // [42] 🛡️ 천상의 성채방패 (Divine Bulwark - 검사 합성 진화)
+    // [42] 🛡️ 천상의 성채방패 (Divine Bulwark - 검사 합성 진화: 360도 거대 방패벽 충격)
     if (def.type === 'shield_barrier_wave') {
       this.audio.playExplosion();
-      this.shakeScreen(8, 0.25);
-      this.addShockwave(this.player.x, this.player.y, def.radius || 130, '#fbbf24', 0.4);
-      for (let i = 0; i < 4; i++) {
-        const ang = (i * Math.PI) / 2 + this.gameTime * 2;
-        this.projectiles.push(new EngineProjectile(
-          this.player.x, this.player.y,
-          Math.cos(ang) * 6, Math.sin(ang) * 6,
-          dmg, 12, 'shield_wave'
-        ));
-      }
+      this.shakeScreen(10, 0.3);
+      const radius = def.radius || 95;
+
+      // 시각 연출: 360도 황금빛 방패벽 호 및 충격파
+      this.addSlashEffect(this.player.x, this.player.y, 0, radius, '#facc15', Math.PI * 2, 32, 0.25);
+      this.addShockwave(this.player.x, this.player.y, radius, '#fbbf24', 0.3);
+
+      this.enemies.forEach(e => {
+        const dist = Math.hypot(e.x - this.player.x, e.y - this.player.y);
+        if (dist <= radius + (e.radius || 15)) {
+          const ang = Math.atan2(e.y - this.player.y, e.x - this.player.x);
+          e.takeDamage(dmg);
+          e.x += Math.cos(ang) * 60;
+          e.y += Math.sin(ang) * 60;
+          for (let k = 0; k < 3; k++) {
+            this.particles.push({
+              x: e.x + (Math.random() - 0.5) * 20,
+              y: e.y + (Math.random() - 0.5) * 20,
+              color: '#fef08a', life: 0.3, maxLife: 0.3, size: 5
+            });
+          }
+        }
+      });
     }
 
-    // [43] 🔮 무한 원소마검 (Infinite Runes - 검사 합성 진화)
+    // [43] 🔮 무한 원소마검 (Infinite Runes - 검사 합성 진화: 3원소 고속 회전 칼날 폭풍)
     if (def.type === 'rune_storm') {
       this.audio.playShoot();
       this.shakeScreen(6, 0.2);
-      const count = def.count || 8;
-      for (let i = 0; i < count; i++) {
-        const ang = (i * Math.PI * 2) / count + this.gameTime;
-        this.projectiles.push(new EngineProjectile(
-          this.player.x, this.player.y,
-          Math.cos(ang) * 9, Math.sin(ang) * 9,
-          dmg, 8, 'rune_blade'
-        ));
-      }
+      const range = def.range || 95;
+
+      // 시각 연출: 3원소 색상의 3중 회전 칼날 궤적
+      const spin1 = this.gameTime * 7;
+      const spin2 = spin1 + (Math.PI * 2) / 3;
+      const spin3 = spin1 + (Math.PI * 4) / 3;
+      this.addSlashEffect(this.player.x, this.player.y, spin1, range, '#38bdf8', Math.PI * 0.9, 22, 0.16);
+      this.addSlashEffect(this.player.x, this.player.y, spin2, range, '#a855f7', Math.PI * 0.9, 22, 0.16);
+      this.addSlashEffect(this.player.x, this.player.y, spin3, range, '#f43f5e', Math.PI * 0.9, 22, 0.16);
+
+      let hitCount = 0;
+      this.enemies.forEach(e => {
+        const dx = e.x - this.player.x;
+        const dy = e.y - this.player.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= range + (e.radius || 15)) {
+          const ang = Math.atan2(dy, dx);
+          e.takeDamage(dmg);
+          e.x += Math.cos(ang) * 30;
+          e.y += Math.sin(ang) * 30;
+          hitCount++;
+          for (let k = 0; k < 2; k++) {
+            this.particles.push({
+              x: e.x + (Math.random() - 0.5) * 16,
+              y: e.y + (Math.random() - 0.5) * 16,
+              color: '#38bdf8', life: 0.2, maxLife: 0.2, size: 4
+            });
+          }
+        }
+      });
+      if (hitCount > 0) this.audio.playHit();
     }
 
     // [44] 🎯 신살의 관통포 (God Slayer - 궁수 합성 진화)

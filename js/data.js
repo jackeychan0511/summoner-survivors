@@ -1075,40 +1075,39 @@ const GAME_DATA = {
     // --- [5] ⚔️ 검사 & 🏹 궁수 신규 특화 스킬군 ---
     frenzy_slash: {
       id: 'frenzy_slash',
-      name: '쾌검 참격 (Frenzy Slash)',
+      name: '대검 쾌참 (Frenzy Slash)',
       element: 'physical',
-      type: 'melee_arc',
+      type: 'melee_slash_arc',
       icon: '⚔️',
-      desc: '[검사: 광전사] 전방 180도 부채꼴로 눈부신 네온 검기를 휘둘러 적들을 베어넘깁니다.',
+      desc: '[검사: 광전사] 전방 160도 초근접 대검을 호쾌하게 베어넘겨 묵직한 피해와 넉백을 가합니다. (근접 고위력)',
       maxLevel: 8,
-      baseCooldown: 0.7,
-      baseDamage: 32,
-      range: 115
+      baseCooldown: 0.55,
+      baseDamage: 58,
+      range: 85
     },
     shield_bash: {
       id: 'shield_bash',
       name: '방패 강타 (Shield Bash)',
       element: 'holy',
-      type: 'shield_wave',
+      type: 'shield_bash_melee',
       icon: '🛡️',
-      desc: '[검사: 성기사] 전방으로 거대한 황금 방패 충격파를 발사하여 적들을 넉백시키고 기절시킵니다.',
+      desc: '[검사: 성기사] 전방 초근접 적들을 타워실드로 강하게 내려찍어 멀리 튕겨내고 기절시킵니다.',
       maxLevel: 8,
-      baseCooldown: 1.0,
-      baseDamage: 26,
-      speed: 7,
-      explodeRadius: 65
+      baseCooldown: 0.75,
+      baseDamage: 52,
+      range: 75
     },
     rune_wave: {
       id: 'rune_wave',
-      name: '마검 룬파동 (Rune Blade Wave)',
+      name: '마검 회전참 (Rune Spin Slash)',
       element: 'arcane',
-      type: 'rune_wave',
+      type: 'rune_spin_slash',
       icon: '🔮',
-      desc: '[검사: 마검사] 검을 휘두르며 전방으로 원소 마법 검기를 날려 궤적 상의 적들을 관통합니다.',
+      desc: '[검사: 마검사] 제자리에서 360도 마검을 회전하여 주변 초근접 적들을 룬 칼날 폭풍으로 베어냅니다.',
       maxLevel: 8,
-      baseCooldown: 0.85,
-      baseDamage: 30,
-      speed: 9
+      baseCooldown: 0.65,
+      baseDamage: 50,
+      range: 85
     },
     pierce_snipe: {
       id: 'pierce_snipe',
@@ -1156,11 +1155,11 @@ const GAME_DATA = {
       element: 'dark',
       type: 'melee_arc_mega',
       icon: '🩸',
-      desc: '[합성 진화: 쾌검참격+송곳니] 전방 360도로 거대한 피의 검기 폭풍을 일으켜 적들을 갈아버립니다.',
+      desc: '[합성 진화: 쾌검참격+송곳니] 대검으로 전방 근접 적들을 맹렬하게 난도질하여 초토화하고 적을 크게 밀쳐냅니다. (근접 극딜)',
       maxLevel: 1,
-      baseCooldown: 0.5,
-      baseDamage: 85,
-      range: 160
+      baseCooldown: 0.45,
+      baseDamage: 110,
+      range: 105
     },
     divine_bulwark: {
       id: 'divine_bulwark',
@@ -1169,11 +1168,11 @@ const GAME_DATA = {
       element: 'holy',
       type: 'shield_barrier_wave',
       icon: '⚜️',
-      desc: '[합성 진화: 방패강타+인력수정] 거대 방패 회전벽이 형성되어 적 탄환을 반사하고 초광역 넉백을 가합니다.',
+      desc: '[합성 진화: 방패강타+인력수정] 몸 주변 360도로 거대한 신성 방패벽을 후려쳐 근접 적들을 완전히 날려버립니다.',
       maxLevel: 1,
-      baseCooldown: 0.8,
-      baseDamage: 65,
-      radius: 120
+      baseCooldown: 0.65,
+      baseDamage: 85,
+      radius: 95
     },
     infinite_runes: {
       id: 'infinite_runes',
@@ -1182,11 +1181,11 @@ const GAME_DATA = {
       element: 'arcane',
       type: 'rune_storm',
       icon: '🌌',
-      desc: '[합성 진화: 룬파동+유대방울] 3색 원소 검기가 8방향으로 난사되며 궤적에 화염/빙결 장판을 남깁니다.',
+      desc: '[합성 진화: 룬파동+유대방울] 몸 주변에 3원소 마검 칼날 궤적이 맹렬히 회전하여 근접하는 모든 적을 믹서기처럼 분쇄합니다.',
       maxLevel: 1,
-      baseCooldown: 0.6,
-      baseDamage: 60,
-      count: 8
+      baseCooldown: 0.45,
+      baseDamage: 75,
+      range: 95
     },
     god_pierce_snipe: {
       id: 'god_pierce_snipe',
