@@ -2187,74 +2187,107 @@ class GameEngine {
   }
 
   // =========================================================================
-  // AI Co-op Teammates (Up to 4-Player Simulation with 3 Children Bots)
+  // AI Co-op Teammates (Customizable Jobs: Swordsman, Archer, Summoner)
   // =========================================================================
   initAiTeammates() {
     this.aiTeammatesPool = [
       {
         id: 'bot_1',
+        defaultName: '첫째 (AI)',
         name: '첫째 (AI)',
-        x: this.player.x + 90,
-        y: this.player.y - 70,
+        x: this.player ? this.player.x + 90 : 2400,
+        y: this.player ? this.player.y - 70 : 2400,
         facing: 1,
         hp: 100,
         maxHp: 100,
         speed: 3.1,
         angleOffset: 0.8,
-        petConfig: GAME_DATA.pets.bolt,
-        pet: {
-          x: this.player.x + 65,
-          y: this.player.y - 70,
-          facing: 1,
-          tier: 1,
-          config: GAME_DATA.pets.bolt
-        },
         skillTimer: 0
       },
       {
         id: 'bot_2',
+        defaultName: '둘째 (AI)',
         name: '둘째 (AI)',
-        x: this.player.x - 90,
-        y: this.player.y + 80,
+        x: this.player ? this.player.x - 90 : 2400,
+        y: this.player ? this.player.y + 80 : 2400,
         facing: 1,
         hp: 100,
         maxHp: 100,
         speed: 3.0,
         angleOffset: 2.8,
-        petConfig: GAME_DATA.pets.sylph,
-        pet: {
-          x: this.player.x - 115,
-          y: this.player.y + 80,
-          facing: 1,
-          tier: 1,
-          config: GAME_DATA.pets.sylph
-        },
         skillTimer: 0
       },
       {
         id: 'bot_3',
+        defaultName: '셋째 (AI)',
         name: '셋째 (AI)',
-        x: this.player.x + 110,
-        y: this.player.y + 70,
+        x: this.player ? this.player.x + 110 : 2400,
+        y: this.player ? this.player.y + 70 : 2400,
         facing: 1,
         hp: 100,
         maxHp: 100,
         speed: 3.2,
         angleOffset: 4.8,
-        petConfig: GAME_DATA.pets.ignis,
-        pet: {
-          x: this.player.x + 135,
-          y: this.player.y + 70,
-          facing: 1,
-          tier: 1,
-          config: GAME_DATA.pets.ignis
-        },
         skillTimer: 0
       }
     ];
 
+    // 사용자가 선택한 직업 설정 적용 (기본값: 동료1=광전사, 동료2=스나이퍼, 동료3=마검사)
+    const savedJobs = (typeof window !== 'undefined' && window.aiTeammatesJobConfig) || ['berserker', 'sniper', 'magic_swordsman'];
+    this.setAiBotJob(0, savedJobs[0] || 'berserker');
+    this.setAiBotJob(1, savedJobs[1] || 'sniper');
+    this.setAiBotJob(2, savedJobs[2] || 'magic_swordsman');
+
     const count = typeof window !== 'undefined' && window.aiTeammatesCount !== undefined ? window.aiTeammatesCount : 2;
     this.setAiTeammatesCount(count);
+  }
+
+  // 🤖 AI 동료 봇 직업 실시간 변경
+  setAiBotJob(botIndex, presetKey) {
+    if (!this.aiTeammatesPool || !this.aiTeammatesPool[botIndex]) return;
+    const bot = this.aiTeammatesPool[botIndex];
+    const presets = {
+      berserker: { classId: 'warrior', subId: 'berserker', name: '광전사', icon: '⚔️', color: '#ef4444', isMelee: true },
+      paladin: { classId: 'warrior', subId: 'paladin', name: '성기사', icon: '🛡️', color: '#facc15', isMelee: true },
+      magic_swordsman: { classId: 'warrior', subId: 'magic_swordsman', name: '마검사', icon: '🔮', color: '#c084fc', isMelee: true },
+      sniper: { classId: 'archer', subId: 'sniper', name: '스나이퍼', icon: '🎯', color: '#06b6d4', isMelee: false },
+      windrunner: { classId: 'archer', subId: 'windrunner', name: '윈드러너', icon: '🌪️', color: '#10b981', isMelee: false },
+      trapper: { classId: 'archer', subId: 'trapper', name: '트래퍼', icon: '🐾', color: '#f59e0b', isMelee: false },
+      ignis: { classId: 'summoner', subId: 'ignis', name: '이그니스', icon: '🔥', color: '#f97316', isMelee: false, petId: 'ignis' },
+      bolt: { classId: 'summoner', subId: 'bolt', name: '테슬라', icon: '⚡', color: '#38bdf8', isMelee: false, petId: 'bolt' },
+      sylph: { classId: 'summoner', subId: 'sylph', name: '실피르', icon: '🍃', color: '#4ade80', isMelee: false, petId: 'sylph' }
+    };
+    const preset = presets[presetKey] || presets.berserker;
+
+    bot.presetKey = presetKey;
+    bot.heroClass = preset.classId;
+    bot.subclassId = preset.subId;
+    bot.subclass = preset.subId;
+    bot.color = preset.color;
+    bot.name = `${bot.defaultName} (${preset.icon} ${preset.name})`;
+    bot.isMelee = preset.isMelee;
+
+    if (preset.classId === 'summoner') {
+      const petDef = (typeof GAME_DATA !== 'undefined' && GAME_DATA.pets && GAME_DATA.pets[preset.petId]) || null;
+      bot.petConfig = petDef;
+      bot.pet = {
+        x: bot.x - bot.facing * 28,
+        y: bot.y - 10,
+        facing: bot.facing,
+        tier: this.pet ? this.pet.tier : 1,
+        config: petDef
+      };
+    } else {
+      bot.petConfig = null;
+      bot.pet = null;
+    }
+
+    if (this.peers && this.peers[bot.id]) {
+      this.peers[bot.id].name = bot.name;
+      this.peers[bot.id].player.heroClass = bot.heroClass;
+      this.peers[bot.id].player.subclass = bot.subclassId;
+      this.peers[bot.id].pet = bot.pet;
+    }
   }
 
   setAiTeammatesCount(count) {
@@ -2279,46 +2312,55 @@ class GameEngine {
   }
 
   updateAiTeammates(dt) {
-    if (!this.aiTeammates || !this.aiTeammatesEnabled) return;
+    if (!this.aiTeammates || !this.aiTeammatesEnabled || !this.player) return;
 
     this.aiTeammates.forEach((bot, idx) => {
-      // 1. Teammate Movement (Orbit around main player with kiting)
-      const orbitSpeed = 0.6;
-      const orbitDist = 130 + idx * 25;
+      // 1. AI 이동 기동 (검사=근접 돌진 / 궁수·소환사=원거리 카이팅)
+      const orbitSpeed = 0.5;
+      const orbitDist = 120 + idx * 30;
       const curAng = this.gameTime * orbitSpeed + bot.angleOffset;
-      const desiredX = this.player.x + Math.cos(curAng) * orbitDist;
-      const desiredY = this.player.y + Math.sin(curAng) * orbitDist;
+      let targetX = this.player.x + Math.cos(curAng) * orbitDist;
+      let targetY = this.player.y + Math.sin(curAng) * orbitDist;
 
-      // Enemy avoidance / Kiting
-      let avoidX = 0;
-      let avoidY = 0;
-      this.enemies.forEach(e => {
-        const d = Math.hypot(e.x - bot.x, e.y - bot.y);
-        if (d < 110 && d > 0.001) {
-          avoidX -= (e.x - bot.x) / d;
-          avoidY -= (e.y - bot.y) / d;
-        }
-      });
+      // 가장 가까운 적 탐색
+      const nearestEnemy = this.getNearestEnemy(bot.x, bot.y);
+      const enemyDist = nearestEnemy ? Math.hypot(nearestEnemy.x - bot.x, nearestEnemy.y - bot.y) : 9999;
 
-      const moveX = (desiredX - bot.x) * 0.05 + avoidX * 2.2;
-      const moveY = (desiredY - bot.y) * 0.05 + avoidY * 2.2;
+      if (bot.isMelee && nearestEnemy && enemyDist < 260) {
+        // ⚔️ 검사 AI: 적에게 근접 돌진 (사거리 50~65px 안쪽으로 파고듦!)
+        const approachAng = Math.atan2(nearestEnemy.y - bot.y, nearestEnemy.x - bot.x);
+        targetX = nearestEnemy.x - Math.cos(approachAng) * 55;
+        targetY = nearestEnemy.y - Math.sin(approachAng) * 55;
+        bot.facing = nearestEnemy.x >= bot.x ? 1 : -1;
+      } else if (!bot.isMelee && nearestEnemy && enemyDist < 130) {
+        // 🏹 궁수/소환사 AI: 적이 너무 가까우면 뒤로 빠지는 카이팅
+        const fleeAng = Math.atan2(bot.y - nearestEnemy.y, bot.x - nearestEnemy.x);
+        targetX = bot.x + Math.cos(fleeAng) * 80;
+        targetY = bot.y + Math.sin(fleeAng) * 80;
+        bot.facing = nearestEnemy.x >= bot.x ? 1 : -1;
+      }
 
+      const moveX = (targetX - bot.x) * 0.08;
+      const moveY = (targetY - bot.y) * 0.08;
       bot.x += moveX * 60 * dt;
       bot.y += moveY * 60 * dt;
-      if (moveX > 0.1) bot.facing = 1;
-      if (moveX < -0.1) bot.facing = -1;
 
-      // Pet spring follow for AI bot
-      bot.pet.x += (bot.x - bot.facing * 28 - bot.pet.x) * 8 * dt;
-      bot.pet.y += (bot.y - 10 - bot.pet.y) * 8 * dt;
-      bot.pet.facing = bot.facing;
+      if (!bot.isMelee && Math.abs(moveX) > 0.1) {
+        bot.facing = moveX > 0 ? 1 : -1;
+      }
 
-      // Level / Tier scaling based on player level
-      bot.pet.tier = this.pet.tier;
+      // 소환사 봇이면 펫 따라오기
+      if (bot.pet) {
+        bot.pet.x += (bot.x - bot.facing * 28 - bot.pet.x) * 8 * dt;
+        bot.pet.y += (bot.y - 10 - bot.pet.y) * 8 * dt;
+        bot.pet.facing = bot.facing;
+        bot.pet.tier = this.pet ? this.pet.tier : 1;
+      }
 
-      // 2. Bot Skill Auto-Cast
+      // 2. Bot Skill Auto-Cast (검사는 0.7초마다 초근접 베기, 궁수는 1.0초마다 사격)
       bot.skillTimer += dt;
-      if (bot.skillTimer >= 1.4) {
+      const skillCd = bot.isMelee ? 0.75 : 1.05;
+      if (bot.skillTimer >= skillCd) {
         bot.skillTimer = 0;
         this.castBotSkill(bot);
       }
@@ -2327,46 +2369,175 @@ class GameEngine {
       if (!this.peers) this.peers = {};
       this.peers[bot.id] = {
         name: bot.name,
-        player: { x: bot.x, y: bot.y, hp: bot.hp, facing: bot.facing },
+        player: {
+          x: bot.x,
+          y: bot.y,
+          hp: bot.hp,
+          facing: bot.facing,
+          heroClass: bot.heroClass,
+          subclass: bot.subclassId,
+          tier: this.pet ? this.pet.tier : 1
+        },
         pet: bot.pet
       };
     });
   }
 
   castBotSkill(bot) {
-    // Bot 1 (Bolt): Chain Lightning
-    if (bot.petConfig.element === 'lightning') {
-      const enemies = this.getEnemiesInRange(bot.pet.x, bot.pet.y, 220);
-      if (enemies.length > 0) {
-        let prev = { x: bot.pet.x, y: bot.pet.y };
-        const hits = Math.min(enemies.length, 3);
-        for (let i = 0; i < hits; i++) {
-          const tgt = enemies[i];
-          tgt.takeDamage(18 * this.pet.might);
-          this.lightningBolts.push({ x1: prev.x, y1: prev.y, x2: tgt.x, y2: tgt.y, life: 0.15 });
-          prev = tgt;
-        }
-      }
-    }
+    const faceAngle = bot.facing === 1 ? 0 : Math.PI;
+    const might = (this.pet && this.pet.might) ? this.pet.might : 1.0;
 
-    // Bot 2 (Sylph): Thorn Aura Burst
-    if (bot.petConfig.element === 'nature') {
+    // --- [1] ⚔️ 검사 계열 AI 공격 (초근접 부채꼴 검기 & 넉백) ---
+    // [1-1] 🩸 광전사 (버서커): 대검 쾌참
+    if (bot.subclassId === 'berserker') {
+      const range = 85;
+      this.addSlashEffect(bot.x, bot.y, faceAngle, range, '#ef4444', Math.PI * 0.88, 20, 0.16);
+      this.audio.playShoot();
       this.enemies.forEach(e => {
-        if (Math.hypot(e.x - bot.pet.x, e.y - bot.pet.y) < 85) {
-          e.takeDamage(14 * this.pet.might);
+        const dx = e.x - bot.x;
+        const dy = e.y - bot.y;
+        if (Math.hypot(dx, dy) <= range + (e.radius || 15)) {
+          let diff = Math.abs(Math.atan2(dy, dx) - faceAngle);
+          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+          if (diff <= (Math.PI * 0.88) / 2) {
+            e.takeDamage(48 * might);
+            e.x += Math.cos(faceAngle) * 35;
+            e.y += Math.sin(faceAngle) * 35;
+          }
         }
       });
     }
 
-    // Bot 3 (Ignis): Fireball Blast
-    if (bot.petConfig.element === 'fire') {
-      const target = this.getNearestEnemy(bot.pet.x, bot.pet.y);
-      if (target) {
-        const ang = Math.atan2(target.y - bot.pet.y, target.x - bot.pet.x);
+    // [1-2] 🛡️ 성기사 (팔라딘): 방패 강타
+    else if (bot.subclassId === 'paladin') {
+      const range = 75;
+      this.addSlashEffect(bot.x, bot.y, faceAngle, range, '#fbbf24', Math.PI * 0.72, 26, 0.2);
+      this.audio.playExplosion();
+      this.enemies.forEach(e => {
+        const dx = e.x - bot.x;
+        const dy = e.y - bot.y;
+        if (Math.hypot(dx, dy) <= range + (e.radius || 15)) {
+          let diff = Math.abs(Math.atan2(dy, dx) - faceAngle);
+          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+          if (diff <= (Math.PI * 0.72) / 2) {
+            e.takeDamage(42 * might);
+            e.x += Math.cos(faceAngle) * 50;
+            e.y += Math.sin(faceAngle) * 50;
+          }
+        }
+      });
+    }
+
+    // [1-3] 🔮 마검사: 마검 회전참
+    else if (bot.subclassId === 'magic_swordsman') {
+      const range = 85;
+      this.addSlashEffect(bot.x, bot.y, this.gameTime * 6, range, '#c084fc', Math.PI * 2, 18, 0.18);
+      this.audio.playShoot();
+      this.enemies.forEach(e => {
+        const dx = e.x - bot.x;
+        const dy = e.y - bot.y;
+        if (Math.hypot(dx, dy) <= range + (e.radius || 15)) {
+          e.takeDamage(40 * might);
+          const ang = Math.atan2(dy, dx);
+          e.x += Math.cos(ang) * 25;
+          e.y += Math.sin(ang) * 25;
+        }
+      });
+    }
+
+    // --- [2] 🏹 궁수 계열 AI 공격 (원거리 타겟팅 투사체) ---
+    // [2-1] 🎯 스나이퍼: 관통 레이저 저격 빔
+    else if (bot.subclassId === 'sniper') {
+      const target = this.getNearestEnemy(bot.x, bot.y);
+      const ang = target ? Math.atan2(target.y - bot.y, target.x - bot.x) : faceAngle;
+      bot.facing = (target && target.x < bot.x) ? -1 : 1;
+      this.projectiles.push(new EngineProjectile(
+        bot.x, bot.y,
+        Math.cos(ang) * 20, Math.sin(ang) * 20,
+        45 * might, 999, 'sniper_beam'
+      ));
+      this.audio.playShoot();
+    }
+
+    // [2-2] 🌪️ 윈드러너: 3연발 고속 질풍 화살
+    else if (bot.subclassId === 'windrunner') {
+      const target = this.getNearestEnemy(bot.x, bot.y);
+      const baseAng = target ? Math.atan2(target.y - bot.y, target.x - bot.x) : faceAngle;
+      bot.facing = (target && target.x < bot.x) ? -1 : 1;
+      for (let i = 0; i < 3; i++) {
+        const ang = baseAng + (i - 1) * 0.14;
         this.projectiles.push(new EngineProjectile(
-          bot.pet.x, bot.pet.y,
+          bot.x, bot.y,
+          Math.cos(ang) * 12, Math.sin(ang) * 12,
+          15 * might, 2, 'rapid_arrow'
+        ));
+      }
+      this.audio.playShoot();
+    }
+
+    // [2-3] 🐾 트래퍼: 마법 폭발 덫
+    else if (bot.subclassId === 'trapper') {
+      const target = this.getNearestEnemy(bot.x, bot.y);
+      const tx = target ? target.x + (Math.random() - 0.5) * 30 : bot.x + Math.cos(faceAngle) * 70;
+      const ty = target ? target.y + (Math.random() - 0.5) * 30 : bot.y;
+      const trap = new EngineProjectile(tx, ty, 0, 0, 55 * might, 1, 'trap');
+      trap.life = 10.0;
+      trap.explodeRadius = 90;
+      this.projectiles.push(trap);
+      this.audio.playShoot();
+    }
+
+    // --- [3] 🧙 소환사 계열 AI 공격 (소환수 협공) ---
+    // [3-1] 🔥 이그니스: 화염구 발사
+    else if (bot.subclassId === 'ignis' || (bot.petConfig && bot.petConfig.element === 'fire')) {
+      const px = bot.pet ? bot.pet.x : bot.x;
+      const py = bot.pet ? bot.pet.y : bot.y;
+      const target = this.getNearestEnemy(px, py);
+      if (target) {
+        const ang = Math.atan2(target.y - py, target.x - px);
+        this.projectiles.push(new EngineProjectile(
+          px, py,
+          Math.cos(ang) * 8.0, Math.sin(ang) * 8.0,
+          24 * might, 1, 'fireball'
+        ));
+        this.audio.playShoot();
+      }
+    }
+
+    // [3-2] ⚡ 테슬라: 체인 라이트닝
+    else if (bot.subclassId === 'bolt' || (bot.petConfig && bot.petConfig.element === 'lightning')) {
+      const px = bot.pet ? bot.pet.x : bot.x;
+      const py = bot.pet ? bot.pet.y : bot.y;
+      const enemies = this.getEnemiesInRange(px, py, 220);
+      if (enemies.length > 0) {
+        let prev = { x: px, y: py };
+        const hits = Math.min(enemies.length, 3);
+        for (let i = 0; i < hits; i++) {
+          const tgt = enemies[i];
+          tgt.takeDamage(20 * might);
+          this.lightningBolts.push({ x1: prev.x, y1: prev.y, x2: tgt.x, y2: tgt.y, life: 0.15 });
+          prev = tgt;
+        }
+        this.audio.playShoot();
+      }
+    }
+
+    // [3-3] 🍃 실피르: 가시 장판 & 잎사귀
+    else if (bot.subclassId === 'sylph' || (bot.petConfig && bot.petConfig.element === 'nature')) {
+      const px = bot.pet ? bot.pet.x : bot.x;
+      const py = bot.pet ? bot.pet.y : bot.y;
+      this.enemies.forEach(e => {
+        if (Math.hypot(e.x - px, e.y - py) < 85) {
+          e.takeDamage(16 * might);
+        }
+      });
+      const target = this.getNearestEnemy(px, py);
+      if (target) {
+        const ang = Math.atan2(target.y - py, target.x - px);
+        this.projectiles.push(new EngineProjectile(
+          px, py,
           Math.cos(ang) * 7.5, Math.sin(ang) * 7.5,
-          20 * this.pet.might, 1, 'fireball'
+          18 * might, 3, 'leaf_blade'
         ));
       }
     }

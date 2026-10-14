@@ -566,6 +566,7 @@
       <button class="btn" style="background:#4338ca; border-color:#818cf8;" onclick="openSpriteGalleryModal()">🖼️ 샘플</button>
       <button id="btn-speed" class="btn" style="background:#1e293b; border-color:#475569;" onclick="engine.toggleTimeScale()">⏩ 1x 배속</button>
       <button id="btn-ai-team" class="btn" style="background:#7c3aed; border-color:#a78bfa;" onclick="engine.toggleAiTeammates()">🤖 AI 3인 파티: ON</button>
+      <button class="btn" style="background:#6d28d9; border-color:#a78bfa; color:#e9d5ff;" onclick="openAiJobModal()">👥 AI 직업 편성</button>
       <button id="btn-auto-play" class="btn" style="background:#1e293b; border-color:#475569;" onclick="engine.toggleAutoPlay()">⚡ 오토 플레이: OFF</button>
       <button class="btn" style="background:#0284c7; border-color:#38bdf8;" onclick="openMultiplayModal()">👨‍👧‍👦 4인 멀티</button>
       <button class="btn" style="background:#d97706; border-color:#f59e0b; color:#fff;" onclick="openPetSelectModal()">👑 영웅/직업 선택</button>
@@ -1185,6 +1186,126 @@
       </div>
 
       <div class="cards-grid" id="pet-cards-container"></div>
+
+      <!-- 🤖 AI 동료 파티원 직업 편성 바 (출격 전 세팅) -->
+      <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid #7c3aed; border-radius: 8px; padding: 10px 14px; margin-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:16px;">🤖</span>
+          <div>
+            <div style="font-size:12px; font-weight:bold; color:#c084fc;">AI 동료 직업 편성 (테스트용)</div>
+            <div style="font-size:10px; color:#94a3b8;">함께 출격할 AI 봇의 직업을 원하는 대로 지정하세요.</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; align-items:center;">
+          <label style="font-size:11px; color:#cbd5e1; display:flex; align-items:center; gap:6px;">
+            <span style="color:#a78bfa; font-weight:bold;">동료 1:</span>
+            <select id="ai-job-sel-0" onchange="onAiJobSelectChange(0, this.value)" style="background:#1e293b; color:#fff; border:1px solid #64748b; padding:4px 8px; border-radius:4px; font-size:11px; outline:none; cursor:pointer;">
+              <optgroup label="⚔️ 검사 계열 (초근접 부채꼴 검기 & 넉백)">
+                <option value="berserker" selected>🩸 광전사 (대검 쾌참)</option>
+                <option value="paladin">🛡️ 성기사 (방패 강타 넉백)</option>
+                <option value="magic_swordsman">🔮 마검사 (360도 회전참)</option>
+              </optgroup>
+              <optgroup label="🏹 궁수 계열 (원거리 요격)">
+                <option value="sniper">🎯 스나이퍼 (관통 저격 레이저)</option>
+                <option value="windrunner">🌪️ 윈드러너 (질풍 3연사)</option>
+                <option value="trapper">🐾 트래퍼 (폭발 덫 지뢰)</option>
+              </optgroup>
+              <optgroup label="🧙 소환사 계열 (펫 협공)">
+                <option value="ignis">🔥 이그니스 (화염 폭발)</option>
+                <option value="bolt">⚡ 테슬라 (연쇄 감전)</option>
+                <option value="sylph">🍃 실피르 (가시 장판/잎사귀)</option>
+              </optgroup>
+            </select>
+          </label>
+          <label style="font-size:11px; color:#cbd5e1; display:flex; align-items:center; gap:6px;">
+            <span style="color:#38bdf8; font-weight:bold;">동료 2:</span>
+            <select id="ai-job-sel-1" onchange="onAiJobSelectChange(1, this.value)" style="background:#1e293b; color:#fff; border:1px solid #64748b; padding:4px 8px; border-radius:4px; font-size:11px; outline:none; cursor:pointer;">
+              <optgroup label="⚔️ 검사 계열 (초근접 부채꼴 검기 & 넉백)">
+                <option value="berserker">🩸 광전사 (대검 쾌참)</option>
+                <option value="paladin">🛡️ 성기사 (방패 강타 넉백)</option>
+                <option value="magic_swordsman">🔮 마검사 (360도 회전참)</option>
+              </optgroup>
+              <optgroup label="🏹 궁수 계열 (원거리 요격)">
+                <option value="sniper" selected>🎯 스나이퍼 (관통 저격 레이저)</option>
+                <option value="windrunner">🌪️ 윈드러너 (질풍 3연사)</option>
+                <option value="trapper">🐾 트래퍼 (폭발 덫 지뢰)</option>
+              </optgroup>
+              <optgroup label="🧙 소환사 계열 (펫 협공)">
+                <option value="ignis">🔥 이그니스 (화염 폭발)</option>
+                <option value="bolt">⚡ 테슬라 (연쇄 감전)</option>
+                <option value="sylph">🍃 실피르 (가시 장판/잎사귀)</option>
+              </optgroup>
+            </select>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🤖 AI 직업 편성 전용 모달 (인게임 실시간 변경용) -->
+  <div id="ai-job-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-box" style="max-width: 520px; border-color: #8b5cf6; box-shadow: 0 0 45px rgba(139, 92, 246, 0.4);">
+      <button class="modal-back-btn" onclick="closeAiJobModal()">✕ 닫기</button>
+      <div class="modal-title" style="margin-top:10px; color:#c084fc;">👥 AI 파티원 직업 실시간 편성</div>
+      <div class="modal-sub">테스트를 위해 AI 파티원의 직업을 변경하면 게임 중 즉시 외형과 전투 스킬이 전환됩니다!</div>
+
+      <div style="display:flex; flex-direction:column; gap:14px; margin-top:16px;">
+        <!-- AI 동료 1 -->
+        <div style="background:#0f172a; border:1px solid #7c3aed; border-radius:8px; padding:12px; display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <div style="font-weight:bold; color:#a78bfa; font-size:13px;">🤖 AI 동료 1 (첫째)</div>
+            <div style="font-size:11px; color:#94a3b8;">주로 플레이어 우측 전방을 담당합니다.</div>
+          </div>
+          <select id="modal-ai-job-0" onchange="onAiJobSelectChange(0, this.value)" style="background:#1e293b; color:#fff; border:1px solid #8b5cf6; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:bold; outline:none; cursor:pointer;">
+            <optgroup label="⚔️ 검사 계열 (초근접 참격 & 넉백)">
+              <option value="berserker">🩸 광전사 (버서커 - 대검 쾌참)</option>
+              <option value="paladin">🛡️ 성기사 (팔라딘 - 방패 강타)</option>
+              <option value="magic_swordsman">🔮 마검사 (마검 회전참)</option>
+            </optgroup>
+            <optgroup label="🏹 궁수 계열 (원거리 사격)">
+              <option value="sniper">🎯 스나이퍼 (관통 저격 레이저)</option>
+              <option value="windrunner">🌪️ 윈드러너 (질풍 3연발)</option>
+              <option value="trapper">🐾 트래퍼 (마법 폭발 덫)</option>
+            </optgroup>
+            <optgroup label="🧙 소환사 계열 (펫 협공)">
+              <option value="ignis">🔥 이그니스 (화염 드레이크)</option>
+              <option value="bolt">⚡ 테슬라 (번개 늑대)</option>
+              <option value="sylph">🍃 실피르 (숲의 요정)</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- AI 동료 2 -->
+        <div style="background:#0f172a; border:1px solid #0284c7; border-radius:8px; padding:12px; display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <div style="font-weight:bold; color:#38bdf8; font-size:13px;">🤖 AI 동료 2 (둘째)</div>
+            <div style="font-size:11px; color:#94a3b8;">주로 플레이어 좌측 후방을 담당합니다.</div>
+          </div>
+          <select id="modal-ai-job-1" onchange="onAiJobSelectChange(1, this.value)" style="background:#1e293b; color:#fff; border:1px solid #38bdf8; padding:6px 12px; border-radius:6px; font-size:12px; font-weight:bold; outline:none; cursor:pointer;">
+            <optgroup label="⚔️ 검사 계열 (초근접 참격 & 넉백)">
+              <option value="berserker">🩸 광전사 (버서커 - 대검 쾌참)</option>
+              <option value="paladin">🛡️ 성기사 (팔라딘 - 방패 강타)</option>
+              <option value="magic_swordsman">🔮 마검사 (마검 회전참)</option>
+            </optgroup>
+            <optgroup label="🏹 궁수 계열 (원거리 사격)">
+              <option value="sniper">🎯 스나이퍼 (관통 저격 레이저)</option>
+              <option value="windrunner">🌪️ 윈드러너 (질풍 3연발)</option>
+              <option value="trapper">🐾 트래퍼 (마법 폭발 덫)</option>
+            </optgroup>
+            <optgroup label="🧙 소환사 계열 (펫 협공)">
+              <option value="ignis">🔥 이그니스 (화염 드레이크)</option>
+              <option value="bolt">⚡ 테슬라 (번개 늑대)</option>
+              <option value="sylph">🍃 실피르 (숲의 요정)</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:20px; display:flex; gap:10px;">
+        <button class="btn" style="flex:1; background:#7c3aed; border-color:#a78bfa; justify-content:center; padding:10px; font-weight:bold;" onclick="closeAiJobModal()">
+          ✓ 확인 및 전장 복귀
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1302,11 +1423,11 @@
 
   <!-- Load Modules -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="js/data.js?v=20261014_1630"></script>
-  <script src="js/sprites.js?v=20261014_1630"></script>
-  <script src="js/render.js?v=20261014_1630"></script>
-  <script src="js/engine.js?v=20261014_1630"></script>
-  <script src="js/network.js?v=20261014_1630"></script>
+  <script src="js/data.js?v=20261014_1638"></script>
+  <script src="js/sprites.js?v=20261014_1638"></script>
+  <script src="js/render.js?v=20261014_1638"></script>
+  <script src="js/engine.js?v=20261014_1638"></script>
+  <script src="js/network.js?v=20261014_1638"></script>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -1610,6 +1731,37 @@
     function backToTitleFromPetSelect() {
       document.getElementById('pet-select-modal').style.display = 'none';
       openTitleMenuModal();
+    }
+
+    /* 2-1. AI Teammate Job Selection Functions (Custom Party Jobs) */
+    window.aiTeammatesJobConfig = window.aiTeammatesJobConfig || ['berserker', 'sniper', 'magic_swordsman'];
+
+    function onAiJobSelectChange(botIdx, jobKey) {
+      window.aiTeammatesJobConfig[botIdx] = jobKey;
+      if (engine && engine.setAiBotJob) {
+        engine.setAiBotJob(botIdx, jobKey);
+      }
+      // UI 동기화 (출격 전 셀렉터 & 인게임 모달 셀렉터 동시 갱신)
+      const selBar = document.getElementById(`ai-job-sel-${botIdx}`);
+      if (selBar && selBar.value !== jobKey) selBar.value = jobKey;
+      const selModal = document.getElementById(`modal-ai-job-${botIdx}`);
+      if (selModal && selModal.value !== jobKey) selModal.value = jobKey;
+    }
+
+    function openAiJobModal() {
+      if (engine) engine.isPaused = true;
+      const m0 = document.getElementById('modal-ai-job-0');
+      const m1 = document.getElementById('modal-ai-job-1');
+      if (m0 && window.aiTeammatesJobConfig) m0.value = window.aiTeammatesJobConfig[0] || 'berserker';
+      if (m1 && window.aiTeammatesJobConfig) m1.value = window.aiTeammatesJobConfig[1] || 'sniper';
+      document.getElementById('ai-job-modal').style.display = 'flex';
+    }
+
+    function closeAiJobModal() {
+      document.getElementById('ai-job-modal').style.display = 'none';
+      if (engine && engine.pet && !isAnyModalOpen()) {
+        engine.isPaused = false;
+      }
     }
 
     /* 3. Settings Flow */
