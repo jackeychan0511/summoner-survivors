@@ -1361,387 +1361,646 @@ class SpriteManager {
   // =========================================================================
   // 3. 🔥👑 소환수 3종 (이그니스, 볼트, 실피드) - 웅장하고 멋진 1~3차 신수
   // =========================================================================
+// =========================================================================
+  // 3. 🔥⚡🍃 웅장하고 멋진 32비트 HD 소환수 6종 (+3차 신수)
+  // 웹사이트 전설/신화 참조:
+  // - 이그니스: 아기 화룡 (1차) -> 샐러맨더 화룡 (2차)
+  // - 볼트: 어린 뇌수 (1차) -> 뇌신 펜리르 (2차)
+  // - 실피드: 숲의 정령 요정 (1차) -> 성수 그리폰 (2차)
+  // =========================================================================
   generateMajesticPetSprites() {
-    // -----------------------------------------------------------------------
-    // [1] 이그니스 (Ignis) - 화룡 / 불사조-바하무트 신수 계열
-    // -----------------------------------------------------------------------
-    const ignisPalette = {
-      '.': 'transparent',
-      'H': '#facc15', // 황금 뿔 / 왕관
-      'h': '#fef08a', // 빛나는 뿔 끝
-      'R': '#dc2626', // 용의 붉은 비늘
-      'r': '#ef4444', // 밝은 적색 비늘
-      'D': '#991b1b', // 흑적색 그림자
-      'O': '#f97316', // 주황색 화염 갈기
-      'Y': '#fde047', // 노란 배 비늘
-      'E': '#ffffff', // 번쩍이는 용의 안광
-      'e': '#0f172a', // 동공
-      'W': '#ea580c', // 날개 피막
-      'w': '#fb923c', // 밝은 날개
-      'F': '#ffedd5'  // 화염 코어
+    this.petSprites = {};
+
+    const createHdCanvas = (w, h, drawFn) => {
+      const cvs = document.createElement('canvas');
+      cvs.width = w;
+      cvs.height = h;
+      const ctx = cvs.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      drawFn(ctx, w, h);
+      return cvs;
     };
 
-    // 1차 (아기 화룡 - 24x24): 날렵하고 앙증맞지만 날카로운 뿔과 불꽃 날개
-    this.petSprites.ignis_t1 = this.renderPixelGrid(24, 24, [
-      "..........h.............",
-      ".........HH.............",
-      "....WW..HRRRH...........",
-      "...WWWWHREeRRH..........",
-      "...WWWWWRRRRRR..........",
-      "....WWWRRYYYRD..........",
-      ".....WWRYYYYRD..........",
-      "......WRYYYYRDD.........",
-      "....RRRRRRRRRDDD........",
-      "...RRRRRRRRRRRDDD.......",
-      "..WWRRRRRRRRRR.DDD......",
-      ".WWW.RRRRRRRRR..DDD.....",
-      "wwW..RRR...RRR...ODD....",
-      "wW...RRR...RRR....OOD...",
-      ".....RRR...RRR.....OO...",
-      ".....RRR...RRR......F...",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], ignisPalette);
+    // =======================================================================
+    // [1] 🔥 이그니스 (Ignis) - 화염 계열
+    // =======================================================================
 
-    // 2차 (홍련의 샐러맨더 화룡 - 32x32): 거대한 뿔, 강력한 날개, 화염 갈기
-    this.petSprites.ignis_t2 = this.renderPixelGrid(32, 32, [
-      "............hh..................",
-      "...........HHHH.................",
-      ".....WW...HHRRRH....WW..........",
-      "....WWWW.HHRRRRRH..WWWW.........",
-      "...WWWWWHRREeRRRRHWWWWWW........",
-      "..WWWWWWRRRRRRRRRWWWWWWW........",
-      "..WWWWWWRRRYYYYRRWWWWWWW........",
-      "...WWW.WRRYYYYYRRW.WWWW.........",
-      "....W..WRRYYYYYRRW..WW..........",
-      ".......WRRYYYYYRRW..............",
-      ".....RRRRRRRRRRRRRRRR...........",
-      "...RRRRRRRRRRRRRRRRRRRR.........",
-      "..RRRRRRRRRRRRRRRRRRRRRR........",
-      "..RRRRRRRRRRRRRRRRRRRRRR........",
-      "..WWRRRRRYYYYYYYYRRRR.DDD.......",
-      ".WWWRRRRRYYYYYYYYRRRR..DDD......",
-      ".WWW.RRRRRRRRRRRRRRRR...DDD.....",
-      "wWW..RRRRRRRRRRRRRRRR....ODD....",
-      "ww...RRRR....RRRR.........OOD...",
-      ".....RRRR....RRRR..........OO...",
-      ".....RRRR....RRRR...........F...",
-      ".....RRRR....RRRR...............",
-      ".....DDRR....DDRR...............",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], ignisPalette);
+    // 1차: 아기 화룡 (Baby Fire Drake) - 64x64
+    // 붉은 비늘, 노란 배, 앙증맞은 날개와 황금 뿔, 꼬리 끝 타오르는 불씨
+    this.petSprites.ignis_t1 = createHdCanvas(64, 64, (ctx, w, h) => {
+      const cx = 32, cy = 34;
 
-    // 3차 최종 각성 (진 홍련의 파괴신 바하무트 - 40x40): 4장 날개, 황금 왕관 뿔, 거대한 화염 신수
-    this.petSprites.ignis_t3 = this.renderPixelGrid(40, 40, [
-      "...............hhhhh....................",
-      "..............HHHHHHH...................",
-      ".....WWWW....HHHHHHHHH....WWWW..........",
-      "....WWWWWW..HHRRRRRRRRH..WWWWWW.........",
-      "...WWWWWWWWHHRRREeRRRRRHWWWWWWWW........",
-      "..WWWWWWWWWHRRRRRRRRRRRRWWWWWWWWW.......",
-      "..WWWWWWWWWHRRRYYYYYYRRRWWWWWWWWW.......",
-      "...WWWWWW.WHRRYYYYYYYRRHW.WWWWWW........",
-      "....WWWW..WHRRYYYYYYYRRHW..WWWW.........",
-      ".....WW...WHRRYYYYYYYRRHW...WW..........",
-      "..........WHRRYYYYYYYRRHW...............",
-      "........RRRRRRRRRRRRRRRRRRRR............",
-      ".......RRRRRRRRRRRRRRRRRRRRRR...........",
-      "......RRRRRRRRRRRRRRRRRRRRRRRR..........",
-      ".....RRRRRRRRRRRRRRRRRRRRRRRRRR.........",
-      "....WWRRRRRRRYYYYYYYYYYRRRRRR.DDD.......",
-      "...WWWRRRRRRRYYYYYYYYYYRRRRRR..DDD......",
-      "..WWWW.RRRRRRRRRRRRRRRRRRRRRR...DDD.....",
-      "..WWW..RRRRRRRRRRRRRRRRRRRRRR....ODD....",
-      ".wWW...RRRRRRRRRRRRRRRRRRRRRR.....OOD...",
-      ".ww....RRRRRR......RRRRRR..........OO...",
-      ".......RRRRRR......RRRRRR...........F...",
-      ".......RRRRRR......RRRRRR...............",
-      ".......RRRRRR......RRRRRR...............",
-      ".......DDRRRR......DDRRRR...............",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................"
-    ], ignisPalette);
+      // 은은한 화염 후광
+      const aura = ctx.createRadialGradient(cx, cy, 6, cx, cy, 26);
+      aura.addColorStop(0, 'rgba(249, 115, 22, 0.35)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
 
-    // 호환성 보장 (기본)
-    this.petSprites.ignis = this.petSprites.ignis_t1;
+      // 꼬리 (타오르는 불꽃)
+      ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(cx - 8, cy + 12);
+      ctx.quadraticCurveTo(cx - 20, cy + 14, cx - 22, cy - 2);
+      ctx.stroke();
 
-    // -----------------------------------------------------------------------
-    // [2] 볼트 (Bolt) - 청백색 뇌제 / 전격 늑대-기린 뇌수
-    // -----------------------------------------------------------------------
-    const boltPalette = {
-      '.': 'transparent',
-      'L': '#facc15', // 번개 황금 뿔
-      'l': '#fef08a', // 번개 스파크
-      'B': '#0284c7', // 뇌수 블루
-      'b': '#38bdf8', // 네온 스카이블루
-      'D': '#0f172a', // 다크 네이비
-      'W': '#ffffff', // 백색 털 갈기
-      'w': '#e0f2fe', // 밝은 백색
-      'E': '#fef08a', // 번개빛 안광
-      'e': '#0369a1'  // 동공
-    };
+      // 꼬리 끝 화염 불티
+      ctx.shadowColor = '#f97316'; ctx.shadowBlur = 8;
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath(); ctx.arc(cx - 22, cy - 4, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath(); ctx.arc(cx - 22, cy - 5, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(cx - 22, cy - 6, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
 
-    // 1차 (어린 뇌수 - 24x24)
-    this.petSprites.bolt_t1 = this.renderPixelGrid(24, 24, [
-      ".........ll.............",
-      "........LLLL............",
-      ".......LLbbLL...........",
-      "......LbbbbbbL..........",
-      ".....LbbEebbEEb.........",
-      ".....bbbbbbbbbb.........",
-      ".....bbWwwwwWbb.........",
-      ".....bWWwwwwWWb.........",
-      "......bbWwwWbb..........",
-      "....bbbbbbbbbbbb........",
-      "...bbbbbbbbbbbbbb.......",
-      "..llbbbbbbbbbb.bbb......",
-      "..l.bbbbbbbbbb..bbb.....",
-      "....bbb....bbb...llb....",
-      "....bbb....bbb....ll....",
-      "....DDD....DDD.....l....",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], boltPalette);
+      // 작은 아기 용 날개
+      ctx.fillStyle = '#991b1b';
+      ctx.beginPath();
+      ctx.moveTo(cx - 4, cy);
+      ctx.lineTo(cx - 18, cy - 14);
+      ctx.lineTo(cx - 10, cy - 10);
+      ctx.lineTo(cx - 14, cy - 4);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#f97316'; // 피막
+      ctx.beginPath();
+      ctx.moveTo(cx - 4, cy); ctx.lineTo(cx - 16, cy - 12); ctx.lineTo(cx - 8, cy - 2); ctx.closePath(); ctx.fill();
 
-    // 2차 (뇌신 펜리르 - 32x32)
-    this.petSprites.bolt_t2 = this.renderPixelGrid(32, 32, [
-      "...........llll.................",
-      "..........LLLLLL................",
-      ".........LLbbbbLL...............",
-      "........LLbbbbbbLL..............",
-      ".......LbbbEebbEEbL.............",
-      ".......bbbbbbbbbbbb.............",
-      "......lbbWWwwwwWWbbl............",
-      ".....llbbWWwwwwWWbbll...........",
-      ".....ll.bbWwwwwWbb.ll...........",
-      "........bbbbbbbbbb..............",
-      ".....bbbbbbbbbbbbbbbb...........",
-      "...bbbbbbbbbbbbbbbbbbbb.........",
-      "..llbbbbbbbbbbbbbbbbbbbb........",
-      "..llbbbbbbbbbbbbbbbb.bbb........",
-      "...lbbbbWWwwwwWWbbbb..bbb.......",
-      "....bbbbWWwwwwWWbbbb...bbb......",
-      "....bbbbbbbbbbbbbbbb....llb.....",
-      "....bbbb........bbbb.....ll.....",
-      "....bbbb........bbbb......l.....",
-      "....DDDD........DDDD............",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], boltPalette);
+      // 아기 용 몸통 & 다리
+      ctx.fillStyle = '#b91c1c';
+      ctx.beginPath(); ctx.ellipse(cx, cy + 6, 12, 10, 0, 0, Math.PI * 2); ctx.fill();
+      // 발
+      ctx.fillStyle = '#7f1d1d';
+      ctx.fillRect(cx - 8, cy + 13, 6, 6);
+      ctx.fillRect(cx + 4, cy + 13, 6, 6);
 
-    // 3차 최종 각성 (창공의 뇌제 제우스 - 40x40): 뇌신 링, 거대 뇌각
-    this.petSprites.bolt_t3 = this.renderPixelGrid(40, 40, [
-      ".............llllll.....................",
-      "............LLLLLLLL....................",
-      "...........LLbbbbbbLL...................",
-      "..........LLbbbbbbbbLL..................",
-      ".........LbbbbEebbEEbbL.................",
-      "........LbbbbbbbbbbbbbbL................",
-      ".......llbbbWWwwwwWWbbbll...............",
-      "......lllbbbWWwwwwWWbbblll..............",
-      "......lll.bbWwwwwwwWbb.lll..............",
-      "..........bbbbbbbbbbbb..................",
-      "......bbbbbbbbbbbbbbbbbbbb..............",
-      "....bbbbbbbbbbbbbbbbbbbbbbbb............",
-      "...llbbbbbbbbbbbbbbbbbbbbbbbb...........",
-      "...llbbbbbbbbbbbbbbbbbbbb.bbbb..........",
-      "....lbbbbbWWwwwwwwWWbbbbb..bbbb.........",
-      ".....bbbbbWWwwwwwwWWbbbbb...bbbb........",
-      ".....bbbbbbbbbbbbbbbbbbbb....lllb.......",
-      ".....bbbbbb........bbbbbb.....lll.......",
-      ".....bbbbbb........bbbbbb......ll.......",
-      ".....DDDDDD........DDDDDD.......l.......",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................"
-    ], boltPalette);
+      // 밝고 부드러운 노란 배 비늘
+      ctx.fillStyle = '#fde047';
+      ctx.beginPath(); ctx.ellipse(cx + 2, cy + 8, 7, 7, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#d97706'; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx - 3, cy + 6); ctx.lineTo(cx + 7, cy + 6);
+      ctx.moveTo(cx - 2, cy + 9); ctx.lineTo(cx + 6, cy + 9);
+      ctx.stroke();
 
-    this.petSprites.bolt = this.petSprites.bolt_t1;
+      // 머리 & 작은 황금 뿔
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath(); ctx.arc(cx + 4, cy - 8, 11, 0, Math.PI * 2); ctx.fill();
+      // 뿔
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.moveTo(cx - 1, cy - 15); ctx.lineTo(cx - 7, cy - 23); ctx.lineTo(cx - 4, cy - 14);
+      ctx.moveTo(cx + 5, cy - 16); ctx.lineTo(cx + 3, cy - 24); ctx.lineTo(cx + 8, cy - 14);
+      ctx.fill();
 
-    // -----------------------------------------------------------------------
-    // [3] 실피드 (Sylph) - 숲과 세계수의 신비로운 요정 성수
-    // -----------------------------------------------------------------------
-    const sylphPalette = {
-      '.': 'transparent',
-      'P': '#f472b6', // 벚꽃 핑크
-      'p': '#fbcfe8', // 연분홍 벚꽃
-      'G': '#16a34a', // 에메랄드 그린
-      'g': '#4ade80', // 밝은 연두빛
-      'W': '#ffffff', // 백색 날개
-      'w': '#f0fdf4', // 맑은 빛
-      'E': '#064e3b', // 맑은 에메랄드 눈
-      'Y': '#facc15'  // 황금 관 / 크리스탈
-    };
+      // 똘망똘망한 호박색 눈동자
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(cx + 9, cy - 8, 4.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#d97706';
+      ctx.beginPath(); ctx.arc(cx + 9, cy - 8, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath(); ctx.arc(cx + 9, cy - 8, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff'; // 하이라이트
+      ctx.beginPath(); ctx.arc(cx + 8, cy - 9.5, 1.2, 0, Math.PI * 2); ctx.fill();
+      // 앙증맞은 콧구멍
+      ctx.fillStyle = '#7f1d1d';
+      ctx.fillRect(cx + 13, cy - 6, 1.5, 1.5);
+    });
 
-    // 1차 (숲의 수호 정령 - 24x24)
-    this.petSprites.sylph_t1 = this.renderPixelGrid(24, 24, [
-      ".........YY.............",
-      "........YYYY............",
-      "....WW.YGggGY..WW.......",
-      "...WWWWGgggggGWWWW......",
-      "...WWWWGgEggEGWWWW......",
-      "....WWWGGggggGGWWW......",
-      ".....WWGGppppGGWW.......",
-      "......WGGppppGGW........",
-      ".....GGGGggggGGGG.......",
-      "....GGGGGGGGGGGGGG......",
-      "...WWGGGGGGGGGG.GG......",
-      "..WWW.GGGGGGGGG..GG.....",
-      "..W...GGG...GGG...PP....",
-      "......GGG...GGG....PP...",
-      "......GGG...GGG.....P...",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], sylphPalette);
+    // 2차: 샐러맨더 화룡 (Salamander Fire Drake) - 72x72
+    // 흑요석/진홍 비늘, 등줄기 불타는 볏, 거대 날개, 맹렬한 화염 꼬리, 예리한 발톱
+    this.petSprites.ignis_t2 = createHdCanvas(72, 72, (ctx, w, h) => {
+      const cx = 34, cy = 38;
 
-    // 2차 (숲의 성수 카벙클/그리폰 - 32x32)
-    this.petSprites.sylph_t2 = this.renderPixelGrid(32, 32, [
-      "...........YYYY.................",
-      "..........YYYYYY................",
-      "....WWWW.YYGggGYY.WWWW..........",
-      "...WWWWWWYGgggggGYWWWWWW........",
-      "...WWWWWWGgEggEGgGWWWWWW........",
-      "....WWWWGGGgggggGGGWWWW.........",
-      ".....WWWGGGppppppGGGWWW.........",
-      "......WWGGGppppppGGGW...........",
-      "......W.GGGGggggGGGG.W..........",
-      ".....GGGGGGGGGGGGGGGG...........",
-      "...GGGGGGGGGGGGGGGGGGGG.........",
-      "..WWGGGGGGGGGGGGGGGG.GGG........",
-      ".WWW.GGGGGGGGGGGGGGG..GGG.......",
-      ".W...GGGGGGGGGGGGGGG...PPP......",
-      ".....GGGG.......GGGG....PPP.....",
-      ".....GGGG.......GGGG.....PP.....",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], sylphPalette);
+      // 강력한 화염 아우라
+      const aura = ctx.createRadialGradient(cx, cy, 10, cx, cy, 34);
+      aura.addColorStop(0, 'rgba(239, 68, 68, 0.45)');
+      aura.addColorStop(0.7, 'rgba(245, 158, 11, 0.2)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
 
-    // 3차 최종 각성 (이그드라실 세라프 - 40x40): 6장의 성스러운 빛의 날개, 황금 헤일로 후광
-    this.petSprites.sylph_t3 = this.renderPixelGrid(40, 40, [
-      ".............YYYYYY.....................",
-      "............YYYYYYYY....................",
-      "...WWWWW...YYYGggGYYY...WWWWW...........",
-      "..WWWWWWW.YYGggggggGYY.WWWWWWW..........",
-      ".WWWWWWWWWYGgEggEEggGYWWWWWWWWW.........",
-      ".WWWWWWWWWWGGggggggGGWWWWWWWWWW.........",
-      "..WWWWWWW.GGGppppppGGG.WWWWWWW..........",
-      "...WWWWW..GGGppppppGGG..WWWWW...........",
-      "....WWW...GGGGggggGGGG...WWW............",
-      ".....W...GGGGGGGGGGGGGG...W.............",
-      "......GGGGGGGGGGGGGGGGGGGG..............",
-      "....GGGGGGGGGGGGGGGGGGGGGGGG............",
-      "...WWGGGGGGGGGGGGGGGGGGGG.GGGG..........",
-      "..WWW.GGGGGGGGGGGGGGGGGGG..GGGG.........",
-      "..W...GGGGGGGGGGGGGGGGGGG...PPPP........",
-      "......GGGGGG........GGGGGG...PPPP.......",
-      "......GGGGGG........GGGGGG....PP........",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................",
-      "........................................"
-    ], sylphPalette);
+      // 거대한 화염 꼬리 & 불타는 화염 폭풍
+      ctx.strokeStyle = '#991b1b'; ctx.lineWidth = 8; ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(cx - 10, cy + 10);
+      ctx.quadraticCurveTo(cx - 26, cy + 12, cx - 28, cy - 8);
+      ctx.stroke();
 
-    this.petSprites.sylph = this.petSprites.sylph_t1;
+      // 소용돌이치는 꼬리 화염
+      ctx.shadowColor = '#ff3300'; ctx.shadowBlur = 12;
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.moveTo(cx - 28, cy - 8);
+      ctx.quadraticCurveTo(cx - 36, cy - 20, cx - 24, cy - 24);
+      ctx.quadraticCurveTo(cx - 18, cy - 14, cx - 28, cy - 8);
+      ctx.fill();
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath(); ctx.arc(cx - 26, cy - 14, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(cx - 25, cy - 15, 2.5, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // 거대 화염 날개 (등 뒤 레이어)
+      ctx.fillStyle = '#7f1d1d';
+      ctx.beginPath();
+      ctx.moveTo(cx - 6, cy - 4);
+      ctx.lineTo(cx - 26, cy - 26); ctx.lineTo(cx - 14, cy - 20);
+      ctx.lineTo(cx - 18, cy - 12); ctx.lineTo(cx - 6, cy - 4);
+      ctx.fill();
+      ctx.fillStyle = '#ea580c'; // 날개 피막
+      ctx.beginPath();
+      ctx.moveTo(cx - 6, cy - 4); ctx.lineTo(cx - 24, cy - 24); ctx.lineTo(cx - 10, cy - 8); ctx.fill();
+
+      // 근육질 파충류 몸통 & 흑요석 가슴판
+      ctx.fillStyle = '#7f1d1d';
+      ctx.beginPath(); ctx.ellipse(cx, cy + 4, 16, 12, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#b91c1c';
+      ctx.beginPath(); ctx.ellipse(cx, cy + 2, 14, 10, 0, 0, Math.PI * 2); ctx.fill();
+
+      // 날카로운 용 발톱 다리
+      ctx.fillStyle = '#450a0a';
+      ctx.fillRect(cx - 12, cy + 12, 8, 10);
+      ctx.fillRect(cx + 6, cy + 12, 8, 10);
+      ctx.fillStyle = '#fef08a'; // 황금 발톱
+      ctx.fillRect(cx - 14, cy + 20, 3, 3); ctx.fillRect(cx - 10, cy + 20, 3, 3);
+      ctx.fillRect(cx + 6, cy + 20, 3, 3); ctx.fillRect(cx + 10, cy + 20, 3, 3);
+
+      // 등줄기 불타는 볏 (Dorsal flame ridges)
+      ctx.fillStyle = '#f97316';
+      for (let i = 0; i < 4; i++) {
+        const rx = cx - 10 + i * 5, ry = cy - 6 + (i % 2) * 2;
+        ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx + 2, ry - 7); ctx.lineTo(rx + 4, ry); ctx.fill();
+      }
+
+      // 사나운 화룡 머리 & 거대한 흑요석/황금 뿔
+      ctx.fillStyle = '#991b1b';
+      ctx.beginPath();
+      ctx.moveTo(cx + 4, cy - 8); ctx.lineTo(cx + 24, cy - 2);
+      ctx.lineTo(cx + 18, cy + 4); ctx.lineTo(cx + 2, cy + 2);
+      ctx.closePath(); ctx.fill();
+      // 거대한 뒤틀린 황금 뿔
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.moveTo(cx + 4, cy - 8);
+      ctx.quadraticCurveTo(cx - 4, cy - 24, cx - 8, cy - 26);
+      ctx.quadraticCurveTo(cx + 2, cy - 18, cx + 8, cy - 8);
+      ctx.fill();
+
+      // 번뜩이는 맹수의 용 눈빛 (골드 & 화이트 광채)
+      ctx.shadowColor = '#fde047'; ctx.shadowBlur = 6;
+      ctx.fillStyle = '#fde047';
+      ctx.fillRect(cx + 10, cy - 5, 5, 2.5);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx + 11, cy - 5, 2, 1.5);
+      ctx.shadowBlur = 0;
+
+      // 입가에서 피어오르는 불꽃
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(cx + 22, cy, 3, 2);
+    });
+
+    // 3차: 진 바하무트 (Bahamut) - 80x88 (신화급 화룡 신수)
+    this.petSprites.ignis_t3 = createHdCanvas(80, 88, (ctx, w, h) => {
+      const cx = 40, cy = 46;
+      const aura = ctx.createRadialGradient(cx, cy, 14, cx, cy, 40);
+      aura.addColorStop(0, 'rgba(239, 68, 68, 0.6)');
+      aura.addColorStop(0.7, 'rgba(245, 158, 11, 0.25)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
+
+      // 거대 드래곤 윙
+      ctx.fillStyle = '#7f1d1d';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 6);
+      ctx.lineTo(cx - 36, cy - 32); ctx.lineTo(cx - 20, cy - 22);
+      ctx.lineTo(cx - 28, cy - 10); ctx.lineTo(cx, cy + 4);
+      ctx.moveTo(cx, cy - 6);
+      ctx.lineTo(cx + 36, cy - 32); ctx.lineTo(cx + 20, cy - 22);
+      ctx.lineTo(cx + 28, cy - 10); ctx.lineTo(cx, cy + 4);
+      ctx.fill();
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.stroke();
+
+      // 전신 흑요석 드래곤 흉갑
+      ctx.fillStyle = '#030712';
+      ctx.beginPath(); ctx.ellipse(cx, cy + 4, 18, 14, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath(); ctx.arc(cx, cy + 4, 6, 0, Math.PI * 2); ctx.fill(); // 용의 심장 코어
+
+      // 다리 & 발톱
+      ctx.fillStyle = '#030712';
+      ctx.fillRect(cx - 14, cy + 14, 9, 14); ctx.fillRect(cx + 5, cy + 14, 9, 14);
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(cx - 16, cy + 26, 4, 4); ctx.fillRect(cx + 12, cy + 26, 4, 4);
+
+      // 바하무트 용두 & 4개의 황금 뿔
+      ctx.fillStyle = '#7f1d1d';
+      ctx.beginPath(); ctx.arc(cx, cy - 14, 13, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.moveTo(cx - 6, cy - 18); ctx.lineTo(cx - 18, cy - 38); ctx.lineTo(cx - 2, cy - 24);
+      ctx.moveTo(cx + 6, cy - 18); ctx.lineTo(cx + 18, cy - 38); ctx.lineTo(cx + 2, cy - 24);
+      ctx.fill();
+      // 안광
+      ctx.shadowColor = '#facc15'; ctx.shadowBlur = 10;
+      ctx.fillStyle = '#fde047'; ctx.fillRect(cx - 7, cy - 14, 14, 3.5);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(cx - 5, cy - 14, 4, 2); ctx.fillRect(cx + 1, cy - 14, 4, 2);
+      ctx.shadowBlur = 0;
+    });
+
+    // =======================================================================
+    // [2] ⚡ 볼트 (Bolt) - 번개 계열
+    // =======================================================================
+
+    // 1차: 어린 뇌수 (Thunder Pup / Spark Beast) - 64x64
+    // 짙은 남색 솜털, 지그재그 번개 귀/꼬리, 뺨의 전기 스파크, 호기심 어린 시안 눈빛
+    this.petSprites.bolt_t1 = createHdCanvas(64, 64, (ctx, w, h) => {
+      const cx = 32, cy = 34;
+
+      // 전기 스파크 후광
+      const aura = ctx.createRadialGradient(cx, cy, 6, cx, cy, 26);
+      aura.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
+
+      // 번개 모양 꼬리 (Zigzag Tail)
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = 4; ctx.lineCap = 'square';
+      ctx.beginPath();
+      ctx.moveTo(cx - 8, cy + 8);
+      ctx.lineTo(cx - 16, cy + 12);
+      ctx.lineTo(cx - 12, cy + 2);
+      ctx.lineTo(cx - 22, cy - 4);
+      ctx.stroke();
+
+      // 어린 늑대 몸통 & 다리 (미드나잇 블루 & 백금 털)
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath(); ctx.ellipse(cx, cy + 6, 12, 9, 0, 0, Math.PI * 2); ctx.fill();
+      // 백금 배털
+      ctx.fillStyle = '#e2e8f0';
+      ctx.beginPath(); ctx.ellipse(cx + 2, cy + 8, 7, 6, 0, 0, Math.PI * 2); ctx.fill();
+      // 다리 & 발
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(cx - 8, cy + 12, 5, 8);
+      ctx.fillRect(cx + 4, cy + 12, 5, 8);
+
+      // 뇌수 머리
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath(); ctx.arc(cx + 4, cy - 8, 11, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#e2e8f0'; // 주둥이
+      ctx.beginPath(); ctx.arc(cx + 12, cy - 6, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#0f172a'; // 코
+      ctx.fillRect(cx + 15, cy - 8, 2, 2);
+
+      // 쫑긋한 번개 모양 귀
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.moveTo(cx - 2, cy - 14); ctx.lineTo(cx - 8, cy - 24); ctx.lineTo(cx + 1, cy - 17);
+      ctx.moveTo(cx + 6, cy - 15); ctx.lineTo(cx + 10, cy - 25); ctx.lineTo(cx + 11, cy - 16);
+      ctx.fill();
+      ctx.fillStyle = '#38bdf8'; // 귀 안쪽 푸른 번개털
+      ctx.fillRect(cx - 5, cy - 20, 2, 5); ctx.fillRect(cx + 8, cy - 21, 2, 5);
+
+      // 맑고 초롱초롱한 시안 눈동자
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(cx + 8, cy - 9, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath(); ctx.arc(cx + 8, cy - 9, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath(); ctx.arc(cx + 8, cy - 9, 1.8, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(cx + 7, cy - 10, 1.2, 0, Math.PI * 2); ctx.fill();
+
+      // 뺨 주변 파직거리는 정전기 스파크
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cx + 16, cy - 10); ctx.lineTo(cx + 20, cy - 8); ctx.lineTo(cx + 18, cy - 5);
+      ctx.moveTo(cx - 10, cy); ctx.lineTo(cx - 14, cy - 4); ctx.lineTo(cx - 11, cy - 7);
+      ctx.stroke();
+    });
+
+    // 2차: 뇌신 펜리르 (Lightning Fenrir / Thunder Wolf) - 72x72
+    // 웅장한 신화 늑대, 곤두선 번개 갈기, 온몸을 휘감는 푸른 번개 아크, 끊어진 황금 족쇄
+    this.petSprites.bolt_t2 = createHdCanvas(72, 72, (ctx, w, h) => {
+      const cx = 34, cy = 38;
+
+      // 뇌신 번개 방전 아우라
+      const aura = ctx.createRadialGradient(cx, cy, 10, cx, cy, 34);
+      aura.addColorStop(0, 'rgba(56, 189, 248, 0.45)');
+      aura.addColorStop(0.7, 'rgba(37, 99, 235, 0.2)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
+
+      // 날카로운 번개 꼬리 (거대 지그재그 블레이드)
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.moveTo(cx - 10, cy + 8);
+      ctx.lineTo(cx - 24, cy + 14); ctx.lineTo(cx - 18, cy + 2);
+      ctx.lineTo(cx - 32, cy - 6); ctx.lineTo(cx - 20, cy - 4);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.stroke();
+
+      // 맹수형 근육질 몸통 (미드나잇 스톰 블루)
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath(); ctx.ellipse(cx, cy + 4, 16, 12, 0, 0, Math.PI * 2); ctx.fill();
+      // 백금빛 흉부 갈기
+      ctx.fillStyle = '#e2e8f0';
+      ctx.beginPath(); ctx.ellipse(cx + 4, cy + 6, 9, 8, 0, 0, Math.PI * 2); ctx.fill();
+
+      // 강철 앞발 & 끊어진 황금 족쇄 (Broken Shackles)
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(cx - 10, cy + 12, 7, 12);
+      ctx.fillRect(cx + 6, cy + 12, 7, 12);
+      // 황금 족쇄 파편
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(cx + 5, cy + 16, 9, 3);
+      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(cx + 14, cy + 17); ctx.lineTo(cx + 18, cy + 22); ctx.stroke(); // 끊어진 사슬
+
+      // 등줄기 곤두선 번개 갈기 (Lightning Crest)
+      ctx.fillStyle = '#38bdf8';
+      for (let i = 0; i < 5; i++) {
+        const sx = cx - 12 + i * 5, sy = cy - 6;
+        ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + 2, sy - 9); ctx.lineTo(sx + 4, sy); ctx.fill();
+      }
+
+      // 사나운 늑대 머리 & 턱선
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath();
+      ctx.moveTo(cx + 4, cy - 8); ctx.lineTo(cx + 22, cy - 2);
+      ctx.lineTo(cx + 16, cy + 6); ctx.lineTo(cx + 2, cy + 4);
+      ctx.closePath(); ctx.fill();
+      // 백금 주둥이 & 날카로운 송곳니
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(cx + 14, cy, 6, 4);
+      ctx.fillStyle = '#ffffff'; // 송곳니
+      ctx.beginPath(); ctx.moveTo(cx + 17, cy + 4); ctx.lineTo(cx + 19, cy + 8); ctx.lineTo(cx + 20, cy + 4); ctx.fill();
+
+      // 날카로운 늑대 귀
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.moveTo(cx + 2, cy - 12); ctx.lineTo(cx - 2, cy - 24); ctx.lineTo(cx + 6, cy - 14);
+      ctx.moveTo(cx + 8, cy - 12); ctx.lineTo(cx + 12, cy - 24); ctx.lineTo(cx + 13, cy - 13);
+      ctx.fill();
+
+      // 번뜩이는 백열광 시안 눈빛
+      ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 8;
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(cx + 10, cy - 5, 5, 2.5);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(cx + 11, cy - 5, 2, 1.5);
+      ctx.shadowBlur = 0;
+
+      // 온몸을 휘감는 푸른 번개 아크
+      ctx.strokeStyle = '#22d3ee'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 14, cy - 4); ctx.lineTo(cx - 8, cy - 12); ctx.lineTo(cx - 2, cy - 7);
+      ctx.moveTo(cx + 20, cy - 8); ctx.lineTo(cx + 26, cy - 4); ctx.lineTo(cx + 22, cy + 2);
+      ctx.stroke();
+    });
+
+    // 3차: 뇌제 제우스 (Zeus) - 80x88 (신화급 뇌제 천둥수)
+    this.petSprites.bolt_t3 = createHdCanvas(80, 88, (ctx, w, h) => {
+      const cx = 40, cy = 46;
+      const aura = ctx.createRadialGradient(cx, cy, 14, cx, cy, 40);
+      aura.addColorStop(0, 'rgba(56, 189, 248, 0.6)');
+      aura.addColorStop(0.7, 'rgba(250, 204, 21, 0.25)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
+
+      // 천둥 날개
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 6); ctx.lineTo(cx - 36, cy - 28); ctx.lineTo(cx - 24, cy - 8);
+      ctx.moveTo(cx, cy - 6); ctx.lineTo(cx + 36, cy - 28); ctx.lineTo(cx + 24, cy - 8);
+      ctx.fill();
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2.5; ctx.stroke();
+
+      // 전신 뇌제 아머
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath(); ctx.ellipse(cx, cy + 4, 18, 14, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath(); ctx.arc(cx, cy + 4, 6, 0, Math.PI * 2); ctx.fill(); // 번개 코어
+
+      // 다리 & 발톱
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(cx - 14, cy + 14, 9, 14); ctx.fillRect(cx + 5, cy + 14, 9, 14);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(cx - 16, cy + 26, 4, 4); ctx.fillRect(cx + 12, cy + 26, 4, 4);
+
+      // 뇌제 머리 & 황금 번개 뿔
+      ctx.fillStyle = '#1e293b';
+      ctx.beginPath(); ctx.arc(cx, cy - 14, 13, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.moveTo(cx - 6, cy - 18); ctx.lineTo(cx - 20, cy - 36); ctx.lineTo(cx - 14, cy - 22);
+      ctx.moveTo(cx + 6, cy - 18); ctx.lineTo(cx + 20, cy - 36); ctx.lineTo(cx + 14, cy - 22);
+      ctx.fill();
+      // 안광
+      ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 10;
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(cx - 7, cy - 14, 14, 3.5);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(cx - 5, cy - 14, 4, 2); ctx.fillRect(cx + 1, cy - 14, 4, 2);
+      ctx.shadowBlur = 0;
+    });
+
+    // =======================================================================
+    // [3] 🍃 실피드 (Sylph) - 대지 & 바람 계열
+    // =======================================================================
+
+    // 1차: 숲의 정령 (Forest Sylph / Wind Fairy) - 64x64
+    // 부유하는 요정 소녀, 반투명 에메랄드 날개, 잎사귀 드레스, 꽃 리스, 민들레 홀씨 광채
+    this.petSprites.sylph_t1 = createHdCanvas(64, 64, (ctx, w, h) => {
+      const cx = 32, cy = 32;
+
+      // 부드러운 바람의 요정 아우라
+      const aura = ctx.createRadialGradient(cx, cy, 6, cx, cy, 26);
+      aura.addColorStop(0, 'rgba(74, 222, 128, 0.4)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
+
+      // 영롱한 반투명 나비/요정 날개 (좌/우)
+      ctx.fillStyle = 'rgba(167, 243, 208, 0.65)';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 4);
+      ctx.quadraticCurveTo(cx - 24, cy - 22, cx - 22, cy - 4);
+      ctx.quadraticCurveTo(cx - 18, cy + 10, cx, cy + 2);
+      ctx.moveTo(cx, cy - 4);
+      ctx.quadraticCurveTo(cx + 24, cy - 22, cx + 22, cy - 4);
+      ctx.quadraticCurveTo(cx + 18, cy + 10, cx, cy + 2);
+      ctx.fill();
+      ctx.strokeStyle = '#6ee7b7'; ctx.lineWidth = 1.2; ctx.stroke();
+
+      // 요정 몸체 & 잎사귀 꽃잎 드레스
+      ctx.fillStyle = '#fed7aa'; // 팔 & 목
+      ctx.fillRect(cx - 2, cy - 4, 4, 6);
+      ctx.fillRect(cx - 7, cy, 3, 8); ctx.fillRect(cx + 4, cy, 3, 8);
+
+      // 에메랄드 잎사귀 드레스
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.moveTo(cx - 5, cy); ctx.lineTo(cx + 5, cy);
+      ctx.lineTo(cx + 9, cy + 16); ctx.lineTo(cx - 9, cy + 16);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#34d399'; // 드레스 그라데이션 주름
+      ctx.fillRect(cx - 4, cy + 4, 8, 11);
+
+      // 다리 & 발끝 포인 (공중 부유 자세)
+      ctx.fillStyle = '#fed7aa';
+      ctx.fillRect(cx - 3, cy + 16, 2.5, 9);
+      ctx.fillRect(cx + 1, cy + 16, 2.5, 9);
+
+      // 요정 얼굴 & 흩날리는 연녹색 머릿결
+      ctx.fillStyle = '#fed7aa';
+      ctx.beginPath(); ctx.arc(cx, cy - 10, 7.5, 0, Math.PI * 2); ctx.fill();
+      // 머리카락
+      ctx.fillStyle = '#059669';
+      ctx.beginPath();
+      ctx.arc(cx, cy - 11, 8.5, Math.PI * 0.8, Math.PI * 2.2); ctx.fill();
+      ctx.fillRect(cx - 9, cy - 10, 3, 10); ctx.fillRect(cx + 6, cy - 10, 3, 10);
+
+      // 머리의 꽃 & 덩굴 리스 (화관)
+      ctx.fillStyle = '#4ade80'; ctx.fillRect(cx - 8, cy - 16, 16, 2.5);
+      ctx.fillStyle = '#f43f5e'; // 분홍 꽃
+      ctx.beginPath(); ctx.arc(cx - 4, cy - 16, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#facc15'; // 노란 꽃
+      ctx.beginPath(); ctx.arc(cx + 4, cy - 16, 2, 0, Math.PI * 2); ctx.fill();
+
+      // 크고 맑은 에메랄드 눈동자
+      ctx.fillStyle = '#047857';
+      ctx.beginPath(); ctx.arc(cx - 3, cy - 10, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx + 3, cy - 10, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff'; // 눈동자 반짝임
+      ctx.beginPath(); ctx.arc(cx - 3.5, cy - 10.5, 0.8, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx + 2.5, cy - 10.5, 0.8, 0, Math.PI * 2); ctx.fill();
+
+      // 손끝에 맴도는 민들레 홀씨 & 반짝이는 꽃가루 입자
+      ctx.shadowColor = '#34d399'; ctx.shadowBlur = 6;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(cx - 10, cy + 2, 1.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx + 11, cy + 3, 1.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx - 14, cy - 6, 1.2, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+
+    // 2차: 성수 그리폰 (Sacred Griffin / Wind Beast) - 72x72
+    // 독수리 머리 + 사자 몸통, 황금 갈고리 부리, 맹금 발톱, 거대 백은 날개, 돌풍 깃털 파티클
+    this.petSprites.sylph_t2 = createHdCanvas(72, 72, (ctx, w, h) => {
+      const cx = 34, cy = 38;
+
+      // 성스러운 돌풍 아우라
+      const aura = ctx.createRadialGradient(cx, cy, 10, cx, cy, 34);
+      aura.addColorStop(0, 'rgba(74, 222, 128, 0.45)');
+      aura.addColorStop(0.7, 'rgba(250, 204, 21, 0.2)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
+
+      // 사자 꼬리 (금빛 털 붓)
+      ctx.strokeStyle = '#d97706'; ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(cx - 10, cy + 8);
+      ctx.quadraticCurveTo(cx - 24, cy + 12, cx - 22, cy - 2);
+      ctx.stroke();
+      ctx.fillStyle = '#b45309';
+      ctx.beginPath(); ctx.arc(cx - 22, cy - 4, 4.5, 0, Math.PI * 2); ctx.fill();
+
+      // 거대 백은&황금 그리폰 깃털 날개
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(cx - 6, cy - 6);
+      ctx.quadraticCurveTo(cx - 28, cy - 28, cx - 24, cy - 10);
+      ctx.lineTo(cx - 12, cy - 2);
+      ctx.fill();
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = 1.5; ctx.stroke();
+
+      // 탄탄한 사자 몸통 (황금빛 가죽)
+      ctx.fillStyle = '#d97706';
+      ctx.beginPath(); ctx.ellipse(cx, cy + 4, 15, 11, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fde047';
+      ctx.beginPath(); ctx.ellipse(cx, cy + 6, 12, 8, 0, 0, Math.PI * 2); ctx.fill();
+
+      // 앞다리: 맹금류 독수리 발톱 / 뒷다리: 사자 발
+      ctx.fillStyle = '#facc15'; // 앞다리 독수리 발톱
+      ctx.fillRect(cx + 6, cy + 12, 6, 11);
+      ctx.fillStyle = '#1c1917';
+      ctx.fillRect(cx + 4, cy + 21, 3, 3); ctx.fillRect(cx + 9, cy + 21, 3, 3);
+      ctx.fillStyle = '#b45309'; // 뒷다리 사자 발
+      ctx.fillRect(cx - 10, cy + 12, 7, 10);
+
+      // 독수리 흉부 백은 깃털 갈기
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(cx - 2, cy - 8); ctx.lineTo(cx + 12, cy - 4);
+      ctx.lineTo(cx + 8, cy + 10); ctx.lineTo(cx - 6, cy + 6);
+      ctx.closePath(); ctx.fill();
+
+      // 독수리 머리 & 기품 있는 볏깃
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(cx + 8, cy - 10, 10, 0, Math.PI * 2); ctx.fill();
+      // 머리 뒤 깃털 볏
+      ctx.fillStyle = '#4ade80';
+      ctx.beginPath();
+      ctx.moveTo(cx + 2, cy - 16); ctx.lineTo(cx - 6, cy - 24); ctx.lineTo(cx + 6, cy - 18);
+      ctx.fill();
+
+      // 날카로운 황금빛 갈고리 부리
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.moveTo(cx + 15, cy - 12);
+      ctx.lineTo(cx + 25, cy - 8);
+      ctx.lineTo(cx + 22, cy - 3);
+      ctx.lineTo(cx + 15, cy - 6);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#b45309'; // 부리 끝 곡선
+      ctx.beginPath(); ctx.arc(cx + 24, cy - 5, 2, 0, Math.PI * 2); ctx.fill();
+
+      // 위엄 있는 맹금의 황금 눈빛
+      ctx.fillStyle = '#fde047';
+      ctx.beginPath(); ctx.arc(cx + 11, cy - 11, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath(); ctx.arc(cx + 11, cy - 11, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(cx + 10.5, cy - 12, 1, 0, Math.PI * 2); ctx.fill();
+
+      // 날갯짓에서 일어나는 회오리 돌풍 파티클
+      ctx.shadowColor = '#4ade80'; ctx.shadowBlur = 6;
+      ctx.strokeStyle = '#6ee7b7'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(cx - 18, cy + 14, 5, 0, Math.PI * 1.5);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    });
+
+    // 3차: 이그드라실 세라프 (Seraph) - 80x88 (신화급 천상 세라프)
+    this.petSprites.sylph_t3 = createHdCanvas(80, 88, (ctx, w, h) => {
+      const cx = 40, cy = 46;
+      const aura = ctx.createRadialGradient(cx, cy, 14, cx, cy, 40);
+      aura.addColorStop(0, 'rgba(74, 222, 128, 0.6)');
+      aura.addColorStop(0.7, 'rgba(250, 204, 21, 0.25)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
+
+      // 6장의 천사 날개 (세라프)
+      ctx.fillStyle = '#ffffff';
+      const drawWing = (x1, y1, x2, y2, x3, y3) => {
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 1.5; ctx.stroke();
+      };
+      drawWing(cx, cy - 10, cx - 36, cy - 36, cx - 18, cy - 14);
+      drawWing(cx, cy - 10, cx + 36, cy - 36, cx + 18, cy - 14);
+      drawWing(cx, cy, cx - 38, cy, cx - 18, cy + 12);
+      drawWing(cx, cy, cx + 38, cy, cx + 18, cy + 12);
+
+      // 순백의 세라프 몸체 & 에메랄드 신성 로브
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.ellipse(cx, cy + 6, 12, 18, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#10b981';
+      ctx.fillRect(cx - 8, cy + 6, 16, 18);
+
+      // 천사 성관 (엔젤 링)
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.ellipse(cx, cy - 28, 12, 4, 0, 0, Math.PI * 2); ctx.stroke();
+
+      // 성스러운 요정 얼굴
+      ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(cx, cy - 14, 9, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowColor = '#4ade80'; ctx.shadowBlur = 8;
+      ctx.fillStyle = '#34d399'; ctx.fillRect(cx - 5, cy - 14, 10, 3);
+      ctx.shadowBlur = 0;
+    });
   }
 
   // =========================================================================
@@ -2470,7 +2729,7 @@ class SpriteManager {
     ctx.save();
     ctx.translate(pet.x, pet.y + bob);
     if (pet.facing === -1) ctx.scale(-1, 1);
-    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = true;
 
     // [Tier 3 각성] 등 뒤에 회전하는 신성한 마법진 휠
     if (tier >= 3) {
@@ -2496,8 +2755,9 @@ class SpriteManager {
     ctx.shadowBlur = tier >= 3 ? 28 : (tier === 2 ? 18 : 12);
     ctx.shadowColor = pet.config.color || '#f59e0b';
 
-    const w = sprite.width * tierScale * 1.35;
-    const h = sprite.height * tierScale * 1.35;
+    const baseSize = tier >= 3 ? 64 : (tier === 2 ? 52 : 42);
+    const w = baseSize * tierScale;
+    const h = baseSize * tierScale;
     ctx.drawImage(sprite, -w / 2, -h / 2, w, h);
 
     ctx.restore();
