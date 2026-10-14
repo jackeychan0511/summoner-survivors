@@ -120,25 +120,39 @@ class GameRenderer {
     const startY = Math.floor((player.y - this.canvas.height / 2) / tileSize) * tileSize;
     const endY = startY + this.canvas.height + tileSize * 2;
 
-    for (let x = startX; x < endX; x += tileSize) {
-      for (let y = startY; y < endY; y += tileSize) {
-        // Outside World Boundary: Void Space
-        if (x < 0 || x >= worldW || y < 0 || y >= worldH) {
-          ctx.fillStyle = '#05070e';
+    if (typeof spriteManager !== 'undefined' && spriteManager.usePixelArt && spriteManager.isLoaded && spriteManager.grassPattern) {
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      ctx.fillStyle = spriteManager.grassPattern;
+      const rx = Math.max(0, startX);
+      const ry = Math.max(0, startY);
+      const rw = Math.min(worldW - rx, endX - rx);
+      const rh = Math.min(worldH - ry, endY - ry);
+      if (rw > 0 && rh > 0) {
+        ctx.fillRect(rx, ry, rw, rh);
+      }
+      ctx.restore();
+    } else {
+      for (let x = startX; x < endX; x += tileSize) {
+        for (let y = startY; y < endY; y += tileSize) {
+          // Outside World Boundary: Void Space
+          if (x < 0 || x >= worldW || y < 0 || y >= worldH) {
+            ctx.fillStyle = '#05070e';
+            ctx.fillRect(x, y, tileSize, tileSize);
+            continue;
+          }
+
+          const hash = (Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1;
+          ctx.fillStyle = Math.abs(hash) > 0.5 ? '#0c101d' : '#0f1424';
           ctx.fillRect(x, y, tileSize, tileSize);
-          continue;
-        }
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x, y, tileSize, tileSize);
 
-        const hash = (Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1;
-        ctx.fillStyle = Math.abs(hash) > 0.5 ? '#0c101d' : '#0f1424';
-        ctx.fillRect(x, y, tileSize, tileSize);
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(x, y, tileSize, tileSize);
-
-        if (Math.abs(hash) > 0.88) {
-          ctx.strokeStyle = 'rgba(168, 85, 247, 0.2)';
-          ctx.strokeRect(x + 16, y + 16, 32, 32);
+          if (Math.abs(hash) > 0.88) {
+            ctx.strokeStyle = 'rgba(168, 85, 247, 0.2)';
+            ctx.strokeRect(x + 16, y + 16, 32, 32);
+          }
         }
       }
     }
@@ -386,6 +400,9 @@ class GameRenderer {
 
   // Golden Equipment Chest
   renderChest(c, time) {
+    if (typeof spriteManager !== 'undefined' && spriteManager.renderChest(this.ctx, c, time)) {
+      return;
+    }
     const ctx = this.ctx;
     const bob = Math.sin(time * 6) * 3;
     ctx.save();
@@ -436,6 +453,9 @@ class GameRenderer {
   }
 
   renderTamer(p, nameLabel = '🧙 테이머', robeAccent = '#818cf8') {
+    if (typeof spriteManager !== 'undefined' && spriteManager.renderTamer(this.ctx, p, nameLabel)) {
+      return;
+    }
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(p.x, p.y);
@@ -513,6 +533,9 @@ class GameRenderer {
   }
 
   renderPet(pet, time) {
+    if (typeof spriteManager !== 'undefined' && spriteManager.renderPet(this.ctx, pet, time)) {
+      return;
+    }
     const ctx = this.ctx;
     const cfg = pet.config || {};
     const tier = pet.tier || 1;
@@ -640,6 +663,9 @@ class GameRenderer {
   }
 
   renderEnemy(e, time) {
+    if (typeof spriteManager !== 'undefined' && spriteManager.renderEnemy(this.ctx, e, time)) {
+      return;
+    }
     const ctx = this.ctx;
     ctx.save();
     ctx.translate(e.x, e.y);
@@ -1182,6 +1208,9 @@ class GameRenderer {
   }
 
   renderGem(g) {
+    if (typeof spriteManager !== 'undefined' && spriteManager.renderGem(this.ctx, g)) {
+      return;
+    }
     const ctx = this.ctx;
     ctx.save();
     ctx.shadowBlur = 10;
