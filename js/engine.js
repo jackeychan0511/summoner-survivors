@@ -498,6 +498,21 @@ class GameEngine {
     return true;
   }
 
+  // 👁️ 두 지점 사이 직선 통행 가능 여부(물이나 산맥 등 가로막힘 없음) 검사
+  hasLineOfSight(x1, y1, x2, y2, stepSize = 32) {
+    const dist = Math.hypot(x2 - x1, y2 - y1);
+    if (dist <= stepSize) return true;
+    const steps = Math.min(16, Math.max(2, Math.floor(dist / stepSize)));
+    const dx = (x2 - x1) / steps;
+    const dy = (y2 - y1) / steps;
+    for (let i = 1; i < steps; i++) {
+      if (!this.isPassable(x1 + dx * i, y1 + dy * i, 12)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   // 👑 3대 직업군 (소환사 / 검사 / 궁수) 및 9대 세부 특화 시작
   start(classOrPetId = 'summoner', subclassId = 'ignis', combatStyle = 'ranged') {
     this.audio.init();
@@ -949,18 +964,34 @@ class GameEngine {
       // 이동 의도가 있으나 실제로 거의 전진하지 못하는 경우
       if ((dx !== 0 || dy !== 0) && movedDist < 0.35) {
         this.autoStuckTimer = (this.autoStuckTimer || 0) + dt;
-        if (this.autoStuckTimer > 0.3) {
-          // 전방이 막혀 있으므로 탈출각(±90도 또는 대각)으로 강제 우회 기동
-          const curFacing = Math.atan2(dy, dx);
-          const detourTurn = (Math.random() < 0.5 ? 1 : -1) * (Math.PI * 0.55);
-          this.autoDetourAngle = curFacing + detourTurn;
+        if (this.autoStuckTimer > 0.25) {
+          // 전방이 막혀 있으므로 주변 8방향 중 완전히 뚫려 있는 안전한 육지 각도로 탈출 기동
+          let bestEscapeAngle = Math.random() * Math.PI * 2;
+          let maxPassableDist = 0;
+          for (let a = 0; a < 8; a++) {
+            const testAng = a * (Math.PI / 4);
+            let freeSteps = 0;
+            for (let step = 20; step <= 80; step += 20) {
+              if (this.isPassable(this.player.x + Math.cos(testAng) * step, this.player.y + Math.sin(testAng) * step, 14)) {
+                freeSteps++;
+              } else {
+                break;
+              }
+            }
+            if (freeSteps > maxPassableDist) {
+              maxPassableDist = freeSteps;
+              bestEscapeAngle = testAng;
+            }
+          }
+
+          this.autoDetourAngle = bestEscapeAngle;
           this.autoDetourTimer = 1.2; // 1.2초간 탈출 기동 지속
           this.autoStuckTimer = 0;
 
-          // 보물상자를 먹으려다 막힌 경우 해당 상자를 10초간 무시(블랙리스트)하여 다른 곳으로 유도
+          // 보물상자를 먹으려다 막힌 경우 해당 상자를 15초간 무시(블랙리스트)하여 다른 곳으로 유도
           if (this.currentTargetChest) {
             if (!this.unreachableChests) this.unreachableChests = new Map();
-            this.unreachableChests.set(this.currentTargetChest, this.gameTime + 10);
+            this.unreachableChests.set(this.currentTargetChest, this.gameTime + 15);
             this.currentTargetChest = null;
           }
         }
@@ -2819,12 +2850,14 @@ class GameEngine {
         bot.facing = nearestEnemy.x >= bot.x ? 1 : -1;
       }
 
-      // 봇이 강이나 산에 가로막혀 플레이어와 420px 이상 벌어졌을 때 플레이어 근처의 안전한 육지로 즉각 소환
+      // 봇이 호수나 산맥에 가로막혀 플레이어와 시야/이동선이 끊겼거나 거리가 130px 이상 벌어졌을 때 안전 육지로 즉시 재집결
       const distToPlayer = Math.hypot(this.player.x - bot.x, this.player.y - bot.y);
-      if (distToPlayer > 420) {
-        for (let rad = 50; rad <= 140; rad += 30) {
-          const testX = this.player.x + (idx === 0 ? -1 : 1) * rad;
-          const testY = this.player.y + (idx === 0 ? 1 : -1) * rad;
+      const isPathOpen = this.hasLineOfSight(bot.x, bot.y, this.player.x, this.player.y, 35);
+      if (distToPlayer > 350 || (!isPathOpen && distToPlayer > 130)) {
+        for (let rad = 45; rad <= 120; rad += 25) {
+          const angle = (idx * Math.PI * 0.6) + Math.random() * 0.4;
+          const testX = this.player.x + Math.cos(angle) * rad;
+          const testY = this.player.y + Math.sin(angle) * rad;
           if (this.isPassable(testX, testY, 14)) {
             bot.x = testX;
             bot.y = testY;
@@ -3063,7 +3096,7 @@ class GameEngine {
     let vx = 0;
     let vy = 0;
 
-    // 1. Repulsion from close enemies (Evade / Kiting)
+    // 1. 근접 적 회피 및 카이팅 (Repulsion from close enemies)
     this.enemies.forEach(e => {
       const d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
       if (d < 170 && d > 0.001) {
@@ -3073,6 +3106,21 @@ class GameEngine {
       }
     });
 
+    // 2. 🌊/⛰️ 지형 장애물(물, 산맥) 능동 척력 필드 (Obstacle Repulsion Field)
+    // 캐릭터가 물이나 산맥 42px 이내에 접근하면 반대 방향으로 부드럽게 밀어내어 가장자리 끼임 원천 차단
+    const probeR = 42;
+    const probeDirs = [
+      { x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 },
+      { x: 0.707, y: 0.707 }, { x: -0.707, y: 0.707 }, { x: 0.707, y: -0.707 }, { x: -0.707, y: -0.707 }
+    ];
+    for (let i = 0; i < probeDirs.length; i++) {
+      const pd = probeDirs[i];
+      if (!this.isPassable(this.player.x + pd.x * probeR, this.player.y + pd.y * probeR, 12)) {
+        vx -= pd.x * 2.8;
+        vy -= pd.y * 2.8;
+      }
+    }
+
     // Clean up expired unreachable chests
     if (!this.unreachableChests) this.unreachableChests = new Map();
     for (const [chest, expireTime] of this.unreachableChests.entries()) {
@@ -3081,17 +3129,17 @@ class GameEngine {
       }
     }
 
-    // 2. Attraction towards closest reachable Chest or Exp Gem
+    // 3. 목표물 탐색 (반드시 물/산맥을 건너지 않고 직접 걸어갈 수 있는 직선 시야 확보 대상만 타겟팅!)
     let target = null;
     let minD = Infinity;
 
-    // Check chests first (only if reachable and within reasonable radar)
+    // [3-1] 보물상자 우선 (물 건너편에 있는 상자는 무시하여 갇힘 방지)
     if (this.chests && this.chests.length > 0) {
       for (let i = 0; i < this.chests.length; i++) {
         const c = this.chests[i];
         if (this.unreachableChests.has(c)) continue;
         const d = Math.hypot(c.x - this.player.x, c.y - this.player.y);
-        if (d < 1200 && d < minD) {
+        if (d < 1200 && d < minD && this.hasLineOfSight(this.player.x, this.player.y, c.x, c.y, 32)) {
           minD = d;
           target = c;
           this.currentTargetChest = c;
@@ -3099,24 +3147,28 @@ class GameEngine {
       }
     }
 
-    // If no reachable chest nearby, target nearest exp gem
+    // [3-2] 경험치 보석 탐색 (호수 건너편 보석은 타겟팅하지 않고 내 육지 쪽 보석만 획득!)
     if (!target && this.gems.length > 0) {
       this.currentTargetChest = null;
-      for (let i = 0; i < Math.min(this.gems.length, 30); i++) {
+      for (let i = 0; i < Math.min(this.gems.length, 50); i++) {
         const g = this.gems[i];
         const d = Math.hypot(g.x - this.player.x, g.y - this.player.y);
-        if (d < minD) { minD = d; target = g; }
+        if (d < minD && this.hasLineOfSight(this.player.x, this.player.y, g.x, g.y, 28)) {
+          minD = d;
+          target = g;
+        }
       }
     }
 
-    // If no gems or chests nearby, move towards nearest enemy (for attack) or roam
+    // [3-3] 보석이나 상자가 시야 내에 없으면, 직선 이동 가능한 적 사냥으로 전진
     if (!target) {
-      const nearestEnemy = this.getNearestEnemy(this.player.x, this.player.y);
-      if (nearestEnemy) {
-        const ed = Math.hypot(nearestEnemy.x - this.player.x, nearestEnemy.y - this.player.y);
-        if (ed > 160) {
-          vx += ((nearestEnemy.x - this.player.x) / ed) * 1.0;
-          vy += ((nearestEnemy.y - this.player.y) / ed) * 1.0;
+      for (let i = 0; i < Math.min(this.enemies.length, 25); i++) {
+        const e = this.enemies[i];
+        const ed = Math.hypot(e.x - this.player.x, e.y - this.player.y);
+        if (ed > 160 && ed < 550 && this.hasLineOfSight(this.player.x, this.player.y, e.x, e.y, 32)) {
+          vx += ((e.x - this.player.x) / ed) * 1.3;
+          vy += ((e.y - this.player.y) / ed) * 1.3;
+          break;
         }
       }
     }
@@ -3129,13 +3181,13 @@ class GameEngine {
       }
     }
 
-    // 탈출(Detour) 우회 기동 오버드라이브 적용
+    // 4. 탈출(Detour) 우회 기동 절대 우선권 적용 (다른 힘 무시하고 탈출로로 전력 질주)
     if (this.autoDetourTimer > 0) {
-      vx += Math.cos(this.autoDetourAngle) * 3.5;
-      vy += Math.sin(this.autoDetourAngle) * 3.5;
+      vx = Math.cos(this.autoDetourAngle) * 4.5;
+      vy = Math.sin(this.autoDetourAngle) * 4.5;
     }
 
-    // 3. 🧭 지형 레이캐스트 장애물 감지 및 접선 우회 (Smart Obstacle Tangent Steering)
+    // 5. 🧭 전방 지형 레이캐스트 장애물 감지 및 접선 우회 (Smart Obstacle Tangent Steering)
     const mag = Math.hypot(vx, vy);
     if (mag > 0.05) {
       let normVx = vx / mag;

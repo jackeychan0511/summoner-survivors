@@ -1415,13 +1415,13 @@ const GAME_DATA = {
         return 'grass';
       }
 
-      // 3. 필드 자연 지형 (독립적인 호수, 산봉우리, 숲 노이즈로 막힘 없는 시원한 모험로 구성)
+      // 3. 필드 자연 지형 (독립적인 아담한 호수, 산봉우리, 숲 노이즈로 막힘 없는 시원한 모험로 구성)
       const lakeNoise = Math.sin(gx * 0.13 - gy * 0.15) * 1.3 + Math.cos(gx * 0.17 + gy * 0.11) * 1.2;
       const peakNoise = Math.cos(gx * 0.15 + gy * 0.16) * 1.3 + Math.sin(gx * 0.11 - gy * 0.18) * 1.2;
       const woodlandNoise = Math.sin(gx * 0.14 + gy * 0.19) * 1.2 + Math.cos(gx * 0.21 - gy * 0.13);
 
-      if (lakeNoise < -2.15) return 'water';       // 독립된 운치 있는 호수 (사방으로 우회 가능)
-      if (peakNoise > 2.15) return 'mountain';     // 우뚝 솟은 바위산 봉우리 (독립적 랜드마크)
+      if (lakeNoise < -2.32) return 'water';       // 아담한 독립 호수 (사방으로 매우 쉽게 우회 가능)
+      if (peakNoise > 2.32) return 'mountain';     // 아담한 바위산 바위군 (독립적 랜드마크)
       if (woodlandNoise > 1.6) return 'forest';    // 상록수 숲
       if (Math.abs(lakeNoise) < 0.08) return 'sand'; // 자연 흙길/오솔길
 
