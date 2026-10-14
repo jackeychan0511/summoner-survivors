@@ -508,6 +508,46 @@
       color: #fff;
       box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
     }
+
+    /* 3대 직업 선택 메인 탭 */
+    .hero-class-tab {
+      flex: 1;
+      background: #1e293b;
+      border: 2px solid #475569;
+      color: #94a3b8;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .hero-class-tab:hover {
+      background: #334155;
+      color: #fff;
+    }
+    .hero-class-tab.active-summoner {
+      background: linear-gradient(135deg, #4338ca 0%, #312e81 100%);
+      border-color: #818cf8;
+      color: #fff;
+      box-shadow: 0 0 18px rgba(129, 140, 248, 0.45);
+    }
+    .hero-class-tab.active-warrior {
+      background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+      border-color: #ef4444;
+      color: #fff;
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.45);
+    }
+    .hero-class-tab.active-archer {
+      background: linear-gradient(135deg, #047857 0%, #064e3b 100%);
+      border-color: #10b981;
+      color: #fff;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.45);
+    }
   </style>
 </head>
 <body>
@@ -528,7 +568,7 @@
       <button id="btn-ai-team" class="btn" style="background:#7c3aed; border-color:#a78bfa;" onclick="engine.toggleAiTeammates()">🤖 AI 3인 파티: ON</button>
       <button id="btn-auto-play" class="btn" style="background:#1e293b; border-color:#475569;" onclick="engine.toggleAutoPlay()">⚡ 오토 플레이: OFF</button>
       <button class="btn" style="background:#0284c7; border-color:#38bdf8;" onclick="openMultiplayModal()">👨‍👧‍👦 4인 멀티</button>
-      <button class="btn" onclick="openPetSelectModal()">🐾 펫 변경</button>
+      <button class="btn" style="background:#d97706; border-color:#f59e0b; color:#fff;" onclick="openPetSelectModal()">👑 영웅/직업 선택</button>
       <button class="btn" style="background:#334155; border-color:#64748b;" onclick="openSettingsModal()">⚙️ 설정</button>
       <button id="btn-sound" class="btn" onclick="engine.audio.init(); toggleSound()">🔊 사운드 ON</button>
     </div>
@@ -996,12 +1036,26 @@
     </div>
   </div>
 
-  <!-- 1. Initial Pet Selection Modal -->
+  <!-- 1. Initial Hero & Class Selection Modal -->
   <div id="pet-select-modal" class="modal-overlay">
-    <div class="modal-box" style="max-width: 620px;">
+    <div class="modal-box" style="max-width: 660px;">
       <button class="modal-back-btn" onclick="backToTitleFromPetSelect()">← 메인 메뉴</button>
-      <div class="modal-title" style="margin-top:10px;">🐾 소환수 선택 🐾</div>
-      <div class="modal-sub">함께 싸울 영웅 소환수를 선택하세요. [상세보기]를 눌러 전직 트리와 조합법을 확인할 수 있습니다.</div>
+      <div class="modal-title" style="margin-top:10px;">👑 영웅 직업 & 세부 특화 선택 👑</div>
+      <div class="modal-sub">3대 직업군과 고유 특색을 지닌 9종의 세부 특화 중 하나를 선택하여 출격하세요!</div>
+      
+      <!-- 3대 직업 선택 상단 탭 -->
+      <div style="display:flex; gap:8px; margin: 14px 0 10px 0;">
+        <button id="hero-tab-summoner" class="hero-class-tab active-summoner" onclick="switchHeroClassTab('summoner')">
+          🧙 소환사 (Summoner)
+        </button>
+        <button id="hero-tab-warrior" class="hero-class-tab" onclick="switchHeroClassTab('warrior')">
+          ⚔️ 검사 (Swordsman)
+        </button>
+        <button id="hero-tab-archer" class="hero-class-tab" onclick="switchHeroClassTab('archer')">
+          🏹 궁수 (Archer)
+        </button>
+      </div>
+
       <div class="cards-grid" id="pet-cards-container"></div>
     </div>
   </div>
@@ -1120,11 +1174,11 @@
 
   <!-- Load Modules -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="js/data.js?v=20261014_1508"></script>
-  <script src="js/sprites.js?v=20261014_1508"></script>
-  <script src="js/render.js?v=20261014_1508"></script>
-  <script src="js/engine.js?v=20261014_1508"></script>
-  <script src="js/network.js?v=20261014_1508"></script>
+  <script src="js/data.js?v=20261014_1525"></script>
+  <script src="js/sprites.js?v=20261014_1525"></script>
+  <script src="js/render.js?v=20261014_1525"></script>
+  <script src="js/engine.js?v=20261014_1525"></script>
+  <script src="js/network.js?v=20261014_1525"></script>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -1191,136 +1245,116 @@
       networkManager.updateStatusBadge('🌐 솔로 모드');
     }
 
-    /* 2. Hero Pet Select Flow & Detail View (근거리 vs 원거리 분기 지원) */
-    let currentDetailPetId = null;
-    let currentDetailStyle = 'melee';
-    window.selectedPetStyles = window.selectedPetStyles || {
-      ignis: 'melee',
-      bolt: 'melee',
-      sylph: 'melee'
-    };
+    /* 2. Hero & Subclass Select Flow (3대 직업군 x 3대 세부 특화 = 총 9종 영웅 빌드) */
+    window.currentHeroClass = 'summoner';
+    let currentDetailClassId = 'summoner';
+    let currentDetailSubclassId = 'ignis';
 
-    function setPetStyle(petId, style) {
-      window.selectedPetStyles[petId] = style;
-      openPetSelectModal();
+    function switchHeroClassTab(classId) {
+      window.currentHeroClass = classId;
+      const tabs = ['summoner', 'warrior', 'archer'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`hero-tab-${t}`);
+        if (btn) {
+          btn.className = (t === classId) ? `hero-class-tab active-${t}` : 'hero-class-tab';
+        }
+      });
+      renderHeroSelectCards();
     }
 
     function openPetSelectModal() {
       if (engine) engine.isPaused = true;
       const modal = document.getElementById('pet-select-modal');
+      switchHeroClassTab(window.currentHeroClass || 'summoner');
+      modal.style.display = 'flex';
+    }
+
+    function renderHeroSelectCards() {
       const container = document.getElementById('pet-cards-container');
+      if (!container) return;
       container.innerHTML = '';
 
-      Object.keys(GAME_DATA.pets).forEach(petId => {
-        const p = GAME_DATA.pets[petId];
-        const curStyle = window.selectedPetStyles[petId] || 'melee';
-        const styleDef = (p.styles && p.styles[curStyle]) || p;
-        const startSkillDef = GAME_DATA.skills[styleDef.startingSkill || p.startingSkill] || {};
-        const ultDef = styleDef.ultimate || p.ultimate || {};
+      const classId = window.currentHeroClass || 'summoner';
+      const classDef = (GAME_DATA.classes && GAME_DATA.classes[classId]) || {};
+      const subclasses = classDef.subclasses || {};
+
+      Object.keys(subclasses).forEach(subId => {
+        const sub = subclasses[subId];
+        const startSkillDef = GAME_DATA.skills[sub.startingSkill] || {};
+        const ultDef = sub.ultimate || {};
 
         const card = document.createElement('div');
         card.className = 'card';
-        card.style.borderColor = curStyle === 'melee' ? '#ef4444' : '#38bdf8';
+        card.style.borderColor = sub.color || classDef.color || '#38bdf8';
         card.innerHTML = `
-          <div class="card-icon" style="color:${p.color}; border-color:${p.color}; font-size:32px;">${p.icon}</div>
+          <div class="card-icon" style="color:${sub.color}; border-color:${sub.color}; font-size:32px;">${sub.icon}</div>
           <div class="card-info" style="flex:1;">
             <div style="display:flex; align-items:center; gap:8px;">
-              <h4>${p.name}</h4>
-              <span style="font-size:10px; color:${p.color}; font-weight:bold;">[${p.element === 'fire' ? '화염' : p.element === 'lightning' ? '뇌전' : '자연'}]</span>
-            </div>
-            
-            <!-- Melee vs Ranged Style Switcher Buttons -->
-            <div style="display:flex; gap:6px; margin: 6px 0; align-items:center; flex-wrap:wrap;">
-              <button class="style-btn-toggle ${curStyle === 'melee' ? 'active-melee' : ''}" onclick="event.stopPropagation(); setPetStyle('${petId}', 'melee')">
-                ⚔️ 근거리
-              </button>
-              <button class="style-btn-toggle ${curStyle === 'ranged' ? 'active-ranged' : ''}" onclick="event.stopPropagation(); setPetStyle('${petId}', 'ranged')">
-                🏹 원거리
-              </button>
-              <span style="font-size:11px; font-weight:bold; color:${curStyle === 'melee' ? '#f87171' : '#38bdf8'}; margin-left:4px;">
-                ${styleDef.styleName || ''}
+              <h4>${sub.name}</h4>
+              <span style="font-size:10px; color:${sub.color}; font-weight:bold; background:rgba(255,255,255,0.08); padding:2px 6px; border-radius:4px;">
+                ${sub.specialty || sub.name}
               </span>
             </div>
-
-            <p style="font-size:11px; color:#cbd5e1;">${styleDef.desc || p.desc}</p>
-            <div style="margin-top:4px; font-size:11px; color:#facc15;">
-              기본스킬: <span style="color:#fff; font-weight:bold;">[${startSkillDef.name}]</span> | 필살기: <span style="color:#fff; font-weight:bold;">[${ultDef.name}]</span>
+            <p style="font-size:11px; color:#cbd5e1; margin:4px 0;">${sub.desc}</p>
+            <div style="font-size:11px; color:#facc15;">
+              기본스킬: <span style="color:#fff; font-weight:bold;">[${startSkillDef.name || '기본공격'}]</span> | 필살기: <span style="color:#fff; font-weight:bold;">[${ultDef.name || '궁극기'}]</span>
             </div>
           </div>
           <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0;">
-            <button class="btn" style="background:#0284c7; border-color:#38bdf8; padding:6px 10px; font-size:11px;" onclick="event.stopPropagation(); openPetDetailModal('${petId}', '${curStyle}')">
+            <button class="btn" style="background:#0284c7; border-color:#38bdf8; padding:6px 10px; font-size:11px;" onclick="event.stopPropagation(); openHeroDetailModal('${classId}', '${subId}')">
               🔍 전직/조합 정보
             </button>
-            <button class="btn" style="background:#16a34a; border-color:#4ade80; padding:6px 10px; font-size:11px; font-weight:bold;" onclick="event.stopPropagation(); selectPetAndStart('${petId}', '${curStyle}')">
+            <button class="btn" style="background:#16a34a; border-color:#4ade80; padding:6px 10px; font-size:11px; font-weight:bold;" onclick="event.stopPropagation(); selectHeroAndStart('${classId}', '${subId}')">
               ⚔️ 출격하기
             </button>
           </div>
         `;
         card.onclick = () => {
-          selectPetAndStart(petId, curStyle);
+          selectHeroAndStart(classId, subId);
         };
         container.appendChild(card);
       });
-
-      modal.style.display = 'flex';
     }
 
-    function switchDetailStyleTab(style) {
-      if (!currentDetailPetId) return;
-      openPetDetailModal(currentDetailPetId, style);
-    }
+    function openHeroDetailModal(classId, subId) {
+      currentDetailClassId = classId;
+      currentDetailSubclassId = subId;
+      const classDef = (GAME_DATA.classes && GAME_DATA.classes[classId]) || {};
+      const sub = (classDef.subclasses && classDef.subclasses[subId]) || GAME_DATA.pets[subId];
+      if (!sub) return;
 
-    function openPetDetailModal(petId, style = null) {
-      currentDetailPetId = petId;
-      currentDetailStyle = style || window.selectedPetStyles[petId] || 'melee';
-      const p = GAME_DATA.pets[petId];
-      if (!p) return;
-
-      const styleDef = (p.styles && p.styles[currentDetailStyle]) || p;
-
-      // Update Tabs UI
       const tabMelee = document.getElementById('dtl-tab-melee');
       const tabRanged = document.getElementById('dtl-tab-ranged');
       if (tabMelee && tabRanged) {
-        if (currentDetailStyle === 'melee') {
-          tabMelee.className = 'style-tab-btn active-melee';
-          tabRanged.className = 'style-tab-btn';
-        } else {
-          tabMelee.className = 'style-tab-btn';
-          tabRanged.className = 'style-tab-btn active-ranged';
-        }
+        tabMelee.style.display = 'none';
+        tabRanged.style.display = 'none';
       }
 
-      document.getElementById('dtl-pet-icon').textContent = p.icon;
-      document.getElementById('dtl-pet-name').textContent = `${p.name}`;
-      document.getElementById('dtl-pet-name').style.color = currentDetailStyle === 'melee' ? '#f87171' : '#38bdf8';
+      document.getElementById('dtl-pet-icon').textContent = sub.icon;
+      document.getElementById('dtl-pet-name').textContent = sub.name;
+      document.getElementById('dtl-pet-name').style.color = sub.color || '#facc15';
 
-      const elemNames = {
-        fire: '화염 속성 - 고열 폭발 & 파괴적인 타격',
-        lightning: '뇌전 속성 - 초고속 번개 & 공간 돌파',
-        nature: '자연 속성 - 대지의 수호 성역 & 생명력 회복'
-      };
-      document.getElementById('dtl-pet-element').textContent = `[${elemNames[p.element] || p.element}] · ${styleDef.styleName || ''}`;
-      document.getElementById('dtl-pet-element').style.color = currentDetailStyle === 'melee' ? '#f87171' : '#38bdf8';
-      document.getElementById('dtl-pet-desc').textContent = styleDef.desc || p.desc;
+      document.getElementById('dtl-pet-element').textContent = `[${classDef.name || '영웅'}] · ${sub.specialty || sub.name}`;
+      document.getElementById('dtl-pet-element').style.color = sub.color || '#38bdf8';
+      document.getElementById('dtl-pet-desc').textContent = sub.desc;
 
-      // 1. 3단계 전직 계보도 (현재 선택된 스타일에 맞춰서 표시)
+      // 1. 3단계 전직 계보도
       const treeContainer = document.getElementById('dtl-evo-tree');
       treeContainer.innerHTML = '';
 
-      const evo1Skill = GAME_DATA.skills[styleDef.startingSkill || p.startingSkill] || {};
-      const evo2Def = styleDef.evolution2 || p.evolution2 || {};
+      const evo1Skill = GAME_DATA.skills[sub.startingSkill] || {};
+      const evo2Def = sub.evolution2 || {};
       const evo2Skill = GAME_DATA.skills[evo2Def.unlockSkill] || {};
-      const evo3Def = styleDef.evolution3 || p.evolution3 || {};
+      const evo3Def = sub.evolution3 || {};
       const evo3Skill = GAME_DATA.skills[evo3Def.unlockSkill] || {};
 
       treeContainer.innerHTML = `
         <!-- 1차 기본 -->
         <div style="background:#1e293b; border:1px solid #475569; border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:10px;">
-          <div style="font-size:24px;">${p.icon}</div>
+          <div style="font-size:24px;">${sub.icon}</div>
           <div style="flex:1;">
-            <div style="font-weight:bold; color:#f8fafc; font-size:12px;">1차: ${p.name} <span style="color:#94a3b8; font-weight:normal;">(시작 단계)</span></div>
-            <div style="font-size:11px; color:#38bdf8;">기본 스킬: [${evo1Skill.name}] - ${evo1Skill.desc || ''}</div>
+            <div style="font-weight:bold; color:#f8fafc; font-size:12px;">1차: ${sub.name} <span style="color:#94a3b8; font-weight:normal;">(시작 단계)</span></div>
+            <div style="font-size:11px; color:#38bdf8;">기본 스킬: [${evo1Skill.name || ''}] - ${evo1Skill.desc || ''}</div>
           </div>
         </div>
 
@@ -1328,39 +1362,39 @@
 
         <!-- 2차 전직 -->
         <div style="background:#1e293b; border:1px solid #f59e0b; border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:10px;">
-          <div style="font-size:24px;">${evo2Def.icon || '🐲'}</div>
+          <div style="font-size:24px;">${evo2Def.icon || '⚔️'}</div>
           <div style="flex:1;">
-            <div style="font-weight:bold; color:#facc15; font-size:12px;">2차: ${evo2Def.name}</div>
-            <div style="font-size:11px; color:#cbd5e1; margin-bottom:2px;">${evo2Def.desc}</div>
-            <div style="font-size:11px; color:#4ade80; font-weight:bold;">해금 스킬: [${evo2Skill.name}] - ${evo2Skill.desc || ''}</div>
+            <div style="font-weight:bold; color:#facc15; font-size:12px;">2차: ${evo2Def.name || '2차 각성'}</div>
+            <div style="font-size:11px; color:#cbd5e1; margin-bottom:2px;">${evo2Def.desc || ''}</div>
+            <div style="font-size:11px; color:#4ade80; font-weight:bold;">해금 스킬: [${evo2Skill.name || ''}] - ${evo2Skill.desc || ''}</div>
           </div>
         </div>
 
-        <div style="text-align:center; color:#facc15; font-size:12px; font-weight:bold;">⬇️ Lv.35 도달 시 3차 최종 각성 (신수 강림)</div>
+        <div style="text-align:center; color:#facc15; font-size:12px; font-weight:bold;">⬇️ Lv.35 도달 시 3차 최종 각성 (신수/영웅 강림)</div>
 
         <!-- 3차 최종 각성 -->
         <div style="background:radial-gradient(circle, rgba(250, 204, 21, 0.15) 0%, #1e293b 80%); border:1.5px solid #facc15; border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:10px;">
           <div style="font-size:26px;">${evo3Def.icon || '👑'}</div>
           <div style="flex:1;">
-            <div style="font-weight:bold; color:#facc15; font-size:13px;">3차 최종 각성: ${evo3Def.name}</div>
-            <div style="font-size:11px; color:#cbd5e1; margin-bottom:2px;">${evo3Def.desc}</div>
-            <div style="font-size:11px; color:#facc15; font-weight:bold;">해금 스킬: [${evo3Skill.name}] - ${evo3Skill.desc || ''}</div>
+            <div style="font-weight:bold; color:#facc15; font-size:13px;">3차 최종 각성: ${evo3Def.name || '최종 각성'}</div>
+            <div style="font-size:11px; color:#cbd5e1; margin-bottom:2px;">${evo3Def.desc || ''}</div>
+            <div style="font-size:11px; color:#facc15; font-weight:bold;">해금 스킬: [${evo3Skill.name || ''}] - ${evo3Skill.desc || ''}</div>
           </div>
         </div>
       `;
 
       // 2. 궁극기 정보
-      const ult = styleDef.ultimate || p.ultimate;
+      const ult = sub.ultimate || {};
       document.getElementById('dtl-ultimate-info').innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-          <span style="font-weight:bold; color:#f8fafc; font-size:13px;">${ult.icon} ${ult.name}</span>
-          <span style="color:#facc15; font-size:11px; font-weight:bold;">쿨타임: ${ult.cooldown}초</span>
+          <span style="font-weight:bold; color:#f8fafc; font-size:13px;">${ult.icon || '💥'} ${ult.name || '궁극기'}</span>
+          <span style="color:#facc15; font-size:11px; font-weight:bold;">쿨타임: ${ult.cooldown || 12}초</span>
         </div>
-        <div>${ult.desc}</div>
+        <div>${ult.desc || ''}</div>
       `;
 
       // 3. 추천 합성 진화 조합 레시피
-      const cb = styleDef.recommendedCombo || {
+      const cb = sub.recommendedCombo || {
         recipe: '기본 스킬 + 시너지 패시브',
         result: '초강력 합성 진화',
         desc: '최대 레벨 도달 시 합성 진화 해금'
@@ -1373,10 +1407,10 @@
 
       // 하단 출격 버튼
       const btnSelect = document.getElementById('btn-dtl-select');
-      btnSelect.textContent = `⚔️ [${styleDef.styleName || p.name}] 로 출격하기`;
+      btnSelect.textContent = `⚔️ [${sub.name}] 로 출격하기`;
       btnSelect.onclick = () => {
         closePetDetailModal();
-        selectPetAndStart(petId, currentDetailStyle);
+        selectHeroAndStart(classId, subId);
       };
 
       document.getElementById('pet-detail-modal').style.display = 'flex';
@@ -1386,11 +1420,10 @@
       document.getElementById('pet-detail-modal').style.display = 'none';
     }
 
-    function selectPetAndStart(petId, style = 'melee') {
-      window.selectedPetStyles[petId] = style;
+    function selectHeroAndStart(classId, subId) {
       document.getElementById('pet-select-modal').style.display = 'none';
       document.getElementById('pet-detail-modal').style.display = 'none';
-      engine.start(petId, style);
+      engine.start(classId, subId, 'melee');
     }
 
     function backToTitleFromPetSelect() {

@@ -128,6 +128,10 @@ class GameEngine {
     this.gems = [];
     this.damageNumbers = [];
     this.particles = [];
+    this.shockwaves = [];        // 화려한 원형 충격파 링 목록
+    this.screenShakeIntensity = 0; // 화면 흔들림 강도
+    this.screenShakeDuration = 0;  // 화면 흔들림 지속시간
+    this.cinematicDimming = 0;     // 궁극기 발동 시 배경 순간 암전
 
     // Inputs
     this.keys = {};
@@ -143,34 +147,74 @@ class GameEngine {
     this.bindEvents();
   }
 
-  start(petId, combatStyle = 'ranged') {
-    const petConfig = GAME_DATA.pets[petId] || GAME_DATA.pets.ignis;
-    const styleConfig = (petConfig.styles && petConfig.styles[combatStyle]) || (petConfig.styles ? petConfig.styles.ranged : petConfig);
-    const worldW = GAME_DATA.world ? GAME_DATA.world.width : 4800;
-    const worldH = GAME_DATA.world ? GAME_DATA.world.height : 4800;
+  // 📳 화면 흔들림 효과 (Screen Shake)
+  shakeScreen(intensity = 8, duration = 0.25) {
+    this.screenShakeIntensity = Math.max(this.screenShakeIntensity, intensity);
+    this.screenShakeDuration = Math.max(this.screenShakeDuration, duration);
+  }
 
-    // 1. Initialize Tamer (Player) at World Center
+  // 💫 퍼져나가는 원형 충격파 링 (Shockwave Ring)
+  addShockwave(x, y, maxRadius = 80, color = '#facc15', duration = 0.35) {
+    this.shockwaves.push({
+      x, y,
+      radius: 5,
+      maxRadius,
+      color,
+      life: duration,
+      maxLife: duration
+    });
+  }
+
+  // 👑 3대 직업군 (소환사 / 검사 / 궁수) 및 9대 세부 특화 시작
+  start(classOrPetId = 'summoner', subclassId = 'ignis', combatStyle = 'ranged') {
+    let heroClass = 'summoner';
+    let subclass = subclassId;
+    let subclassDef = null;
+
+    if (GAME_DATA.classes && GAME_DATA.classes[classOrPetId]) {
+      heroClass = classOrPetId;
+      subclassDef = GAME_DATA.classes[heroClass].subclasses[subclassId] || Object.values(GAME_DATA.classes[heroClass].subclasses)[0];
+      subclass = subclassDef.id;
+    } else if (GAME_DATA.pets && GAME_DATA.pets[classOrPetId]) {
+      heroClass = 'summoner';
+      subclass = classOrPetId;
+      subclassDef = (GAME_DATA.classes && GAME_DATA.classes.summoner.subclasses[subclass]) || GAME_DATA.pets[subclass];
+    } else {
+      heroClass = 'summoner';
+      subclass = 'ignis';
+      subclassDef = GAME_DATA.classes.summoner.subclasses.ignis;
+    }
+
+    const petConfig = GAME_DATA.pets[subclass] || subclassDef;
+    const styleConfig = (petConfig.styles && petConfig.styles[combatStyle]) || subclassDef || petConfig;
+    const worldW = (GAME_DATA.world && GAME_DATA.world.width) || 16000;
+    const worldH = (GAME_DATA.world && GAME_DATA.world.height) || 16000;
+
+    // 1. 플레이어 본체 초기화 (직업별 체력, 이속, 대미지 감소율 차별화)
     this.player = {
+      heroClass: heroClass,
+      subclass: subclass,
+      subclassDef: subclassDef,
       x: worldW / 2,
       y: worldH / 2,
-      hp: 100,
-      maxHp: 100,
-      speed: 3.2,
+      hp: heroClass === 'warrior' ? 140 : 100,
+      maxHp: heroClass === 'warrior' ? 140 : 100,
+      speed: heroClass === 'archer' ? 3.6 : (heroClass === 'warrior' ? 3.1 : 3.2),
       facing: 1,
       isInvincible: false,
       shieldTimer: 0,
-      dmgReduction: 0,
-      shieldBarrier: 0, // Shield charges
+      dmgReduction: heroClass === 'warrior' ? 0.15 : 0,
+      shieldBarrier: 0,
       shieldCooldown: 0,
       equipments: { weapon: null, armor: null, shield: null }
     };
 
-    // 2. Initialize Hero Pet with selected Combat Style
+    // 2. 소환수 및 전투 스피릿(Combat Arsenal) 초기화
     this.pet = {
       config: petConfig,
       combatStyle: combatStyle,
       styleConfig: styleConfig,
-      x: worldW / 2 - 25,
+      x: worldW / 2 - 28,
       y: worldH / 2,
       vx: 0,
       vy: 0,
@@ -178,15 +222,15 @@ class GameEngine {
       level: 1,
       tier: 1,
       isEvolved: false,
-      might: styleConfig.baseDamageMul || petConfig.baseDamageMul || 1.0,
-      cooldownRed: styleConfig.baseCooldownRed || petConfig.baseCooldownRed || 0,
+      might: subclassDef.baseDamageMul || styleConfig.baseDamageMul || petConfig.baseDamageMul || 1.0,
+      cooldownRed: subclassDef.baseCooldownRed || styleConfig.baseCooldownRed || petConfig.baseCooldownRed || 0,
       magnetRange: 75 + (styleConfig.baseMagnetBonus || petConfig.baseMagnetBonus || 0),
-      skills: {},    // skillId -> { level, timer }
-      passives: {}   // passiveId -> level
+      skills: {},
+      passives: {}
     };
 
-    // Give style starting skill to Pet
-    const startSkill = styleConfig.startingSkill || petConfig.startingSkill;
+    // 기본 스킬 장착
+    const startSkill = subclassDef.startingSkill || styleConfig.startingSkill || petConfig.startingSkill || 'fireball';
     this.pet.skills[startSkill] = { level: 1, timer: 0 };
 
     this.gameTime = 0;
@@ -195,13 +239,17 @@ class GameEngine {
     this.currentExp = 0;
     this.neededExp = 10;
     this.enemies = [];
-    this.chests = []; // Golden Equipment Chests
+    this.chests = [];
     this.projectiles = [];
     this.lightningBolts = [];
     this.breathEffects = [];
     this.gems = [];
     this.damageNumbers = [];
     this.particles = [];
+    this.shockwaves = [];
+    this.screenShakeIntensity = 0;
+    this.screenShakeDuration = 0;
+    this.cinematicDimming = 0;
     this.peers = {};
     this.spawnedBosses = new Set();
     this.isPaused = false;
@@ -209,118 +257,203 @@ class GameEngine {
     this.autoPlay = false;
     this.aiTeammatesEnabled = true;
 
-    // Initialize AI Co-op Teammates
+    // AI 동료 파티 초기화
     this.initAiTeammates();
 
-    // Ultimate skill init based on selected style
-    const ult = styleConfig.ultimate || petConfig.ultimate;
+    // 직업/특화별 고유 필살기 초기화
+    const ult = subclassDef.ultimate || styleConfig.ultimate || petConfig.ultimate;
     this.ultimateMaxCd = ult ? ult.cooldown : 12;
-    this.ultimateTimer = this.ultimateMaxCd; // ready at start
+    this.ultimateTimer = this.ultimateMaxCd;
     this.ultimateDuration = 0;
 
     this.updateHUD();
     this.updateUltimateUI();
   }
 
+  // 💥 9종 궁극기 시네마틱 발동 및 화면 연출
   triggerUltimate() {
     if (!this.pet || !this.player || this.isPaused) return;
-    if (this.ultimateTimer < this.ultimateMaxCd) return; // not ready
+    if (this.ultimateTimer < this.ultimateMaxCd) return;
 
-    const ult = (this.pet.styleConfig && this.pet.styleConfig.ultimate) || this.pet.config.ultimate;
+    const ult = (this.player.subclassDef && this.player.subclassDef.ultimate) ||
+                (this.pet.styleConfig && this.pet.styleConfig.ultimate) ||
+                this.pet.config.ultimate;
     if (!ult) return;
 
     this.ultimateTimer = 0;
     this.audio.playExplosion();
 
-    // 1. Fireball Burst (Ignis Ranged)
+    // 📳 화려한 화면 흔들림 + 시네마틱 암전 + 충격파 링 방출
+    this.shakeScreen(15, 0.45);
+    this.cinematicDimming = 0.55;
+    this.addShockwave(this.player.x, this.player.y, 240, this.player.subclassDef ? this.player.subclassDef.color : '#facc15', 0.45);
+
+    // [1] 지옥불 대폭발 (소환사 이그니스)
     if (ult.id === 'hellfire_burst') {
-      this.enemies.forEach(e => {
-        e.takeDamage(ult.damage);
-      });
-      // Screen blast particles
-      for (let i = 0; i < 30; i++) {
+      this.enemies.forEach(e => e.takeDamage(ult.damage || 150));
+      for (let i = 0; i < 40; i++) {
         const a = Math.random() * Math.PI * 2;
-        const d = Math.random() * 300;
+        const d = Math.random() * 320;
         this.particles.push({
           x: this.player.x + Math.cos(a) * d,
           y: this.player.y + Math.sin(a) * d,
           color: '#ef4444',
-          life: 0.5, maxLife: 0.5,
-          size: 6
+          life: 0.55, maxLife: 0.55, size: 7
         });
       }
     }
 
-    // 1-2. Flame Charge (Ignis Melee)
-    if (ult.id === 'flame_charge') {
-      this.ultimateDuration = 1.8;
+    // [2] 전광석화 돌격 (소환사 볼트)
+    else if (ult.id === 'thunder_dash') {
+      this.ultimateDuration = ult.duration || 2.5;
       this.player.isInvincible = true;
-      this.player.speed = 3.2 * 2.4;
+      this.player.speed = 3.2 * (ult.speedMul || 2.2);
       this.enemies.forEach(e => {
-        if (Math.hypot(e.x - this.player.x, e.y - this.player.y) < 180) {
-          e.takeDamage(ult.damage);
-          const ang = Math.atan2(e.y - this.player.y, e.x - this.player.x);
-          e.x += Math.cos(ang) * 45;
-          e.y += Math.sin(ang) * 45;
+        if (Math.hypot(e.x - this.player.x, e.y - this.player.y) < 220) {
+          e.takeDamage(ult.damage || 60);
         }
       });
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < 25; i++) {
         this.particles.push({
-          x: this.player.x + (Math.random() - 0.5) * 60,
-          y: this.player.y + (Math.random() - 0.5) * 60,
-          color: '#f97316',
-          life: 0.5, maxLife: 0.5, size: 6
-        });
-      }
-    }
-
-    // 2. Thunder Dash (Bolt Melee & Ranged)
-    if (ult.id === 'thunder_dash') {
-      this.ultimateDuration = ult.duration;
-      this.player.isInvincible = true;
-      this.player.speed = 3.2 * ult.speedMul;
-      // Dash lightning shockwaves
-      for (let i = 0; i < 15; i++) {
-        this.particles.push({
-          x: this.player.x + (Math.random() - 0.5) * 50,
-          y: this.player.y + (Math.random() - 0.5) * 50,
+          x: this.player.x + (Math.random() - 0.5) * 80,
+          y: this.player.y + (Math.random() - 0.5) * 80,
           color: '#38bdf8',
-          life: 0.35, maxLife: 0.35,
-          size: 5
+          life: 0.4, maxLife: 0.4, size: 6
         });
       }
     }
 
-    // 3. Divine Barrier (Sylph Melee)
-    if (ult.id === 'divine_barrier') {
-      this.ultimateDuration = ult.duration;
+    // [3] 세계수의 만개 (소환사 실피드)
+    else if (ult.id === 'divine_bloom' || ult.id === 'divine_barrier') {
+      this.ultimateDuration = 3.0;
       this.player.isInvincible = true;
-      this.player.hp = Math.min(this.player.maxHp, this.player.hp + ult.heal);
+      this.player.hp = Math.min(this.player.maxHp, this.player.hp + (ult.heal || 45));
       this.updateHpBar();
-      // Repel enemies immediately
       this.enemies.forEach(e => {
         const d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
-        if (d < 160) {
+        if (d < 240) {
           const ang = Math.atan2(e.y - this.player.y, e.x - this.player.x);
-          e.x += Math.cos(ang) * 55;
-          e.y += Math.sin(ang) * 55;
-          e.takeDamage(35);
+          e.x += Math.cos(ang) * 75;
+          e.y += Math.sin(ang) * 75;
+          e.takeDamage(ult.damage || 80);
         }
       });
     }
 
-    // 3-2. Nature Arrow (Sylph Ranged)
-    if (ult.id === 'nature_arrow') {
+    // [4] 피의 폭주 (검사: 광전사)
+    else if (ult.id === 'bloodlust') {
+      this.ultimateDuration = 5.0;
+      this.player.isInvincible = true;
+      this.player.speed = 3.2 * 1.5;
+      this.addShockwave(this.player.x, this.player.y, 260, '#dc2626', 0.5);
+      this.enemies.forEach(e => {
+        if (Math.hypot(e.x - this.player.x, e.y - this.player.y) < 220) {
+          e.takeDamage(ult.damage || 180);
+        }
+      });
+      for (let i = 0; i < 35; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const d = Math.random() * 200;
+        this.particles.push({
+          x: this.player.x + Math.cos(a) * d,
+          y: this.player.y + Math.sin(a) * d,
+          color: '#ef4444',
+          life: 0.6, maxLife: 0.6, size: 8
+        });
+      }
+    }
+
+    // [5] 아이기스의 성역 (검사: 성기사)
+    else if (ult.id === 'aegis_fortress') {
+      this.ultimateDuration = 3.5;
+      this.player.isInvincible = true;
+      this.player.shieldBarrier = 3;
+      this.addShockwave(this.player.x, this.player.y, 280, '#facc15', 0.6);
+      this.enemies.forEach(e => {
+        const d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
+        if (d < 250) {
+          const ang = Math.atan2(e.y - this.player.y, e.x - this.player.x);
+          e.x += Math.cos(ang) * 80;
+          e.y += Math.sin(ang) * 80;
+          e.takeDamage(ult.damage || 120);
+        }
+      });
+    }
+
+    // [6] 마검 폭풍 (검사: 마검사)
+    else if (ult.id === 'elemental_storm') {
+      this.addShockwave(this.player.x, this.player.y, 240, '#a855f7', 0.5);
+      for (let i = 0; i < 16; i++) {
+        const ang = (Math.PI * 2 / 16) * i;
+        this.projectiles.push(new EngineProjectile(
+          this.player.x, this.player.y,
+          Math.cos(ang) * 11, Math.sin(ang) * 11,
+          ult.damage || 160, 5, 'rune_blade'
+        ));
+      }
+    }
+
+    // [7] 궤도 포격 저격 (궁수: 스나이퍼)
+    else if (ult.id === 'orbital_snipe') {
       const target = this.getNearestEnemy(this.player.x, this.player.y);
       const ang = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : (this.player.facing === 1 ? 0 : Math.PI);
+      this.shakeScreen(18, 0.5);
+      this.addShockwave(this.player.x, this.player.y, 180, '#06b6d4', 0.4);
       this.projectiles.push(new EngineProjectile(
         this.player.x, this.player.y,
-        Math.cos(ang) * 12, Math.sin(ang) * 12,
-        ult.damage, 20, 'nature_beam'
+        Math.cos(ang) * 24, Math.sin(ang) * 24,
+        ult.damage || 220, 999, 'sniper_beam'
       ));
     }
 
+    // [8] 천공의 화살비 (궁수: 윈드러너)
+    else if (ult.id === 'arrow_rain_nova') {
+      this.shakeScreen(12, 0.4);
+      for (let i = 0; i < 36; i++) {
+        setTimeout(() => {
+          if (!this.player) return;
+          const rx = this.player.x + (Math.random() - 0.5) * 600;
+          const ry = this.player.y + (Math.random() - 0.5) * 600;
+          this.addShockwave(rx, ry, 65, '#10b981', 0.25);
+          this.enemies.forEach(e => {
+            if (Math.hypot(e.x - rx, e.y - ry) < 65) {
+              e.takeDamage(35);
+            }
+          });
+        }, i * 25);
+      }
+    }
+
+    // [9] 야수 대군단 쇄도 (궁수: 트래퍼)
+    else if (ult.id === 'beast_stampede') {
+      this.shakeScreen(12, 0.4);
+      for (let i = 0; i < 8; i++) {
+        const ang = (this.player.facing === 1 ? 0 : Math.PI) + (Math.random() - 0.5) * 0.8;
+        this.projectiles.push(new EngineProjectile(
+          this.player.x, this.player.y + (Math.random() - 0.5) * 100,
+          Math.cos(ang) * 13, Math.sin(ang) * 13,
+          ult.damage || 170, 4, 'wolf_stampede'
+        ));
+      }
+    }
+
     this.updateUltimateUI();
+  }
+
+  shakeScreen(intensity, duration) {
+    this.screenShakeIntensity = Math.max(this.screenShakeIntensity, intensity);
+    this.screenShakeDuration = Math.max(this.screenShakeDuration, duration);
+  }
+
+  addShockwave(x, y, maxRadius, color = '#facc15', duration = 0.4) {
+    this.shockwaves.push({
+      x, y,
+      maxRadius,
+      radius: 0,
+      color,
+      age: 0,
+      duration
+    });
   }
 
   hasSkill(id) {
@@ -331,6 +464,27 @@ class GameEngine {
     if (this.isPaused || !this.player || !this.pet) return;
 
     this.gameTime += dt;
+
+    // 📳 화면 흔들림 및 시네마틱 효과 감쇠
+    if (this.screenShakeDuration > 0) {
+      this.screenShakeDuration -= dt;
+      if (this.screenShakeDuration <= 0) {
+        this.screenShakeDuration = 0;
+        this.screenShakeIntensity = 0;
+      }
+    }
+    if (this.cinematicDimming > 0) {
+      this.cinematicDimming -= dt * 1.5;
+      if (this.cinematicDimming <= 0) this.cinematicDimming = 0;
+    }
+    for (let i = this.shockwaves.length - 1; i >= 0; i--) {
+      const sw = this.shockwaves[i];
+      sw.age += dt;
+      sw.radius = (sw.age / sw.duration) * sw.maxRadius;
+      if (sw.age >= sw.duration) {
+        this.shockwaves.splice(i, 1);
+      }
+    }
 
     // Ultimate timer update
     if (this.ultimateTimer < this.ultimateMaxCd) {
@@ -455,8 +609,31 @@ class GameEngine {
       for (let j = 0; j < this.enemies.length; j++) {
         const e = this.enemies[j];
         if (Math.hypot(e.x - p.x, e.y - p.y) < e.radius + 8) {
+          // 💣 덫 및 집속 지뢰 폭발
+          if (p.kind === 'trap' || p.kind === 'trap_cluster') {
+            this.audio.playExplosion();
+            const rad = p.explodeRadius || (p.kind === 'trap_cluster' ? 120 : 95);
+            this.shakeScreen(p.kind === 'trap_cluster' ? 10 : 6, 0.22);
+            this.addShockwave(p.x, p.y, rad, p.kind === 'trap_cluster' ? '#ef4444' : '#f97316', 0.35);
+            this.enemies.forEach(subE => {
+              if (Math.hypot(subE.x - p.x, subE.y - p.y) < rad) {
+                subE.takeDamage(p.damage);
+              }
+            });
+            for (let k = 0; k < 14; k++) {
+              this.particles.push({
+                x: p.x + (Math.random() - 0.5) * 30,
+                y: p.y + (Math.random() - 0.5) * 30,
+                color: p.kind === 'trap_cluster' ? '#dc2626' : '#f59e0b',
+                life: 0.35, maxLife: 0.35, size: 5
+              });
+            }
+            p.pierce = 0;
+            p.life = 0;
+            break;
+          }
           // Exploding fireball
-          if (p.kind === 'fireball') {
+          else if (p.kind === 'fireball') {
             this.audio.playExplosion();
             this.enemies.forEach(subE => {
               if (Math.hypot(subE.x - p.x, subE.y - p.y) < 55) {
@@ -482,6 +659,33 @@ class GameEngine {
                 color: '#38bdf8',
                 life: 0.25, maxLife: 0.25,
                 size: 3
+              });
+            }
+          } else if (p.kind === 'shield_wave') {
+            e.takeDamage(p.damage);
+            const bang = Math.atan2(p.vy, p.vx);
+            e.x += Math.cos(bang) * 25;
+            e.y += Math.sin(bang) * 25;
+            e.slowTimer = 1.0;
+            e.slowRate = 0.4;
+          } else if (p.kind === 'blade_arc' || p.kind === 'rune_blade') {
+            e.takeDamage(p.damage);
+            this.shakeScreen(2, 0.08);
+            for (let k = 0; k < 3; k++) {
+              this.particles.push({
+                x: p.x, y: p.y,
+                color: p.kind === 'rune_blade' ? '#c084fc' : '#fb7185',
+                life: 0.2, maxLife: 0.2, size: 4
+              });
+            }
+          } else if (p.kind === 'sniper_beam' || p.kind === 'god_laser') {
+            e.takeDamage(p.damage);
+            this.shakeScreen(3, 0.1);
+            for (let k = 0; k < 4; k++) {
+              this.particles.push({
+                x: p.x, y: p.y,
+                color: p.kind === 'god_laser' ? '#facc15' : '#06b6d4',
+                life: 0.2, maxLife: 0.2, size: 4
               });
             }
           } else {
@@ -1071,6 +1275,198 @@ class GameEngine {
           Math.cos(ang) * 7.5, Math.sin(ang) * 7.5,
           dmg, 5, 'flower_blade'
         ));
+      }
+    }
+
+    // [35] ⚔️ 쾌검 참격 (Frenzy Slash - 검사 광전사)
+    if (def.type === 'melee_arc') {
+      this.audio.playShoot();
+      this.shakeScreen(3, 0.12);
+      const faceAngle = (this.player.facing === 1) ? 0 : Math.PI;
+      const originX = this.player.x;
+      const originY = this.player.y;
+      this.projectiles.push(new EngineProjectile(
+        originX, originY,
+        Math.cos(faceAngle) * 9, Math.sin(faceAngle) * 9,
+        dmg, 5, 'blade_arc'
+      ));
+      for (let k = 0; k < 5; k++) {
+        this.particles.push({
+          x: originX + Math.cos(faceAngle) * 35 + (Math.random() - 0.5) * 20,
+          y: originY + Math.sin(faceAngle) * 35 + (Math.random() - 0.5) * 20,
+          color: '#f43f5e', life: 0.2, maxLife: 0.2, size: 4
+        });
+      }
+    }
+
+    // [36] 🛡️ 방패 강타 (Shield Bash - 검사 성기사)
+    if (def.type === 'shield_wave') {
+      this.audio.playExplosion();
+      this.shakeScreen(5, 0.18);
+      const faceAngle = (this.player.facing === 1) ? 0 : Math.PI;
+      this.projectiles.push(new EngineProjectile(
+        this.player.x, this.player.y,
+        Math.cos(faceAngle) * (def.speed || 7), Math.sin(faceAngle) * (def.speed || 7),
+        dmg, 8, 'shield_wave'
+      ));
+    }
+
+    // [37] 🔮 마검 룬파동 (Rune Blade Wave - 검사 마검사)
+    if (def.type === 'rune_wave') {
+      this.audio.playShoot();
+      const target = this.getNearestEnemy(this.player.x, this.player.y);
+      const ang = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : (this.player.facing === 1 ? 0 : Math.PI);
+      this.projectiles.push(new EngineProjectile(
+        this.player.x, this.player.y,
+        Math.cos(ang) * (def.speed || 9), Math.sin(ang) * (def.speed || 9),
+        dmg, 6, 'rune_blade'
+      ));
+    }
+
+    // [38] 🎯 관통 저격 (Pierce Snipe - 궁수 스나이퍼)
+    if (def.type === 'sniper_beam') {
+      this.audio.playShoot();
+      this.shakeScreen(6, 0.18);
+      const target = this.getNearestEnemy(this.player.x, this.player.y);
+      const ang = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : (this.player.facing === 1 ? 0 : Math.PI);
+      this.projectiles.push(new EngineProjectile(
+        this.player.x, this.player.y,
+        Math.cos(ang) * (def.speed || 20), Math.sin(ang) * (def.speed || 20),
+        dmg, 999, 'sniper_beam'
+      ));
+    }
+
+    // [39] 🌪️ 질풍 연사 (Rapid Gale - 궁수 윈드러너)
+    if (def.type === 'rapid_arrow') {
+      this.audio.playShoot();
+      const count = def.count || 3;
+      const target = this.getNearestEnemy(this.player.x, this.player.y);
+      const baseAng = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : (this.player.facing === 1 ? 0 : Math.PI);
+      for (let i = 0; i < count; i++) {
+        const spread = (i - (count - 1) / 2) * 0.14;
+        const ang = baseAng + spread;
+        this.projectiles.push(new EngineProjectile(
+          this.player.x, this.player.y,
+          Math.cos(ang) * (def.speed || 12), Math.sin(ang) * (def.speed || 12),
+          dmg, 2, 'rapid_arrow'
+        ));
+      }
+    }
+
+    // [40] 💣 마법 폭발 덫 (Explosive Trap - 궁수 트래퍼)
+    if (def.type === 'trap') {
+      this.audio.playShoot();
+      const target = this.getNearestEnemy(this.player.x, this.player.y);
+      let tx = this.player.x + (Math.random() - 0.5) * 80;
+      let ty = this.player.y + (Math.random() - 0.5) * 80;
+      if (target) {
+        tx = target.x + (Math.random() - 0.5) * 40;
+        ty = target.y + (Math.random() - 0.5) * 40;
+      }
+      const trapProj = new EngineProjectile(tx, ty, 0, 0, dmg, 1, 'trap');
+      trapProj.life = 12.0;
+      trapProj.explodeRadius = def.radius || 95;
+      this.projectiles.push(trapProj);
+    }
+
+    // [41] 🩸 피의 대참격 (Blood Carnage - 검사 합성 진화)
+    if (def.type === 'melee_arc_mega') {
+      this.audio.playExplosion();
+      this.shakeScreen(10, 0.3);
+      this.addShockwave(this.player.x, this.player.y, def.range || 160, '#ef4444', 0.35);
+      this.enemies.forEach(e => {
+        if (Math.hypot(e.x - this.player.x, e.y - this.player.y) < (def.range || 160)) {
+          e.takeDamage(dmg);
+          const pa = Math.atan2(e.y - this.player.y, e.x - this.player.x);
+          e.x += Math.cos(pa) * 30;
+          e.y += Math.sin(pa) * 30;
+        }
+      });
+      for (let i = 0; i < 20; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const d = Math.random() * (def.range || 160);
+        this.particles.push({
+          x: this.player.x + Math.cos(a) * d,
+          y: this.player.y + Math.sin(a) * d,
+          color: '#b91c1c', life: 0.4, maxLife: 0.4, size: 6
+        });
+      }
+    }
+
+    // [42] 🛡️ 천상의 성채방패 (Divine Bulwark - 검사 합성 진화)
+    if (def.type === 'shield_barrier_wave') {
+      this.audio.playExplosion();
+      this.shakeScreen(8, 0.25);
+      this.addShockwave(this.player.x, this.player.y, def.radius || 130, '#fbbf24', 0.4);
+      for (let i = 0; i < 4; i++) {
+        const ang = (i * Math.PI) / 2 + this.gameTime * 2;
+        this.projectiles.push(new EngineProjectile(
+          this.player.x, this.player.y,
+          Math.cos(ang) * 6, Math.sin(ang) * 6,
+          dmg, 12, 'shield_wave'
+        ));
+      }
+    }
+
+    // [43] 🔮 무한 원소마검 (Infinite Runes - 검사 합성 진화)
+    if (def.type === 'rune_storm') {
+      this.audio.playShoot();
+      this.shakeScreen(6, 0.2);
+      const count = def.count || 8;
+      for (let i = 0; i < count; i++) {
+        const ang = (i * Math.PI * 2) / count + this.gameTime;
+        this.projectiles.push(new EngineProjectile(
+          this.player.x, this.player.y,
+          Math.cos(ang) * 9, Math.sin(ang) * 9,
+          dmg, 8, 'rune_blade'
+        ));
+      }
+    }
+
+    // [44] 🎯 신살의 관통포 (God Slayer - 궁수 합성 진화)
+    if (def.type === 'sniper_cannon') {
+      this.audio.playExplosion();
+      this.shakeScreen(14, 0.4);
+      const target = this.getNearestEnemy(this.player.x, this.player.y);
+      const ang = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : (this.player.facing === 1 ? 0 : Math.PI);
+      this.addShockwave(this.player.x, this.player.y, 110, '#facc15', 0.35);
+      this.projectiles.push(new EngineProjectile(
+        this.player.x, this.player.y,
+        Math.cos(ang) * 26, Math.sin(ang) * 26,
+        dmg, 999, 'god_laser'
+      ));
+    }
+
+    // [45] 🌪️ 폭풍의 질풍궁 (Tempest Bow - 궁수 합성 진화)
+    if (def.type === 'rapid_gatling') {
+      this.audio.playShoot();
+      const target = this.getNearestEnemy(this.player.x, this.player.y);
+      const baseAng = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : (this.player.facing === 1 ? 0 : Math.PI);
+      for (let i = 0; i < 6; i++) {
+        const spread = (Math.random() - 0.5) * 0.4;
+        const ang = baseAng + spread;
+        this.projectiles.push(new EngineProjectile(
+          this.player.x, this.player.y,
+          Math.cos(ang) * 14, Math.sin(ang) * 14,
+          dmg, 3, 'rapid_arrow'
+        ));
+      }
+    }
+
+    // [46] 💣 아마겟돈 지뢰진 (Armageddon Traps - 궁수 합성 진화)
+    if (def.type === 'trap_cluster') {
+      this.audio.playExplosion();
+      this.shakeScreen(6, 0.2);
+      const count = def.count || 5;
+      for (let i = 0; i < count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 50 + Math.random() * 120;
+        const tx = this.player.x + Math.cos(ang) * dist;
+        const ty = this.player.y + Math.sin(ang) * dist;
+        const trapProj = new EngineProjectile(tx, ty, 0, 0, dmg, 1, 'trap_cluster');
+        trapProj.life = 15.0;
+        trapProj.explodeRadius = def.radius || 120;
+        this.projectiles.push(trapProj);
       }
     }
   }

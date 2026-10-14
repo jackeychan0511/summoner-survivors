@@ -6,7 +6,224 @@
    ========================================================================== */
 
 const GAME_DATA = {
-  // 1. 펫 3종: 1차 -> 2차 -> 3차 전직 트리
+  // 0. 👑 3대 직업군 (소환사 / 검사 / 궁수) 및 9대 세부 특화 시스템
+  classes: {
+    summoner: {
+      id: 'summoner',
+      name: '소환사 (Summoner)',
+      icon: '🧙',
+      color: '#818cf8',
+      desc: '신비로운 3대 고대 신수를 소환하여 전장을 지휘하는 원소 마도사.',
+      subclasses: {
+        ignis: {
+          id: 'ignis',
+          classId: 'summoner',
+          name: '🔥 화염 신수: 이그니스',
+          title: '화염 폭발형 (이그니스)',
+          icon: '🔥',
+          color: '#f97316',
+          desc: '고열의 화염구와 브레스로 적들을 불태우는 공격 특화 신수.',
+          startingSkill: 'fireball',
+          ultimate: {
+            id: 'hellfire_burst',
+            name: '지옥불 대폭발',
+            icon: '💥',
+            cooldown: 12,
+            damage: 150,
+            desc: '화면 전체의 모든 적에게 화염 충격파 폭발을 가합니다.'
+          },
+          evolution2: { reqLevel: 15, id: 'bahamut', tier: 2, name: '용왕 바하무트 (2차 전직)', icon: '🐲', color: '#dc2626', desc: '고대 화염의 용으로 진화했습니다. 전방위 브레스와 폭발력이 대폭 증가합니다.', unlockSkill: 'dragon_breath' },
+          evolution3: { reqLevel: 35, id: 'agni_dragon', tier: 3, name: '태양신 아그니 드래곤 (3차 최종)', icon: '👑', color: '#fbbf24', desc: '태양의 화신으로 최종 각성했습니다. 영구 불꽃 아우라와 항성 폭발을 일으킵니다.', unlockSkill: 'solar_flare' }
+        },
+        bolt: {
+          id: 'bolt',
+          classId: 'summoner',
+          name: '⚡ 뇌전 신수: 볼트',
+          title: '초고속 연쇄형 (볼트)',
+          icon: '⚡',
+          color: '#38bdf8',
+          desc: '눈에 보이지 않는 속도로 연쇄 번개와 벼락을 내리꽂는 기동 특화 신수.',
+          startingSkill: 'chain_lightning',
+          ultimate: {
+            id: 'thunder_dash',
+            name: '전광석화 돌격',
+            icon: '⚡',
+            cooldown: 10,
+            duration: 2.5,
+            speedMul: 2.2,
+            damage: 60,
+            desc: '2.5초간 무적 상태로 초고속 질주하며 부딪히는 적을 감전시킵니다.'
+          },
+          evolution2: { reqLevel: 15, id: 'fenrir', tier: 2, name: '뇌신 펜리르 (2차 전직)', icon: '🐺', color: '#818cf8', desc: '신화의 뇌수로 각성했습니다. 무작위 벼락 폭풍을 해금합니다.', unlockSkill: 'thunderstorm' },
+          evolution3: { reqLevel: 35, id: 'zeus_hound', tier: 3, name: '창공의 뇌제 제우스 (3차 최종)', icon: '👑', color: '#e0e7ff', desc: '천상의 벼락을 다스리는 신수로 최종 각성했습니다.', unlockSkill: 'judgment_ray' }
+        },
+        sylph: {
+          id: 'sylph',
+          classId: 'summoner',
+          name: '🍃 대지 신수: 실피드',
+          title: '방어 회복형 (실피드)',
+          icon: '🍃',
+          color: '#4ade80',
+          desc: '성스러운 가시 덩굴과 생명의 숲으로 아군을 보호하고 치유하는 신수.',
+          startingSkill: 'thorn_aura',
+          ultimate: {
+            id: 'divine_bloom',
+            name: '세계수의 만개',
+            icon: '🌸',
+            cooldown: 14,
+            heal: 45,
+            damage: 80,
+            desc: '화면 전체 적을 넉백시키고 아군 전체 HP를 45 회복합니다.'
+          },
+          evolution2: { reqLevel: 15, id: 'dryad_queen', tier: 2, name: '숲의 성수 그리폰 (2차 전직)', icon: '🦌', color: '#16a34a', desc: '숲의 수호 성수로 진화했습니다. 성역 치유 장판을 해금합니다.', unlockSkill: 'sanctuary' },
+          evolution3: { reqLevel: 35, id: 'yggdrasil_seraph', tier: 3, name: '세계수의 세라프 (3차 최종)', icon: '👑', color: '#86efac', desc: '태초의 생명수로 최종 각성했습니다. 영구 HP 재생 오라를 부여합니다.', unlockSkill: 'life_rebirth' }
+        }
+      }
+    },
+    warrior: {
+      id: 'warrior',
+      name: '검사 (Swordsman)',
+      icon: '⚔️',
+      color: '#ef4444',
+      desc: '묵직한 대검과 방패로 최전선에서 적들을 베어넘기는 호쾌한 근접 전사.',
+      subclasses: {
+        berserker: {
+          id: 'berserker',
+          classId: 'warrior',
+          name: '⚔️ 광전사 (버서커)',
+          title: '공격형 (광전사)',
+          icon: '⚔️',
+          color: '#ef4444',
+          desc: '양손 대검으로 전방 180도를 베어가르는 근접 파괴자. 체력이 낮을수록 공속 폭증!',
+          startingSkill: 'frenzy_slash',
+          ultimate: {
+            id: 'bloodlust',
+            name: '피의 폭주 (Bloodlust)',
+            icon: '🩸',
+            cooldown: 12,
+            duration: 5.0,
+            speedMul: 1.5,
+            damage: 180,
+            desc: '5초간 공속 200% 증가 및 베기마다 거대한 핏빛 검기 폭풍을 방출합니다!'
+          },
+          evolution2: { reqLevel: 15, id: 'blood_slayer', tier: 2, name: '학살자 블러드 슬레이어 (2차 전직)', icon: '🪓', color: '#b91c1c', desc: '피의 군주로 각성했습니다. X자 교차 참격을 해금합니다.', unlockSkill: 'blood_cross' },
+          evolution3: { reqLevel: 35, id: 'sword_emperor', tier: 3, name: '진 무신 (Sword Emperor - 3차 최종)', icon: '👑', color: '#f87171', desc: '검의 극의에 도달한 무신입니다. 화면을 일도양단하는 천지개벽 참격을 방출합니다.', unlockSkill: 'omnislash' }
+        },
+        paladin: {
+          id: 'paladin',
+          classId: 'warrior',
+          name: '🛡️ 성기사 (가디언)',
+          title: '방어형 (성기사)',
+          icon: '🛡️',
+          color: '#f59e0b',
+          desc: '거대한 타워 실드로 적을 넉백시키고 기절시키는 불굴의 방어 전사.',
+          startingSkill: 'shield_bash',
+          ultimate: {
+            id: 'aegis_fortress',
+            name: '아이기스의 성역',
+            icon: '⚜️',
+            cooldown: 15,
+            duration: 3.5,
+            damage: 120,
+            desc: '3.5초간 완전 무적 상태가 되며, 주변 360도로 거대한 성스러운 충격파를 방출합니다!'
+          },
+          evolution2: { reqLevel: 15, id: 'crusader', tier: 2, name: '신성 크루세이더 (2차 전직)', icon: '✝️', color: '#facc15', desc: '성전 기사로 각성했습니다. 성스러운 방패 회전벽을 해금합니다.', unlockSkill: 'shield_spin' },
+          evolution3: { reqLevel: 35, id: 'grand_crusader', tier: 3, name: '천상 기사단장 (Grand Crusader - 3차 최종)', icon: '👑', color: '#fef08a', desc: '빛의 기사단장으로 최종 각성했습니다. 상시 무적 방어막과 신성 참격을 해금합니다.', unlockSkill: 'holy_wrath' }
+        },
+        runeblade: {
+          id: 'runeblade',
+          classId: 'warrior',
+          name: '⚖️ 마검사 (룬 블레이더)',
+          title: '하이브리드 (마검사)',
+          icon: '🔮',
+          color: '#a855f7',
+          desc: '검에 3원소 마법 룬을 인챈트하여 검기와 원소 탄환을 동시 방출하는 마검사.',
+          startingSkill: 'rune_wave',
+          ultimate: {
+            id: 'elemental_storm',
+            name: '마검 폭풍 (Elemental Storm)',
+            icon: '🌀',
+            cooldown: 14,
+            damage: 160,
+            desc: '화면 360도로 16개의 삼원소 마법 검기가 폭풍처럼 회전하며 광역 난무를 펼칩니다!'
+          },
+          evolution2: { reqLevel: 15, id: 'spellsword', tier: 2, name: '원소 마도검성 (2차 전직)', icon: '🗡️', color: '#8b5cf6', desc: '마도검사로 각성했습니다. 화염/얼음 검기를 연속 교차 방출합니다.', unlockSkill: 'dual_element_slash' },
+          evolution3: { reqLevel: 35, id: 'rune_master', tier: 3, name: '시공의 마검신 (Rune Master - 3차 최종)', icon: '👑', color: '#c084fc', desc: '원소의 진리에 도달한 마검신입니다. 시공간을 가르는 차원 참격을 해금합니다.', unlockSkill: 'dimension_slash' }
+        }
+      }
+    },
+    archer: {
+      id: 'archer',
+      name: '궁수 (Archer)',
+      icon: '🏹',
+      color: '#10b981',
+      desc: '초장거리 저격과 화살 난사로 적들이 다가오기 전에 섬멸하는 사수.',
+      subclasses: {
+        sniper: {
+          id: 'sniper',
+          classId: 'archer',
+          name: '🎯 스나이퍼 (저격수)',
+          title: '저격형 (스나이퍼)',
+          icon: '🎯',
+          color: '#06b6d4',
+          desc: '화면 끝까지 적을 100% 관통하며 날아가는 초고속 에너지 저격 화살!',
+          startingSkill: 'pierce_snipe',
+          ultimate: {
+            id: 'orbital_snipe',
+            name: '궤도 포격 저격 (Orbital Snipe)',
+            icon: '⚡',
+            cooldown: 12,
+            damage: 220,
+            desc: '하늘에서 거대한 궤도 광선 레이저가 내리꽂히며 전장 일직선의 적을 소멸시킵니다!'
+          },
+          evolution2: { reqLevel: 15, id: 'headhunter', tier: 2, name: '헤드헌터 스나이퍼 (2차 전직)', icon: '🔭', color: '#0891b2', desc: '전설의 암살 궁수로 각성했습니다. 3줄기 관통 레이저 저격을 해금합니다.', unlockSkill: 'triple_snipe' },
+          evolution3: { reqLevel: 35, id: 'divine_artemis', tier: 3, name: '신궁 아르테미스 (Artemis - 3차 최종)', icon: '👑', color: '#67e8f9', desc: '달빛의 여신으로 최종 각성했습니다. 시공간을 꿰뚫는 즉사급 유도 관통 광선을 해금합니다.', unlockSkill: 'artemis_ray' }
+        },
+        windrunner: {
+          id: 'windrunner',
+          classId: 'archer',
+          name: '🌪️ 윈드러너 (속사궁수)',
+          title: '난사형 (윈드러너)',
+          icon: '🌪️',
+          color: '#10b981',
+          desc: '0.3초마다 3연장 화살을 기관총처럼 퍼붓는 초고속 난사형 궁수.',
+          startingSkill: 'rapid_gale',
+          ultimate: {
+            id: 'arrow_rain_nova',
+            name: '천공의 화살비 (Arrow Rain)',
+            icon: '🌧️',
+            cooldown: 13,
+            damage: 150,
+            desc: '하늘에서 수백 발의 황금 화살비가 전장에 쏟아져 내리며 연속 폭발 충격파를 일으킵니다!'
+          },
+          evolution2: { reqLevel: 15, id: 'tempest_ranger', tier: 2, name: '템페스트 레인저 (2차 전직)', icon: '🏹', color: '#059669', desc: '질풍의 사수로 각성했습니다. 8방향 부채꼴 멀티샷을 해금합니다.', unlockSkill: 'multi_wind_shot' },
+          evolution3: { reqLevel: 35, id: 'tempest_bowmaster', tier: 3, name: '폭풍의 신궁 (Tempest - 3차 최종)', icon: '👑', color: '#34d399', desc: '바람을 지배하는 신궁입니다. 화면 전체를 뒤덮는 유도 바람 폭풍을 해금합니다.', unlockSkill: 'wind_storm_nova' }
+        },
+        trapper: {
+          id: 'trapper',
+          classId: 'archer',
+          name: '🐾 비스트 트래퍼 (함정/야수)',
+          title: '하이브리드 (트래퍼)',
+          icon: '🐾',
+          color: '#d97706',
+          desc: '지면에 폭발 덫을 매설하고, 영체 늑대와 매를 소환해 함께 싸우는 사냥꾼.',
+          startingSkill: 'explosive_trap',
+          ultimate: {
+            id: 'beast_stampede',
+            name: '야수 대군단 쇄도',
+            icon: '🐺',
+            cooldown: 14,
+            damage: 170,
+            desc: '영체 늑대 떼와 맹금 군단이 전장을 돌진하며 적 진형을 초토화시킵니다!'
+          },
+          evolution2: { reqLevel: 15, id: 'hunter_lord', tier: 2, name: '사냥의 대가 헌터로드 (2차 전직)', icon: '🦅', color: '#b45309', desc: '야수 지휘관으로 각성했습니다. 빙결 폭발 덫과 맹금 급강하를 해금합니다.', unlockSkill: 'frost_trap_hawk' },
+          evolution3: { reqLevel: 35, id: 'forest_overlord', tier: 3, name: '대자연의 군주 (Overlord - 3차 최종)', icon: '👑', color: '#f59e0b', desc: '태초의 대자연 지배자입니다. 거대 고대 베히모스 영체를 소환합니다.', unlockSkill: 'behemoth_call' }
+        }
+      }
+    }
+  },
+
+  // 1. 펫 3종 (소환사 전용 및 호환): 1차 -> 2차 -> 3차 전직 트리
   pets: {
     ignis: {
       id: 'ignis',
@@ -853,6 +1070,161 @@ const GAME_DATA = {
       baseCooldown: 1.2,
       baseDamage: 55,
       count: 8
+    },
+
+    // --- [5] ⚔️ 검사 & 🏹 궁수 신규 특화 스킬군 ---
+    frenzy_slash: {
+      id: 'frenzy_slash',
+      name: '쾌검 참격 (Frenzy Slash)',
+      element: 'physical',
+      type: 'melee_arc',
+      icon: '⚔️',
+      desc: '[검사: 광전사] 전방 180도 부채꼴로 눈부신 네온 검기를 휘둘러 적들을 베어넘깁니다.',
+      maxLevel: 8,
+      baseCooldown: 0.7,
+      baseDamage: 32,
+      range: 115
+    },
+    shield_bash: {
+      id: 'shield_bash',
+      name: '방패 강타 (Shield Bash)',
+      element: 'holy',
+      type: 'shield_wave',
+      icon: '🛡️',
+      desc: '[검사: 성기사] 전방으로 거대한 황금 방패 충격파를 발사하여 적들을 넉백시키고 기절시킵니다.',
+      maxLevel: 8,
+      baseCooldown: 1.0,
+      baseDamage: 26,
+      speed: 7,
+      explodeRadius: 65
+    },
+    rune_wave: {
+      id: 'rune_wave',
+      name: '마검 룬파동 (Rune Blade Wave)',
+      element: 'arcane',
+      type: 'rune_wave',
+      icon: '🔮',
+      desc: '[검사: 마검사] 검을 휘두르며 전방으로 원소 마법 검기를 날려 궤적 상의 적들을 관통합니다.',
+      maxLevel: 8,
+      baseCooldown: 0.85,
+      baseDamage: 30,
+      speed: 9
+    },
+    pierce_snipe: {
+      id: 'pierce_snipe',
+      name: '관통 저격 (Pierce Snipe)',
+      element: 'lightning',
+      type: 'sniper_beam',
+      icon: '🎯',
+      desc: '[궁수: 스나이퍼] 화면 끝까지 적을 일렬로 관통하는 초고속 레이저 화살을 발사합니다.',
+      maxLevel: 8,
+      baseCooldown: 1.1,
+      baseDamage: 50,
+      speed: 20
+    },
+    rapid_gale: {
+      id: 'rapid_gale',
+      name: '질풍 연사 (Rapid Gale)',
+      element: 'wind',
+      type: 'rapid_arrow',
+      icon: '🌪️',
+      desc: '[궁수: 윈드러너] 0.35초마다 바람의 유도 화살 3발을 기관총처럼 고속 연사합니다.',
+      maxLevel: 8,
+      baseCooldown: 0.35,
+      baseDamage: 15,
+      speed: 12,
+      count: 3
+    },
+    explosive_trap: {
+      id: 'explosive_trap',
+      name: '마법 폭발 덫 (Explosive Trap)',
+      element: 'fire',
+      type: 'trap',
+      icon: '💣',
+      desc: '[궁수: 트래퍼] 지면에 마법 지뢰 덫을 설치하여 적이 밟으면 연쇄 대폭발을 일으킵니다.',
+      maxLevel: 8,
+      baseCooldown: 1.4,
+      baseDamage: 60,
+      radius: 95
+    },
+
+    // --- [6] 🔥 검사/궁수 합성 진화 스킬 (Evolved Skills) ---
+    blood_carnage: {
+      id: 'blood_carnage',
+      name: '🩸 피의 대참격 (Blood Carnage)',
+      isEvolved: true,
+      element: 'dark',
+      type: 'melee_arc_mega',
+      icon: '🩸',
+      desc: '[합성 진화: 쾌검참격+송곳니] 전방 360도로 거대한 피의 검기 폭풍을 일으켜 적들을 갈아버립니다.',
+      maxLevel: 1,
+      baseCooldown: 0.5,
+      baseDamage: 85,
+      range: 160
+    },
+    divine_bulwark: {
+      id: 'divine_bulwark',
+      name: '🛡️ 천상의 성채방패 (Divine Bulwark)',
+      isEvolved: true,
+      element: 'holy',
+      type: 'shield_barrier_wave',
+      icon: '⚜️',
+      desc: '[합성 진화: 방패강타+인력수정] 거대 방패 회전벽이 형성되어 적 탄환을 반사하고 초광역 넉백을 가합니다.',
+      maxLevel: 1,
+      baseCooldown: 0.8,
+      baseDamage: 65,
+      radius: 120
+    },
+    infinite_runes: {
+      id: 'infinite_runes',
+      name: '🔮 무한 원소마검 (Infinite Runes)',
+      isEvolved: true,
+      element: 'arcane',
+      type: 'rune_storm',
+      icon: '🌌',
+      desc: '[합성 진화: 룬파동+유대방울] 3색 원소 검기가 8방향으로 난사되며 궤적에 화염/빙결 장판을 남깁니다.',
+      maxLevel: 1,
+      baseCooldown: 0.6,
+      baseDamage: 60,
+      count: 8
+    },
+    god_pierce_snipe: {
+      id: 'god_pierce_snipe',
+      name: '🎯 신살의 관통포 (God Slayer)',
+      isEvolved: true,
+      element: 'holy',
+      type: 'sniper_cannon',
+      icon: '⚡',
+      desc: '[합성 진화: 관통저격+네잎클로버] 화면을 가르는 초거대 황금 레일건 빔이 100% 치명타로 대폭발합니다.',
+      maxLevel: 1,
+      baseCooldown: 0.9,
+      baseDamage: 130
+    },
+    tempest_gale_bow: {
+      id: 'tempest_gale_bow',
+      name: '🌪️ 폭풍의 질풍궁 (Tempest Bow)',
+      isEvolved: true,
+      element: 'wind',
+      type: 'rapid_gatling',
+      icon: '🌪️',
+      desc: '[합성 진화: 질풍연사+바람호각] 초당 12발의 유도 바람 화살이 기관총처럼 쏟아져 나와 전장을 초토화합니다.',
+      maxLevel: 1,
+      baseCooldown: 0.15,
+      baseDamage: 32
+    },
+    armageddon_traps: {
+      id: 'armageddon_traps',
+      name: '💣 아마겟돈 지뢰진 (Armageddon)',
+      isEvolved: true,
+      element: 'fire',
+      type: 'trap_cluster',
+      icon: '💥',
+      desc: '[합성 진화: 폭발덫+현자고서] 전장에 상시 5개의 집속 폭탄 지뢰가 매설되어 연쇄 핵폭발을 일으킵니다.',
+      maxLevel: 1,
+      baseCooldown: 1.0,
+      baseDamage: 110,
+      count: 5,
+      radius: 120
     }
   },
 
@@ -914,7 +1286,7 @@ const GAME_DATA = {
     }
   },
 
-  // 4. 🧬 합성 진화 조합 공식표 (총 11대 합성 진화!)
+  // 4. 🧬 합성 진화 조합 공식표 (총 17대 합성 진화!)
   evolutionRecipes: [
     { baseSkill: 'fireball', reqPassive: 'beast_fang', result: 'hellfire_meteor' },
     { baseSkill: 'fire_slash', reqPassive: 'beast_fang', result: 'magma_crusher' },
@@ -926,7 +1298,15 @@ const GAME_DATA = {
     { baseSkill: 'icicle_spear', reqPassive: 'sage_tome', result: 'absolute_blizzard' },
     { baseSkill: 'wind_blade', reqPassive: 'friendship_bell', result: 'typhoon_vortex' },
     { baseSkill: 'holy_cross', reqPassive: 'four_leaf_clover', result: 'celestial_blade' },
-    { baseSkill: 'dark_minion', reqPassive: 'beast_fang', result: 'abyss_necromancer' }
+    { baseSkill: 'dark_minion', reqPassive: 'beast_fang', result: 'abyss_necromancer' },
+    // ⚔️ 검사 전용 합성 진화
+    { baseSkill: 'frenzy_slash', reqPassive: 'beast_fang', result: 'blood_carnage' },
+    { baseSkill: 'shield_bash', reqPassive: 'magnet_gem', result: 'divine_bulwark' },
+    { baseSkill: 'rune_wave', reqPassive: 'friendship_bell', result: 'infinite_runes' },
+    // 🏹 궁수 전용 합성 진화
+    { baseSkill: 'pierce_snipe', reqPassive: 'four_leaf_clover', result: 'god_pierce_snipe' },
+    { baseSkill: 'rapid_gale', reqPassive: 'speed_whistle', result: 'tempest_gale_bow' },
+    { baseSkill: 'explosive_trap', reqPassive: 'sage_tome', result: 'armageddon_traps' }
   ],
 
   // 5. 🗺️ 뱀파이어 서바이벌급 초대형 월드 맵 (16000 x 16000)

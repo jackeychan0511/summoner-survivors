@@ -22,8 +22,16 @@ class GameRenderer {
 
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    const cx = this.canvas.width / 2 - player.x;
-    const cy = this.canvas.height / 2 - player.y;
+    // 📳 화면 흔들림 오프셋 계산
+    let shakeX = 0;
+    let shakeY = 0;
+    if (engine.screenShakeIntensity > 0) {
+      shakeX = (Math.random() - 0.5) * 2 * engine.screenShakeIntensity;
+      shakeY = (Math.random() - 0.5) * 2 * engine.screenShakeIntensity;
+    }
+
+    const cx = this.canvas.width / 2 - player.x + shakeX;
+    const cy = this.canvas.height / 2 - player.y + shakeY;
 
     ctx.save();
     ctx.translate(cx, cy);
@@ -67,8 +75,13 @@ class GameRenderer {
     engine.projectiles.forEach(p => this.renderProjectile(p));
     engine.lightningBolts.forEach(b => this.renderLightning(b));
 
+    // 9-1. 💥 충격파 링 (Shockwave Rings)
+    if (engine.shockwaves && engine.shockwaves.length > 0) {
+      this.renderShockwaves(engine.shockwaves);
+    }
+
     // 10. Local Tamer (Player)
-    const myName = (typeof networkManager !== 'undefined' && networkManager.isHost) ? '👑 아빠 (호스트)' : '🧙 테이머';
+    const myName = (typeof networkManager !== 'undefined' && networkManager.isHost) ? '👑 아빠 (호스트)' : ((player.subclassDef && player.subclassDef.name) || '🧙 테이머');
     this.renderTamer(player, myName, '#818cf8');
 
     // 11. Local Hero Pet
@@ -98,6 +111,14 @@ class GameRenderer {
     });
 
     ctx.restore(); // Restore camera translation
+
+    // 🎬 시네마틱 디밍 (궁극기 발동 시 배경 순간 암전)
+    if (engine.cinematicDimming > 0) {
+      ctx.save();
+      ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(0.65, engine.cinematicDimming)})`;
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      ctx.restore();
+    }
 
     // =========================================================================
     // SCREEN UI OVERLAYS: Off-screen Indicators & Radar Mini-map
@@ -477,42 +498,164 @@ class GameRenderer {
     ctx.ellipse(0, 14, 12, 5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Tamer Robe
-    ctx.fillStyle = '#1e1b4b';
-    ctx.strokeStyle = robeAccent;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, -10);
-    ctx.lineTo(-10, 12);
-    ctx.lineTo(10, 12);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    const heroClass = p.heroClass || 'summoner';
 
-    // Head & Tamer Hat
-    ctx.fillStyle = '#fed7aa';
-    ctx.beginPath();
-    ctx.arc(0, -12, 6, 0, Math.PI * 2);
-    ctx.fill();
+    // [1] ⚔️ 검사 (Warrior)
+    if (heroClass === 'warrior') {
+      // Plate Armor Body
+      ctx.fillStyle = '#334155';
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(-9, -10);
+      ctx.lineTo(9, -10);
+      ctx.lineTo(7, 12);
+      ctx.lineTo(-7, 12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
 
-    // Wizard/Tamer Cone Hat
-    ctx.fillStyle = '#312e81';
-    ctx.beginPath();
-    ctx.moveTo(-10, -14);
-    ctx.lineTo(10, -14);
-    ctx.lineTo(0, -26);
-    ctx.closePath();
-    ctx.fill();
+      // Shoulder Pauldrons
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(-13, -11, 5, 6);
+      ctx.fillRect(8, -11, 5, 6);
 
-    // Staff
-    ctx.fillStyle = '#92400e';
-    ctx.fillRect(8, -18, 3, 28);
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = robeAccent;
-    ctx.fillStyle = robeAccent;
-    ctx.beginPath();
-    ctx.arc(9.5, -20, 4, 0, Math.PI * 2);
-    ctx.fill();
+      // Head & Knight Helmet
+      ctx.fillStyle = '#fed7aa';
+      ctx.beginPath();
+      ctx.arc(0, -12, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#475569';
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, -13, 7, Math.PI, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Visor slit
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-4, -13, 8, 2);
+
+      // Red Plume
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.moveTo(0, -20);
+      ctx.lineTo(4, -25);
+      ctx.lineTo(-4, -25);
+      ctx.closePath();
+      ctx.fill();
+
+      // Greatsword in hand
+      ctx.fillStyle = '#94a3b8';
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1.5;
+      ctx.fillRect(9, -24, 4, 32);
+      ctx.strokeRect(9, -24, 4, 32);
+      // Crossguard & pommel
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(6, -8, 10, 3);
+      ctx.fillRect(9.5, 9, 3, 4);
+
+    // [2] 🏹 궁수 (Archer)
+    } else if (heroClass === 'archer') {
+      // Ranger Tunic & Cape
+      ctx.fillStyle = '#166534';
+      ctx.strokeStyle = '#4ade80';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(0, -10);
+      ctx.lineTo(-9, 12);
+      ctx.lineTo(9, 12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Leather quiver strap
+      ctx.strokeStyle = '#78350f';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-7, -8);
+      ctx.lineTo(7, 6);
+      ctx.stroke();
+
+      // Head & Archer Hood
+      ctx.fillStyle = '#fed7aa';
+      ctx.beginPath();
+      ctx.arc(0, -12, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#15803d';
+      ctx.beginPath();
+      ctx.moveTo(-8, -11);
+      ctx.lineTo(8, -11);
+      ctx.lineTo(0, -23);
+      ctx.closePath();
+      ctx.fill();
+
+      // Feather on cap
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath();
+      ctx.moveTo(2, -18);
+      ctx.lineTo(9, -25);
+      ctx.lineTo(6, -17);
+      ctx.closePath();
+      ctx.fill();
+
+      // Curved Recurve Bow
+      ctx.strokeStyle = '#92400e';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(12, -4, 15, -Math.PI * 0.45, Math.PI * 0.45);
+      ctx.stroke();
+      // Bowstring
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(12 + Math.cos(-Math.PI * 0.45) * 15, -4 + Math.sin(-Math.PI * 0.45) * 15);
+      ctx.lineTo(12 + Math.cos(Math.PI * 0.45) * 15, -4 + Math.sin(Math.PI * 0.45) * 15);
+      ctx.stroke();
+
+    // [3] 🧙 소환사 (Summoner)
+    } else {
+      // Tamer Robe
+      ctx.fillStyle = '#1e1b4b';
+      ctx.strokeStyle = robeAccent;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, -10);
+      ctx.lineTo(-10, 12);
+      ctx.lineTo(10, 12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Head & Tamer Hat
+      ctx.fillStyle = '#fed7aa';
+      ctx.beginPath();
+      ctx.arc(0, -12, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Wizard/Tamer Cone Hat
+      ctx.fillStyle = '#312e81';
+      ctx.beginPath();
+      ctx.moveTo(-10, -14);
+      ctx.lineTo(10, -14);
+      ctx.lineTo(0, -26);
+      ctx.closePath();
+      ctx.fill();
+
+      // Staff
+      ctx.fillStyle = '#92400e';
+      ctx.fillRect(8, -18, 3, 28);
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = robeAccent;
+      ctx.fillStyle = robeAccent;
+      ctx.beginPath();
+      ctx.arc(9.5, -20, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     // Divine Shield Bubble (If Invincible / Ultimate / Shield barrier active)
     if (p.isInvincible || (p.shieldBarrier && p.shieldBarrier > 0)) {
@@ -1007,8 +1150,171 @@ class GameRenderer {
       ctx.moveTo(-3, 0);
       ctx.lineTo(-28, 0);
       ctx.stroke();
+
+    // [12] Blade Arc (쾌검 참격 - 네온 검기 호)
+    } else if (p.kind === 'blade_arc') {
+      ctx.rotate(angle);
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = '#f43f5e';
+      ctx.fillStyle = '#f43f5e';
+      ctx.strokeStyle = '#ffe4e6';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, 22, -Math.PI * 0.4, Math.PI * 0.4, false);
+      ctx.quadraticCurveTo(8, 0, 0, -22 * Math.sin(Math.PI * 0.4));
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+    // [13] Shield Wave (방패 강타 파동 - 황금 방패 파동)
+    } else if (p.kind === 'shield_wave') {
+      ctx.rotate(angle);
+      ctx.shadowBlur = 22;
+      ctx.shadowColor = '#facc15';
+      ctx.fillStyle = 'rgba(250, 204, 21, 0.35)';
+      ctx.strokeStyle = '#fef08a';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(12, -18);
+      ctx.lineTo(20, 0);
+      ctx.lineTo(12, 18);
+      ctx.lineTo(0, 14);
+      ctx.lineTo(0, -14);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(8, -8, 4, 16);
+      ctx.fillRect(2, -2, 16, 4);
+
+    // [14] Rune Blade (마검 룬파동)
+    } else if (p.kind === 'rune_blade') {
+      const rot = (Date.now() / 70) % (Math.PI * 2);
+      ctx.rotate(rot);
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = '#a855f7';
+      ctx.fillStyle = '#9333ea';
+      ctx.strokeStyle = '#e9d5ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, -16);
+      ctx.lineTo(8, 0);
+      ctx.lineTo(0, 16);
+      ctx.lineTo(-8, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(0, 0, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+    // [15] Sniper Beam & God Laser (관통 레이저 화살 / 신살의 관통포)
+    } else if (p.kind === 'sniper_beam' || p.kind === 'god_laser') {
+      ctx.rotate(angle);
+      const isGod = p.kind === 'god_laser';
+      ctx.shadowBlur = isGod ? 30 : 20;
+      ctx.shadowColor = isGod ? '#facc15' : '#06b6d4';
+      ctx.strokeStyle = isGod ? '#fbbf24' : '#06b6d4';
+      ctx.lineWidth = isGod ? 8 : 4;
+      ctx.beginPath();
+      ctx.moveTo(-60, 0);
+      ctx.lineTo(24, 0);
+      ctx.stroke();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = isGod ? 4 : 2;
+      ctx.beginPath();
+      ctx.moveTo(-50, 0);
+      ctx.lineTo(28, 0);
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(34, 0);
+      ctx.lineTo(20, isGod ? -8 : -5);
+      ctx.lineTo(20, isGod ? 8 : 5);
+      ctx.closePath();
+      ctx.fill();
+
+    // [16] Rapid Arrow (질풍 화살)
+    } else if (p.kind === 'rapid_arrow') {
+      ctx.rotate(angle);
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = '#10b981';
+      ctx.fillStyle = '#10b981';
+      ctx.strokeStyle = '#a7f3d0';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(14, 0);
+      ctx.lineTo(-6, -4);
+      ctx.lineTo(-2, 0);
+      ctx.lineTo(-6, 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.strokeStyle = '#34d399';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-2, 0);
+      ctx.lineTo(-14, 0);
+      ctx.stroke();
+
+    // [17] Explosive Trap & Cluster (마법 폭발 덫 & 아마겟돈 지뢰)
+    } else if (p.kind === 'trap' || p.kind === 'trap_cluster') {
+      const isCluster = p.kind === 'trap_cluster';
+      const pulse = 1 + Math.sin(Date.now() / 150) * 0.2;
+      ctx.shadowBlur = isCluster ? 22 : 14;
+      ctx.shadowColor = isCluster ? '#ef4444' : '#f97316';
+      ctx.strokeStyle = isCluster ? '#dc2626' : '#ea580c';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.arc(0, 0, (isCluster ? 16 : 12) * pulse, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = isCluster ? '#ef4444' : '#f59e0b';
+      ctx.beginPath();
+      ctx.arc(0, 0, isCluster ? 7 : 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+    // [18] Wolf Stampede (야수 쇄도)
+    } else if (p.kind === 'wolf_stampede') {
+      ctx.rotate(angle);
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = '#10b981';
+      ctx.fillStyle = '#059669';
+      ctx.strokeStyle = '#6ee7b7';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 18, 9, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#fde047';
+      ctx.fillRect(8, -4, 4, 3);
     }
 
+    ctx.restore();
+  }
+
+  // 💥 도넛형 충격파 링 렌더러 (Shockwaves Renderer)
+  renderShockwaves(shockwaves) {
+    const ctx = this.ctx;
+    ctx.save();
+    for (let i = 0; i < shockwaves.length; i++) {
+      const sw = shockwaves[i];
+      const alpha = Math.max(0, 1 - sw.age / sw.duration);
+      ctx.beginPath();
+      ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+      ctx.strokeStyle = sw.color || '#facc15';
+      ctx.lineWidth = Math.max(1.5, 4.5 * alpha);
+      ctx.shadowBlur = 18 * alpha;
+      ctx.shadowColor = sw.color || '#facc15';
+      ctx.globalAlpha = alpha;
+      ctx.stroke();
+    }
     ctx.restore();
   }
 
