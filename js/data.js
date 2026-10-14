@@ -1348,11 +1348,20 @@ const GAME_DATA = {
       // 2. 주요 거점 및 바이옴 지역 판정
       // [중앙] 라다톰 왕성 (8000, 8000)
       const dCenter = Math.hypot(x - 8000, y - 8000);
-      if (dCenter < 340) return 'sand'; // 왕성 안마당 광장
-      // 사방으로 시원하게 뻗은 로마식 왕도 포장도로
-      if ((Math.abs(x - 8000) < 64 && Math.abs(y - 8000) < 3600) ||
-          (Math.abs(y - 8000) < 64 && Math.abs(x - 8000) < 3600)) {
+      if (dCenter < 380) return 'sand'; // 왕성 안마당 광장
+
+      // 사방으로 시원하게 뻗은 왕도 대로 (폭 192px 쾌적한 이동로 보장)
+      const isRoadAxisX = Math.abs(x - 8000) < 96 && Math.abs(y - 8000) < 6500;
+      const isRoadAxisY = Math.abs(y - 8000) < 96 && Math.abs(x - 8000) < 6500;
+      if (isRoadAxisX || isRoadAxisY) {
         return 'sand';
+      }
+
+      // 왕도 대로 주변 녹지 완충지대 (산이나 물이 대로변을 억압하거나 병목을 만들지 못하도록 안전 통행 보장)
+      const isRoadBufferX = Math.abs(x - 8000) < 220 && Math.abs(y - 8000) < 6600;
+      const isRoadBufferY = Math.abs(y - 8000) < 220 && Math.abs(x - 8000) < 6600;
+      if (isRoadBufferX || isRoadBufferY) {
+        return 'grass';
       }
 
       // [북서쪽] 암흑 묘지 & 독 늪지대 (3500, 3500)
@@ -1360,7 +1369,7 @@ const GAME_DATA = {
       if (dNW < 2000) {
         if (dNW < 320) return 'sand'; // 묘지 제단 안마당
         const swampNoise = Math.sin(gx * 0.32 - gy * 0.28) + Math.cos(gx * 0.24 + gy * 0.35);
-        if (swampNoise > 0.85) return 'water'; // 깊은 독극물 수렁 (진입 불가)
+        if (swampNoise > 1.15) return 'water'; // 깊은 독극물 수렁 (진입 불가)
         if (swampNoise > -0.3) return 'swamp'; // 독 늪지대
         return 'sand';
       }
@@ -1371,11 +1380,11 @@ const GAME_DATA = {
         if (dNE < 340) return 'sand'; // 신전 대리석 광장
         // 신전으로 이어지는 협곡 산길
         const roadNE = Math.abs((x - 12500) - (y - 3500));
-        if (roadNE < 80 && dNE < 2000) return 'sand';
+        if (roadNE < 110 && dNE < 2000) return 'sand';
 
         const mountainRidge = Math.sin(gx * 0.28 + gy * 0.22) * 1.5 + Math.cos(gx * 0.18 - gy * 0.32) * 1.2;
-        if (mountainRidge > 0.35) return 'mountain'; // 깎아지른 바위산 (진입 불가)
-        if (mountainRidge > -0.2) return 'sand'; // 산기슭 자갈길
+        if (mountainRidge > 1.25) return 'mountain'; // 깎아지른 바위산 (진입 불가)
+        if (mountainRidge > 0.4) return 'sand'; // 산기슭 자갈길
         return 'grass';
       }
 
@@ -1396,22 +1405,25 @@ const GAME_DATA = {
         if (dSE > 800 && dSE < 1350) {
           // 남서쪽 협곡 입구는 뚫려 있음
           const angle = Math.atan2(y - 12500, x - 12500);
-          if (Math.abs(angle - (-2.3)) > 0.4) {
+          if (Math.abs(angle - (-2.3)) > 0.5) {
             return 'mountain'; // 분화구 암벽 (진입 불가)
           }
         }
         const volcanoNoise = Math.sin(gx * 0.29 + gy * 0.41);
-        if (volcanoNoise > 0.2) return 'sand';
-        if (volcanoNoise > -0.2) return 'mountain';
+        if (volcanoNoise > 0.4) return 'sand';
+        if (volcanoNoise > 0.1) return 'mountain';
         return 'grass';
       }
 
-      // 3. 필드 자연 지형 (절차적 노이즈: 호수, 바위산, 숲, 오솔길)
-      const noise = Math.sin(gx * 0.14 + gy * 0.18) * 1.6 + Math.cos(gx * 0.22 - gy * 0.12) * 1.3;
-      if (noise > 1.65) return 'forest';      // 울창한 숲 군락
-      if (noise < -2.15) return 'water';     // 맑은 호수 (진입 불가)
-      if (noise < -1.82) return 'mountain';  // 야생 바위산 (진입 불가)
-      if (noise > 1.25 && noise < 1.42) return 'sand'; // 오솔길
+      // 3. 필드 자연 지형 (독립적인 호수, 산봉우리, 숲 노이즈로 막힘 없는 시원한 모험로 구성)
+      const lakeNoise = Math.sin(gx * 0.13 - gy * 0.15) * 1.3 + Math.cos(gx * 0.17 + gy * 0.11) * 1.2;
+      const peakNoise = Math.cos(gx * 0.15 + gy * 0.16) * 1.3 + Math.sin(gx * 0.11 - gy * 0.18) * 1.2;
+      const woodlandNoise = Math.sin(gx * 0.14 + gy * 0.19) * 1.2 + Math.cos(gx * 0.21 - gy * 0.13);
+
+      if (lakeNoise < -2.15) return 'water';       // 독립된 운치 있는 호수 (사방으로 우회 가능)
+      if (peakNoise > 2.15) return 'mountain';     // 우뚝 솟은 바위산 봉우리 (독립적 랜드마크)
+      if (woodlandNoise > 1.6) return 'forest';    // 상록수 숲
+      if (Math.abs(lakeNoise) < 0.08) return 'sand'; // 자연 흙길/오솔길
 
       return 'grass'; // 정통 드퀘 푸른 초원
     }

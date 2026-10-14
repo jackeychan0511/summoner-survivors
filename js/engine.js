@@ -800,12 +800,74 @@ class GameEngine {
     const stepX = dx * this.player.speed * terrainSpeedMul * 60 * dt;
     const stepY = dy * this.player.speed * terrainSpeedMul * 60 * dt;
 
-    // ⛰️ 산지 및 🌊 물 지형 충돌 검사 (독립 X/Y 축 부드러운 슬라이딩)
+    // ⛰️ 산지 및 🌊 물 지형 충돌 검사 & 벽면 슬라이딩(Wall Sliding)
+    let movedX = false;
+    let movedY = false;
+
     if (this.isPassable(this.player.x + stepX, this.player.y, 14)) {
       this.player.x += stepX;
+      movedX = true;
     }
     if (this.isPassable(this.player.x, this.player.y + stepY, 14)) {
       this.player.y += stepY;
+      movedY = true;
+    }
+
+    // 벽면에 직각으로 부딪혔을 때 비스듬히 미끄러지는 부드러운 슬라이딩 처리
+    if (!movedX && Math.abs(stepX) > 0.01 && Math.abs(stepY) < 0.1) {
+      const slideStep = Math.abs(stepX) * 0.75;
+      if (this.isPassable(this.player.x, this.player.y + slideStep, 14)) {
+        this.player.y += slideStep;
+        movedY = true;
+      } else if (this.isPassable(this.player.x, this.player.y - slideStep, 14)) {
+        this.player.y -= slideStep;
+        movedY = true;
+      }
+    } else if (!movedY && Math.abs(stepY) > 0.01 && Math.abs(stepX) < 0.1) {
+      const slideStep = Math.abs(stepY) * 0.75;
+      if (this.isPassable(this.player.x + slideStep, this.player.y, 14)) {
+        this.player.x += slideStep;
+        movedX = true;
+      } else if (this.isPassable(this.player.x - slideStep, this.player.y, 14)) {
+        this.player.x -= slideStep;
+        movedX = true;
+      }
+    }
+
+    // 🚨 오토플레이 끼임(Stuck) 정밀 감지 및 탈출(Detour) 기동
+    if (this.autoPlay) {
+      const movedDist = Math.hypot(
+        this.player.x - (this.lastAutoX || this.player.x),
+        this.player.y - (this.lastAutoY || this.player.y)
+      );
+      this.lastAutoX = this.player.x;
+      this.lastAutoY = this.player.y;
+
+      if (this.autoDetourTimer > 0) {
+        this.autoDetourTimer -= dt;
+      }
+
+      // 이동 의도가 있으나 실제로 거의 전진하지 못하는 경우
+      if ((dx !== 0 || dy !== 0) && movedDist < 0.35) {
+        this.autoStuckTimer = (this.autoStuckTimer || 0) + dt;
+        if (this.autoStuckTimer > 0.3) {
+          // 전방이 막혀 있으므로 탈출각(±90도 또는 대각)으로 강제 우회 기동
+          const curFacing = Math.atan2(dy, dx);
+          const detourTurn = (Math.random() < 0.5 ? 1 : -1) * (Math.PI * 0.55);
+          this.autoDetourAngle = curFacing + detourTurn;
+          this.autoDetourTimer = 1.2; // 1.2초간 탈출 기동 지속
+          this.autoStuckTimer = 0;
+
+          // 보물상자를 먹으려다 막힌 경우 해당 상자를 10초간 무시(블랙리스트)하여 다른 곳으로 유도
+          if (this.currentTargetChest) {
+            if (!this.unreachableChests) this.unreachableChests = new Map();
+            this.unreachableChests.set(this.currentTargetChest, this.gameTime + 10);
+            this.currentTargetChest = null;
+          }
+        }
+      } else {
+        this.autoStuckTimer = Math.max(0, (this.autoStuckTimer || 0) - dt * 2);
+      }
     }
 
     // World Boundary Clamping (16000 x 16000)
@@ -837,10 +899,10 @@ class GameEngine {
       }
     }
 
-    // Chest Collision Check (Equipment Drops from Mini-Bosses)
+    // Chest Collision Check (반경 55px로 넉넉하게 흡수하여 해안가나 바위 옆에서도 안전 획득)
     for (let i = this.chests.length - 1; i >= 0; i--) {
       const c = this.chests[i];
-      if (Math.hypot(c.x - this.player.x, c.y - this.player.y) < 36) {
+      if (Math.hypot(c.x - this.player.x, c.y - this.player.y) < 55) {
         this.chests.splice(i, 1);
         this.audio.playGem();
         this.openEquipmentModal(c.tier);
@@ -2658,13 +2720,43 @@ class GameEngine {
         bot.facing = nearestEnemy.x >= bot.x ? 1 : -1;
       }
 
+      // 봇이 강이나 산에 가로막혀 플레이어와 420px 이상 벌어졌을 때 플레이어 근처의 안전한 육지로 즉각 소환
+      const distToPlayer = Math.hypot(this.player.x - bot.x, this.player.y - bot.y);
+      if (distToPlayer > 420) {
+        for (let rad = 50; rad <= 140; rad += 30) {
+          const testX = this.player.x + (idx === 0 ? -1 : 1) * rad;
+          const testY = this.player.y + (idx === 0 ? 1 : -1) * rad;
+          if (this.isPassable(testX, testY, 14)) {
+            bot.x = testX;
+            bot.y = testY;
+            break;
+          }
+        }
+      }
+
       const stepX = (targetX - bot.x) * 0.08 * 60 * dt;
       const stepY = (targetY - bot.y) * 0.08 * 60 * dt;
+      let botMovedX = false;
+      let botMovedY = false;
+
       if (this.isPassable(bot.x + stepX, bot.y, 14)) {
         bot.x += stepX;
+        botMovedX = true;
       }
       if (this.isPassable(bot.x, bot.y + stepY, 14)) {
         bot.y += stepY;
+        botMovedY = true;
+      }
+
+      // 봇 벽면 슬라이딩
+      if (!botMovedX && Math.abs(stepX) > 0.1 && Math.abs(stepY) < 0.1) {
+        const slide = Math.abs(stepX) * 0.7;
+        if (this.isPassable(bot.x, bot.y + slide, 14)) bot.y += slide;
+        else if (this.isPassable(bot.x, bot.y - slide, 14)) bot.y -= slide;
+      } else if (!botMovedY && Math.abs(stepY) > 0.1 && Math.abs(stepX) < 0.1) {
+        const slide = Math.abs(stepY) * 0.7;
+        if (this.isPassable(bot.x + slide, bot.y, 14)) bot.x += slide;
+        else if (this.isPassable(bot.x - slide, bot.y, 14)) bot.x -= slide;
       }
 
       if (!bot.isMelee && Math.abs(stepX) > 0.1) {
@@ -2882,32 +2974,110 @@ class GameEngine {
       }
     });
 
-    // 2. Attraction towards closest Chest or Exp Gem
+    // Clean up expired unreachable chests
+    if (!this.unreachableChests) this.unreachableChests = new Map();
+    for (const [chest, expireTime] of this.unreachableChests.entries()) {
+      if (this.gameTime > expireTime || !this.chests.includes(chest)) {
+        this.unreachableChests.delete(chest);
+      }
+    }
+
+    // 2. Attraction towards closest reachable Chest or Exp Gem
     let target = null;
     let minD = Infinity;
 
+    // Check chests first (only if reachable and within reasonable radar)
     if (this.chests && this.chests.length > 0) {
-      target = this.chests[0]; // Priority on treasure chest
-    } else if (this.gems.length > 0) {
-      for (let i = 0; i < Math.min(this.gems.length, 25); i++) {
+      for (let i = 0; i < this.chests.length; i++) {
+        const c = this.chests[i];
+        if (this.unreachableChests.has(c)) continue;
+        const d = Math.hypot(c.x - this.player.x, c.y - this.player.y);
+        if (d < 1200 && d < minD) {
+          minD = d;
+          target = c;
+          this.currentTargetChest = c;
+        }
+      }
+    }
+
+    // If no reachable chest nearby, target nearest exp gem
+    if (!target && this.gems.length > 0) {
+      this.currentTargetChest = null;
+      for (let i = 0; i < Math.min(this.gems.length, 30); i++) {
         const g = this.gems[i];
         const d = Math.hypot(g.x - this.player.x, g.y - this.player.y);
         if (d < minD) { minD = d; target = g; }
       }
     }
 
-    if (target) {
-      const td = Math.hypot(target.x - this.player.x, target.y - this.player.y);
-      if (td > 0.001) {
-        vx += ((target.x - this.player.x) / td) * 1.4;
-        vy += ((target.y - this.player.y) / td) * 1.4;
+    // If no gems or chests nearby, move towards nearest enemy (for attack) or roam
+    if (!target) {
+      const nearestEnemy = this.getNearestEnemy(this.player.x, this.player.y);
+      if (nearestEnemy) {
+        const ed = Math.hypot(nearestEnemy.x - this.player.x, nearestEnemy.y - this.player.y);
+        if (ed > 160) {
+          vx += ((nearestEnemy.x - this.player.x) / ed) * 1.0;
+          vy += ((nearestEnemy.y - this.player.y) / ed) * 1.0;
+        }
       }
     }
 
-    // Normalize
+    if (target) {
+      const td = Math.hypot(target.x - this.player.x, target.y - this.player.y);
+      if (td > 0.001) {
+        vx += ((target.x - this.player.x) / td) * 1.8;
+        vy += ((target.y - this.player.y) / td) * 1.8;
+      }
+    }
+
+    // 탈출(Detour) 우회 기동 오버드라이브 적용
+    if (this.autoDetourTimer > 0) {
+      vx += Math.cos(this.autoDetourAngle) * 3.5;
+      vy += Math.sin(this.autoDetourAngle) * 3.5;
+    }
+
+    // 3. 🧭 지형 레이캐스트 장애물 감지 및 접선 우회 (Smart Obstacle Tangent Steering)
     const mag = Math.hypot(vx, vy);
-    if (mag > 0.1) {
-      return { x: vx / mag, y: vy / mag };
+    if (mag > 0.05) {
+      let normVx = vx / mag;
+      let normVy = vy / mag;
+      const baseAng = Math.atan2(normVy, normVx);
+
+      // 전방 35px 앞 지형 진입 가능 여부 레이캐스트 검사
+      const probeDist = 35;
+      const isAheadPassable = this.isPassable(
+        this.player.x + Math.cos(baseAng) * probeDist,
+        this.player.y + Math.sin(baseAng) * probeDist,
+        14
+      );
+
+      if (!isAheadPassable) {
+        // 전방에 산지나 물이 있으면 좌우 45°, 90°, 135° 방향 중 최적의 통과각 탐색
+        const testOffsets = [
+          Math.PI / 4, -Math.PI / 4,
+          Math.PI / 2, -Math.PI / 2,
+          Math.PI * 3 / 4, -Math.PI * 3 / 4,
+          Math.PI
+        ];
+        let bestAng = null;
+        for (let i = 0; i < testOffsets.length; i++) {
+          const testA = baseAng + testOffsets[i];
+          if (this.isPassable(
+            this.player.x + Math.cos(testA) * probeDist,
+            this.player.y + Math.sin(testA) * probeDist,
+            14
+          )) {
+            bestAng = testA;
+            break;
+          }
+        }
+        if (bestAng !== null) {
+          normVx = Math.cos(bestAng);
+          normVy = Math.sin(bestAng);
+        }
+      }
+
+      return { x: normVx, y: normVy };
     }
     return { x: 0, y: 0 };
   }
@@ -3222,13 +3392,28 @@ class EngineEnemy {
     if (this.hp <= 0) {
       this.engine.killCount++;
       document.getElementById('kill-display').textContent = this.engine.killCount;
-      this.engine.gems.push(new EngineGem(this.x, this.y, this.exp));
+      let dropX = this.x;
+      let dropY = this.y;
+      if (!this.engine.isPassable(dropX, dropY, 14)) {
+        const ang = Math.atan2(this.engine.player.y - dropY, this.engine.player.x - dropX);
+        for (let d = 20; d <= 240; d += 20) {
+          const tx = dropX + Math.cos(ang) * d;
+          const ty = dropY + Math.sin(ang) * d;
+          if (this.engine.isPassable(tx, ty, 14)) {
+            dropX = tx;
+            dropY = ty;
+            break;
+          }
+        }
+      }
+
+      this.engine.gems.push(new EngineGem(dropX, dropY, this.exp));
 
       // Drop Equipment Chest from Elite or Boss
       const def = GAME_DATA.monsters[this.type];
       if (def && (def.isElite || def.isBoss)) {
         const tier = def.isBoss ? 3 : (this.type.includes('reaper') || this.type.includes('fire_golem') ? 2 : 1);
-        this.engine.chests.push(new EngineChest(this.x, this.y, tier));
+        this.engine.chests.push(new EngineChest(dropX, dropY, tier));
       }
 
       // Check Final Boss Defeat -> VICTORY GAME CLEAR!
