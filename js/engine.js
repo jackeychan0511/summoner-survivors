@@ -319,30 +319,6 @@ class GameEngine {
         ult.damage, 20, 'nature_beam'
       ));
     }
-          life: 0.4, maxLife: 0.4,
-          size: 4
-        });
-      }
-    }
-
-    // 3. Divine Barrier (Sylph)
-    if (ult.id === 'divine_barrier') {
-      this.ultimateDuration = ult.duration;
-      this.player.isInvincible = true;
-      this.player.shieldTimer = ult.duration;
-      this.player.hp = Math.min(this.player.maxHp, this.player.hp + ult.heal);
-      this.updateHpBar();
-      // Knockback all nearby enemies
-      this.enemies.forEach(e => {
-        const d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
-        if (d < 220) {
-          e.takeDamage(40);
-          const a = Math.atan2(e.y - this.player.y, e.x - this.player.x);
-          e.x += Math.cos(a) * 80;
-          e.y += Math.sin(a) * 80;
-        }
-      });
-    }
 
     this.updateUltimateUI();
   }
@@ -1197,9 +1173,6 @@ class GameEngine {
       this.showEvolutionModal(evo3);
       return;
     }
-
-    this.showLevelUpModal();
-  }
 
     this.showLevelUpModal();
   }
