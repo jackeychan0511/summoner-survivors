@@ -866,7 +866,7 @@
        SPRITE GALLERY MODAL (도트 그래픽 샘플 도감 & 비교)
        ========================================================================= -->
   <div id="sprite-gallery-modal" class="modal-overlay">
-    <div class="modal-box" style="max-width: 680px; border-color: #facc15; box-shadow: 0 0 50px rgba(250, 204, 21, 0.45); max-height: 85vh; display:none; flex-direction:column;">
+    <div class="modal-box" style="max-width: 680px; border-color: #facc15; box-shadow: 0 0 50px rgba(250, 204, 21, 0.45); max-height: 85vh; display:flex; flex-direction:column;">
       <button class="modal-back-btn" onclick="closeSpriteGalleryModal()">← 닫기</button>
       <div class="modal-title" style="color: #facc15; margin-top: 10px;">👑 소환수 & 캐릭터 & 드퀘 몬스터 도감</div>
       <div class="modal-sub">2~3등신 인간형 소환사, 웅장한 신수 3단계 각성, 드래곤퀘스트 몬스터 실물 샘플입니다!</div>
@@ -1302,11 +1302,11 @@
 
   <!-- Load Modules -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="js/data.js?v=20261014_1545"></script>
-  <script src="js/sprites.js?v=20261014_1545"></script>
-  <script src="js/render.js?v=20261014_1545"></script>
-  <script src="js/engine.js?v=20261014_1545"></script>
-  <script src="js/network.js?v=20261014_1545"></script>
+  <script src="js/data.js?v=20261014_1548"></script>
+  <script src="js/sprites.js?v=20261014_1548"></script>
+  <script src="js/render.js?v=20261014_1548"></script>
+  <script src="js/engine.js?v=20261014_1548"></script>
+  <script src="js/network.js?v=20261014_1548"></script>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -1688,15 +1688,19 @@
       if (typeof spriteManager === 'undefined') return;
 
       const drawTo = (canvasId, srcCanvas) => {
-        const c = document.getElementById(canvasId);
-        if (!c || !srcCanvas) return;
-        const ctx = c.getContext('2d');
-        ctx.imageSmoothingEnabled = false;
-        ctx.clearRect(0, 0, c.width, c.height);
-        const scale = Math.min((c.width - 4) / srcCanvas.width, (c.height - 4) / srcCanvas.height);
-        const dw = Math.floor(srcCanvas.width * scale);
-        const dh = Math.floor(srcCanvas.height * scale);
-        ctx.drawImage(srcCanvas, Math.floor((c.width - dw) / 2), Math.floor((c.height - dh) / 2), dw, dh);
+        try {
+          const c = document.getElementById(canvasId);
+          if (!c || !srcCanvas) return;
+          const ctx = c.getContext('2d');
+          ctx.imageSmoothingEnabled = false;
+          ctx.clearRect(0, 0, c.width, c.height);
+          const scale = Math.min((c.width - 4) / srcCanvas.width, (c.height - 4) / srcCanvas.height);
+          const dw = Math.floor(srcCanvas.width * scale);
+          const dh = Math.floor(srcCanvas.height * scale);
+          ctx.drawImage(srcCanvas, Math.floor((c.width - dw) / 2), Math.floor((c.height - dh) / 2), dw, dh);
+        } catch (err) {
+          console.warn('drawTo error for', canvasId, err);
+        }
       };
 
       // 0. Hero Class Sprites (Warrior 9종, Archer 9종 전직 외형)
@@ -1768,8 +1772,10 @@
 
     function openSpriteGalleryModal() {
       if (engine) engine.isPaused = true;
-      document.getElementById('sprite-gallery-modal').style.display = 'flex';
+      const modal = document.getElementById('sprite-gallery-modal');
+      modal.style.display = 'flex';
       renderSpriteGalleryPreviews();
+      setTimeout(renderSpriteGalleryPreviews, 20);
       updateGalleryToggleBtn();
     }
 
