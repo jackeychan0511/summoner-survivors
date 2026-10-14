@@ -960,43 +960,43 @@ const GAME_DATA = {
     shield_3: { id: 'shield_3', slot: 'shield', tier: 3, name: '아이기스의 천상 결계', icon: '⚜️', color: '#facc15', desc: '받는 피해 45% 감소, 8초마다 2회 방어막 생성', dmgRedBonus: 0.45, shieldInterval: 8 }
   },
 
-  // 7-1. ⏱️ 60분 일반 잡몹 지속 스폰 타임라인 (초 단위)
+  // 7-1. ⏱️ 60분 일반 잡몹 지속 스폰 타임라인 (초 단위 - 드래곤퀘스트 테마)
   waves: [
-    { time: 0, interval: 1.2, type: 'slime', desc: '슬라임 무리 출현' },
-    { time: 180, interval: 0.9, type: 'bat', desc: '박쥐 떼 습격' },
-    { time: 480, interval: 0.8, type: 'skeleton', desc: '스켈레톤 보병대' },
-    { time: 780, interval: 0.7, type: 'goblin_warrior', desc: '고블린 전사 군단' },
-    { time: 1200, interval: 0.65, type: 'dark_orc', desc: '흑암 오크 돌격대' },
-    { time: 1800, interval: 0.55, type: 'undead_knight', desc: '언데드 기사단 맹공' },
-    { time: 2700, interval: 0.45, type: 'abyss_hound', desc: '심연의 하운드 떼거리' }
+    { time: 0, interval: 1.2, type: 'slime', desc: '💧 물방울 슬라임 무리 출현!' },
+    { time: 180, interval: 0.9, type: 'bat', desc: '🦇 드라키 박쥐 떼 습격!' },
+    { time: 480, interval: 0.8, type: 'skeleton', desc: '💀 해골 검사 보병대 진군!' },
+    { time: 780, interval: 0.7, type: 'goblin_warrior', desc: '🦎 리자드맨 도마뱀 전사 군단!' },
+    { time: 1200, interval: 0.65, type: 'dark_orc', desc: '🐗 오크 헌터 삼지창 돌격대!' },
+    { time: 1800, interval: 0.55, type: 'undead_knight', desc: '⚔️ 지옥의 움직이는 갑옷 기사단!' },
+    { time: 2700, interval: 0.45, type: 'abyss_hound', desc: '🔥 마견 켈베로스 무리 맹공!' }
   ],
 
   // 7-2. ☠️ 보스 & 준보스 1회성 단일 출현 이벤트 (정해진 시간에 딱 1마리 소환)
   bossEvents: [
-    { time: 540, type: 'elite_minotaur', name: '★ 9분 준보스: 미노타우로스' },
-    { time: 1020, type: 'elite_skeleton_lord', name: '★ 17분 준보스: 해골 군주' },
-    { time: 1200, type: 'golem_boss', name: '★ 20분 대형 보스: 고대 바위 골렘' },
-    { time: 1680, type: 'elite_fire_golem', name: '★ 28분 준보스: 화염 골렘' },
-    { time: 2100, type: 'lich_boss', name: '★ 35분 대형 보스: 심연의 리치' },
-    { time: 2520, type: 'elite_shadow_reaper', name: '★ 42분 준보스: 그림자 사신' },
-    { time: 3300, type: 'final_dragon_baal', name: '☠️ 55분 최종 레이드: 심연의 마룡 바알' }
+    { time: 540, type: 'elite_minotaur', name: '★ 9분 준보스: 외눈거인 기간테스 (Gigantes)' },
+    { time: 1020, type: 'elite_skeleton_lord', name: '★ 17분 준보스: 해골 군주 (Skull Knight)' },
+    { time: 1200, type: 'golem_boss', name: '★ 20분 대형 보스: 스톤 골렘 (Stone Golem)' },
+    { time: 1680, type: 'elite_fire_golem', name: '★ 28분 준보스: 마그마 골렘 (Lava Golem)' },
+    { time: 2100, type: 'lich_boss', name: '★ 35분 대형 보스: 대마도사 하곤 (Archmage)' },
+    { time: 2520, type: 'elite_shadow_reaper', name: '★ 42분 준보스: 섀도우 나이트 (Shadow Knight)' },
+    { time: 3300, type: 'final_dragon_baal', name: '☠️ 55분 최종 레이드: 그레이트 드래곤 (Great Dragon)' }
   ],
 
-  // 8. 몬스터 스탯 정의 (준보스 및 대형 보스 포함)
+  // 8. 몬스터 스탯 정의 (드래곤퀘스트 콘셉트)
   monsters: {
-    slime: { name: '초록 슬라임', hp: 16, speed: 2.0, radius: 10, damage: 6, exp: 1, color: '#4ade80' },
-    bat: { name: '흡혈 박쥐', hp: 28, speed: 2.8, radius: 11, damage: 9, exp: 2, color: '#c084fc' },
-    skeleton: { name: '해골 보병', hp: 60, speed: 1.8, radius: 14, damage: 14, exp: 4, color: '#e2e8f0' },
-    elite_minotaur: { name: '미노타우로스 (준보스)', hp: 750, speed: 2.3, radius: 24, damage: 25, exp: 50, color: '#b45309', isElite: true },
-    goblin_warrior: { name: '고블린 전사', hp: 120, speed: 2.2, radius: 16, damage: 18, exp: 6, color: '#16a34a' },
-    elite_skeleton_lord: { name: '해골 군주 (준보스)', hp: 1900, speed: 2.0, radius: 26, damage: 32, exp: 90, color: '#94a3b8', isElite: true },
-    golem_boss: { name: '고대 바위 골렘 (중간보스)', hp: 3200, speed: 1.1, radius: 36, damage: 36, exp: 160, color: '#d97706', isBoss: true },
-    dark_orc: { name: '흑암 오크', hp: 260, speed: 1.7, radius: 18, damage: 24, exp: 12, color: '#334155' },
-    elite_fire_golem: { name: '화염 골렘 (준보스)', hp: 4200, speed: 1.8, radius: 28, damage: 42, exp: 150, color: '#ef4444', isElite: true },
-    lich_boss: { name: '심연의 리치 (중간보스)', hp: 7500, speed: 1.3, radius: 38, damage: 48, exp: 300, color: '#8b5cf6', isBoss: true },
-    undead_knight: { name: '언데드 기사', hp: 480, speed: 2.0, radius: 20, damage: 30, exp: 18, color: '#64748b' },
-    elite_shadow_reaper: { name: '그림자 사신 (준보스)', hp: 9000, speed: 2.5, radius: 30, damage: 52, exp: 260, color: '#1e1b4b', isElite: true },
-    abyss_hound: { name: '심연의 하운드', hp: 700, speed: 2.9, radius: 16, damage: 38, exp: 25, color: '#dc2626' },
-    final_dragon_baal: { name: '심연의 마룡 바알 (최종 보스)', hp: 25000, speed: 1.5, radius: 52, damage: 65, exp: 800, color: '#b91c1c', isBoss: true }
+    slime: { name: '물방울 슬라임 (Slime)', hp: 16, speed: 2.0, radius: 12, damage: 6, exp: 1, color: '#38bdf8' },
+    bat: { name: '드라키 박쥐 (Dracky)', hp: 28, speed: 2.8, radius: 12, damage: 9, exp: 2, color: '#a855f7' },
+    skeleton: { name: '해골 검사 (Skeleton)', hp: 60, speed: 1.8, radius: 14, damage: 14, exp: 4, color: '#e2e8f0' },
+    goblin_warrior: { name: '리자드맨 (Lizardman)', hp: 120, speed: 2.2, radius: 16, damage: 18, exp: 6, color: '#16a34a' },
+    dark_orc: { name: '오크 헌터 (Orc)', hp: 260, speed: 1.7, radius: 18, damage: 24, exp: 12, color: '#15803d' },
+    undead_knight: { name: '움직이는 갑옷 (Lethal Armor)', hp: 480, speed: 2.0, radius: 20, damage: 30, exp: 18, color: '#3b82f6' },
+    abyss_hound: { name: '마견 켈베로스 (Hellhound)', hp: 700, speed: 2.9, radius: 16, damage: 38, exp: 25, color: '#dc2626' },
+    elite_minotaur: { name: '기간테스 (Gigantes)', hp: 750, speed: 2.3, radius: 25, damage: 25, exp: 50, color: '#0284c7', isElite: true },
+    elite_skeleton_lord: { name: '해골 군주 (Skull Knight)', hp: 1900, speed: 2.0, radius: 26, damage: 32, exp: 90, color: '#94a3b8', isElite: true },
+    golem_boss: { name: '스톤 골렘 (Stone Golem)', hp: 3200, speed: 1.1, radius: 36, damage: 36, exp: 160, color: '#d97706', isBoss: true },
+    elite_fire_golem: { name: '마그마 골렘 (Lava Golem)', hp: 4200, speed: 1.8, radius: 28, damage: 42, exp: 150, color: '#ef4444', isElite: true },
+    lich_boss: { name: '대마도사 하곤 (Archmage)', hp: 7500, speed: 1.3, radius: 38, damage: 48, exp: 300, color: '#8b5cf6', isBoss: true },
+    elite_shadow_reaper: { name: '섀도우 나이트 (Shadow Knight)', hp: 9000, speed: 2.5, radius: 30, damage: 52, exp: 260, color: '#1e1b4b', isElite: true },
+    final_dragon_baal: { name: '그레이트 드래곤 (Great Dragon)', hp: 25000, speed: 1.5, radius: 52, damage: 65, exp: 800, color: '#15803d', isBoss: true }
   }
 };

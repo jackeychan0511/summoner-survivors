@@ -629,10 +629,10 @@
 
         <!-- 5. Sprite Gallery -->
         <div class="menu-main-btn" onclick="openSpriteGalleryModal()">
-          <div class="menu-btn-icon" style="color: #ec4899;">🎨</div>
+          <div class="menu-btn-icon" style="color: #facc15;">👑</div>
           <div>
-            <div class="menu-btn-title">도트 그래픽 샘플 도감</div>
-            <div class="menu-btn-desc">뱀서풍 16x16 레트로 캐릭터, 몬스터, 바닥 타일 미리보기</div>
+            <div class="menu-btn-title">소환수 & 캐릭터 & 드퀘 도감</div>
+            <div class="menu-btn-desc">인간형 소환사, 3단계 각성 웅장한 신수, 드래곤퀘스트 몬스터 미리보기</div>
           </div>
         </div>
       </div>
@@ -822,115 +822,167 @@
   <!-- =========================================================================
        SPRITE GALLERY MODAL (도트 그래픽 샘플 도감 & 비교)
        ========================================================================= -->
+  <!-- =========================================================================
+       SPRITE GALLERY MODAL (도트 그래픽 샘플 도감 & 비교)
+       ========================================================================= -->
   <div id="sprite-gallery-modal" class="modal-overlay">
-    <div class="modal-box" style="max-width: 660px; border-color: #ec4899; box-shadow: 0 0 45px rgba(236, 72, 153, 0.45); max-height: 85vh; display:none; flex-direction:column;">
+    <div class="modal-box" style="max-width: 680px; border-color: #facc15; box-shadow: 0 0 50px rgba(250, 204, 21, 0.45); max-height: 85vh; display:none; flex-direction:column;">
       <button class="modal-back-btn" onclick="closeSpriteGalleryModal()">← 닫기</button>
-      <div class="modal-title" style="color: #f472b6; margin-top: 10px;">🎨 뱀서풍 도트 그래픽 샘플 도감</div>
-      <div class="modal-sub">16x16 레트로 픽셀 캐릭터, 몬스터, 배경 타일이 게임에 적용된 실제 샘플입니다!</div>
+      <div class="modal-title" style="color: #facc15; margin-top: 10px;">👑 소환수 & 캐릭터 & 드퀘 몬스터 도감</div>
+      <div class="modal-sub">2~3등신 인간형 소환사, 웅장한 신수 3단계 각성, 드래곤퀘스트 몬스터 실물 샘플입니다!</div>
 
-      <div style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:12px; padding:4px; text-align:left;">
+      <div style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:14px; padding:4px; text-align:left;">
         
-        <!-- 1. 캐릭터 & 동료 스프라이트 -->
-        <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px;">
-          <div style="color:#38bdf8; font-weight:bold; font-size:13px; margin-bottom:8px;">🧙 소환사 테이머 & 4인 파티 영웅들</div>
+        <!-- 1. 2.5~3등신 인간형 소환사 & 영웅들 -->
+        <div style="background:#0f172a; border:1px solid #38bdf8; border-radius:10px; padding:12px;">
+          <div style="color:#38bdf8; font-weight:bold; font-size:13px; margin-bottom:8px;">🧙 2.5~3등신 인간형 소환사 (테이머) & 파티 영웅들</div>
           <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; text-align:center;">
             <div style="background:#1e293b; padding:8px; border-radius:8px; border:1px solid #475569;">
-              <div style="width:48px; height:48px; margin:0 auto; background:url('assets/dungeon_sheet.png') 0 -288px; background-size:576px 528px; image-rendering:pixelated;"></div>
-              <div style="font-size:11px; font-weight:bold; color:#f8fafc; margin-top:4px;">소환사 (마법사)</div>
-              <div style="font-size:9px; color:#94a3b8;">1P 테이머</div>
+              <canvas id="prev-tamer" width="48" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+              <div style="font-size:11px; font-weight:bold; color:#38bdf8; margin-top:4px;">소환사 (마법사)</div>
+              <div style="font-size:9px; color:#cbd5e1;">위저드 햇 & 마도 지팡이</div>
             </div>
             <div style="background:#1e293b; padding:8px; border-radius:8px; border:1px solid #475569;">
-              <div style="width:48px; height:48px; margin:0 auto; background:url('assets/dungeon_sheet.png') 0 -336px; background-size:576px 528px; image-rendering:pixelated;"></div>
+              <canvas id="prev-knight" width="48" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
               <div style="font-size:11px; font-weight:bold; color:#f8fafc; margin-top:4px;">철갑 기사</div>
-              <div style="font-size:9px; color:#c084fc;">AI 첫째 / 2P</div>
+              <div style="font-size:9px; color:#c084fc;">투구 & 강철 롱소드</div>
             </div>
             <div style="background:#1e293b; padding:8px; border-radius:8px; border:1px solid #475569;">
-              <div style="width:48px; height:48px; margin:0 auto; background:url('assets/dungeon_sheet.png') -144px -336px; background-size:576px 528px; image-rendering:pixelated;"></div>
+              <canvas id="prev-ranger" width="48" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
               <div style="font-size:11px; font-weight:bold; color:#f8fafc; margin-top:4px;">마궁사 레인저</div>
-              <div style="font-size:9px; color:#c084fc;">AI 둘째 / 3P</div>
+              <div style="font-size:9px; color:#c084fc;">깃털 모자 & 사냥 활</div>
             </div>
             <div style="background:#1e293b; padding:8px; border-radius:8px; border:1px solid #475569;">
-              <div style="width:48px; height:48px; margin:0 auto; background:url('assets/dungeon_sheet.png') -96px -336px; background-size:576px 528px; image-rendering:pixelated;"></div>
+              <canvas id="prev-paladin" width="48" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
               <div style="font-size:11px; font-weight:bold; color:#f8fafc; margin-top:4px;">성기사 팔라딘</div>
-              <div style="font-size:9px; color:#c084fc;">AI 셋째 / 4P</div>
+              <div style="font-size:9px; color:#c084fc;">백은 갑옷 & 십자가 방패</div>
             </div>
           </div>
         </div>
 
-        <!-- 2. 몬스터 군단 -->
-        <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px;">
-          <div style="color:#ef4444; font-weight:bold; font-size:13px; margin-bottom:8px;">👾 출현 몬스터 & 보스 군단</div>
+        <!-- 2. 🔥👑 웅장하고 멋진 3대 소환수 (각성 진화 단계별) -->
+        <div style="background:#0f172a; border:1px solid #f59e0b; border-radius:10px; padding:12px;">
+          <div style="color:#f59e0b; font-weight:bold; font-size:13px; margin-bottom:8px;">🔥⚡🍃 게임의 생명! 웅장한 신수 3종 (1차/2차/3차 최종 각성)</div>
+          
+          <!-- 이그니스 (화룡) -->
+          <div style="margin-bottom:10px; background:#1e293b; border-radius:8px; padding:8px;">
+            <div style="font-size:11px; font-weight:bold; color:#f97316; margin-bottom:6px;">🔥 불꽃의 신수: 이그니스 (화룡 → 샐러맨더 → 진 바하무트)</div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; text-align:center;">
+              <div style="background:#0f172a; padding:6px; border-radius:6px;">
+                <canvas id="prev-ignis-t1" width="56" height="56" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#ea580c;">1차: 아기 화룡</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #ea580c;">
+                <canvas id="prev-ignis-t2" width="64" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#f97316;">2차: 샐러맨더 화룡</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #facc15;">
+                <canvas id="prev-ignis-t3" width="76" height="76" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#fde047;">👑 3차: 진 바하무트</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 볼트 (뇌수) -->
+          <div style="margin-bottom:10px; background:#1e293b; border-radius:8px; padding:8px;">
+            <div style="font-size:11px; font-weight:bold; color:#38bdf8; margin-bottom:6px;">⚡ 번개의 신수: 볼트 (어린 뇌수 → 뇌신 펜리르 → 창공의 제우스)</div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; text-align:center;">
+              <div style="background:#0f172a; padding:6px; border-radius:6px;">
+                <canvas id="prev-bolt-t1" width="56" height="56" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#0284c7;">1차: 어린 뇌수</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #38bdf8;">
+                <canvas id="prev-bolt-t2" width="64" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#38bdf8;">2차: 뇌신 펜리르</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #facc15;">
+                <canvas id="prev-bolt-t3" width="76" height="76" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#fde047;">👑 3차: 뇌제 제우스</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 실피드 (정령) -->
+          <div style="background:#1e293b; border-radius:8px; padding:8px;">
+            <div style="font-size:11px; font-weight:bold; color:#4ade80; margin-bottom:6px;">🍃 대지의 신수: 실피드 (숲의 정령 → 성수 그리폰 → 이그드라실 세라프)</div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; text-align:center;">
+              <div style="background:#0f172a; padding:6px; border-radius:6px;">
+                <canvas id="prev-sylph-t1" width="56" height="56" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#16a34a;">1차: 숲의 정령</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #22c55e;">
+                <canvas id="prev-sylph-t2" width="64" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#4ade80;">2차: 성수 그리폰</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #facc15;">
+                <canvas id="prev-sylph-t3" width="76" height="76" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#fde047;">👑 3차: 세라프</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 👾 드래곤퀘스트 정통 몬스터 군단 -->
+        <div style="background:#0f172a; border:1px solid #ef4444; border-radius:10px; padding:12px;">
+          <div style="color:#ef4444; font-weight:bold; font-size:13px; margin-bottom:8px;">👾 드래곤퀘스트 (Dragon Quest) 정통 몬스터 군단</div>
           <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; text-align:center;">
             <div style="background:#1e293b; padding:8px; border-radius:8px;">
-              <div style="width:48px; height:48px; margin:0 auto; background:url('assets/dungeon_sheet.png') 0 -384px; background-size:576px 528px; image-rendering:pixelated;"></div>
-              <div style="font-size:11px; font-weight:bold; color:#4ade80; margin-top:4px;">초록 슬라임</div>
+              <canvas id="prev-dq-slime" width="48" height="48" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+              <div style="font-size:11px; font-weight:bold; color:#38bdf8; margin-top:4px;">물방울 슬라임</div>
             </div>
             <div style="background:#1e293b; padding:8px; border-radius:8px;">
-              <div style="width:48px; height:48px; margin:0 auto; background:url('assets/dungeon_sheet.png') 0 -432px; background-size:576px 528px; image-rendering:pixelated;"></div>
-              <div style="font-size:11px; font-weight:bold; color:#c084fc; margin-top:4px;">흡혈 박쥐</div>
+              <canvas id="prev-dq-bat" width="48" height="48" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+              <div style="font-size:11px; font-weight:bold; color:#c084fc; margin-top:4px;">드라키 박쥐</div>
             </div>
             <div style="background:#1e293b; padding:8px; border-radius:8px;">
-              <div style="width:48px; height:48px; margin:0 auto; background:url('assets/dungeon_sheet.png') -192px -432px; background-size:576px 528px; image-rendering:pixelated;"></div>
-              <div style="font-size:11px; font-weight:bold; color:#e2e8f0; margin-top:4px;">해골 보병</div>
+              <canvas id="prev-dq-lizard" width="48" height="48" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+              <div style="font-size:11px; font-weight:bold; color:#4ade80; margin-top:4px;">리자드맨</div>
             </div>
             <div style="background:#1e293b; padding:8px; border-radius:8px;">
-              <div style="width:48px; height:48px; margin:0 auto; background:url('assets/dungeon_sheet.png') -48px -384px; background-size:576px 528px; image-rendering:pixelated;"></div>
-              <div style="font-size:11px; font-weight:bold; color:#16a34a; margin-top:4px;">고블린 전사</div>
+              <canvas id="prev-dq-skel" width="48" height="48" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+              <div style="font-size:11px; font-weight:bold; color:#e2e8f0; margin-top:4px;">해골 검사</div>
             </div>
-            <div style="background:#1e293b; padding:8px; border-radius:8px; border:1px solid #f59e0b;">
-              <div style="width:48px; height:48px; margin:0 auto; background:url('assets/dungeon_sheet.png') -96px -384px; background-size:576px 528px; image-rendering:pixelated;"></div>
-              <div style="font-size:11px; font-weight:bold; color:#f59e0b; margin-top:4px;">미노타우로스</div>
-              <div style="font-size:9px; color:#facc15;">[준보스]</div>
+            <div style="background:#1e293b; padding:8px; border-radius:8px;">
+              <canvas id="prev-dq-orc" width="48" height="48" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+              <div style="font-size:11px; font-weight:bold; color:#16a34a; margin-top:4px;">오크 헌터</div>
             </div>
-            <div style="background:#1e293b; padding:8px; border-radius:8px; border:1px solid #8b5cf6;">
-              <div style="width:48px; height:48px; margin:0 auto; background:url('assets/dungeon_sheet.png') -144px -384px; background-size:576px 528px; image-rendering:pixelated;"></div>
-              <div style="font-size:11px; font-weight:bold; color:#a855f7; margin-top:4px;">심연의 리치</div>
+            <div style="background:#1e293b; padding:8px; border-radius:8px;">
+              <canvas id="prev-dq-armor" width="48" height="48" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+              <div style="font-size:11px; font-weight:bold; color:#3b82f6; margin-top:4px;">움직이는 갑옷</div>
+            </div>
+            <div style="background:#1e293b; padding:8px; border-radius:8px; border:1px solid #0284c7;">
+              <canvas id="prev-dq-gigantes" width="56" height="56" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+              <div style="font-size:11px; font-weight:bold; color:#0284c7; margin-top:4px;">기간테스</div>
+              <div style="font-size:9px; color:#38bdf8;">[외눈 준보스]</div>
+            </div>
+            <div style="background:#1e293b; padding:8px; border-radius:8px; border:1px solid #d97706;">
+              <canvas id="prev-dq-golem" width="56" height="56" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+              <div style="font-size:11px; font-weight:bold; color:#d97706; margin-top:4px;">스톤 골렘</div>
+              <div style="font-size:9px; color:#facc15;">[대형 보스]</div>
+            </div>
+            <div style="background:#1e293b; padding:8px; border-radius:8px; border:1px solid #7c3aed;">
+              <canvas id="prev-dq-archmage" width="56" height="56" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+              <div style="font-size:11px; font-weight:bold; color:#a855f7; margin-top:4px;">대마도사 하곤</div>
               <div style="font-size:9px; color:#c084fc;">[대형 보스]</div>
             </div>
-            <div style="background:#1e293b; padding:8px; border-radius:8px; border:1px solid #ef4444;">
-              <div style="width:48px; height:48px; margin:0 auto; background:url('assets/dungeon_sheet.png') -144px -432px; background-size:576px 528px; image-rendering:pixelated;"></div>
-              <div style="font-size:11px; font-weight:bold; color:#ef4444; margin-top:4px;">마룡 바알</div>
-              <div style="font-size:9px; color:#f87171;">[최종 보스]</div>
-            </div>
-            <div style="background:#1e293b; padding:8px; border-radius:8px;">
-              <div style="width:48px; height:48px; margin:0 auto; background:url('assets/dungeon_sheet.png') -192px -384px; background-size:576px 528px; image-rendering:pixelated;"></div>
-              <div style="font-size:11px; font-weight:bold; color:#64748b; margin-top:4px;">흑암 오크</div>
+            <div style="background:#1e293b; padding:8px; border-radius:8px; border:2px solid #ef4444; grid-column:span 2;">
+              <canvas id="prev-dq-dragon" width="80" height="72" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+              <div style="font-size:12px; font-weight:bold; color:#ef4444; margin-top:4px;">그레이트 드래곤 (Great Dragon)</div>
+              <div style="font-size:9px; color:#f87171;">[55분 최종 레이드 보스]</div>
             </div>
           </div>
         </div>
 
-        <!-- 3. 배경 타일 & 보물상자 -->
-        <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px;">
-          <div style="color:#10b981; font-weight:bold; font-size:13px; margin-bottom:8px;">🌿 뱀서 스타일 월드 필드 타일 & 전리품</div>
-          <div style="display:flex; gap:12px; align-items:center;">
-            <!-- Grass Tile Preview -->
-            <div style="flex:1; background:#1e293b; padding:10px; border-radius:8px; text-align:center;">
-              <div style="width:64px; height:64px; margin:0 auto; background:url('assets/town_sheet.png') 0 0; background-size:384px 352px; image-rendering:pixelated; border-radius:6px; border:1px solid #4ade80;"></div>
-              <div style="font-size:11px; font-weight:bold; color:#4ade80; margin-top:6px;">푸른 초원 잔디 타일</div>
-              <div style="font-size:10px; color:#94a3b8;">16x16 심리스 반복 텍스처</div>
-            </div>
-            <!-- Chest & Gem Preview -->
-            <div style="flex:1; background:#1e293b; padding:10px; border-radius:8px; text-align:center;">
-              <div style="display:flex; justify-content:center; gap:8px;">
-                <div style="width:48px; height:48px; background:url('assets/dungeon_sheet.png') -336px -288px; background-size:576px 528px; image-rendering:pixelated;"></div>
-                <div style="width:48px; height:48px; background:url('assets/dungeon_sheet.png') -240px -384px; background-size:576px 528px; image-rendering:pixelated;"></div>
-              </div>
-              <div style="font-size:11px; font-weight:bold; color:#facc15; margin-top:6px;">전설 보물상자 & 마력석</div>
-              <div style="font-size:10px; color:#94a3b8;">황금 궤짝 & EXP 보석</div>
-            </div>
-          </div>
+        <!-- 4. 실시간 그래픽 모드 전환 스위치 및 닫기 -->
+        <div style="margin-top:10px; display:flex; gap:8px;">
+          <button class="btn" style="flex:1; background:#334155; border-color:#475569; justify-content:center; padding:10px;" onclick="closeSpriteGalleryModal()">
+            닫기
+          </button>
+          <button id="btn-gallery-toggle" class="btn" style="flex:2; background:#059669; border-color:#10b981; color:#fff; font-weight:bold; font-size:12px; justify-content:center; padding:10px;" onclick="toggleGraphicMode(); updateGalleryToggleBtn();">
+            🎨 도트 그래픽 ON (클릭 시 벡터 모드로 전환)
+          </button>
         </div>
 
-      </div>
-
-      <!-- 하단 모드 토글 및 닫기 버튼 -->
-      <div style="margin-top:14px; display:flex; gap:10px;">
-        <button class="btn" style="flex:1; background:#334155; border-color:#475569; justify-content:center; padding:10px;" onclick="closeSpriteGalleryModal()">
-          닫기
-        </button>
-        <button id="btn-gallery-toggle" class="btn" style="flex:2; background:#059669; border-color:#10b981; color:#fff; font-weight:bold; font-size:13px; justify-content:center; padding:10px;" onclick="toggleGraphicMode(); updateGalleryToggleBtn();">
-          🎨 뱀서 도트 그래픽 사용 중 (클릭 시 전환)
-        </button>
       </div>
     </div>
   </div>
@@ -1418,9 +1470,63 @@
     }
 
     /* 4. Sprite Gallery & Graphic Mode Functions */
+    function renderSpriteGalleryPreviews() {
+      if (typeof spriteManager === 'undefined') return;
+
+      const drawTo = (canvasId, srcCanvas) => {
+        const c = document.getElementById(canvasId);
+        if (!c || !srcCanvas) return;
+        const ctx = c.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        ctx.clearRect(0, 0, c.width, c.height);
+        const scale = Math.min((c.width - 4) / srcCanvas.width, (c.height - 4) / srcCanvas.height);
+        const dw = Math.floor(srcCanvas.width * scale);
+        const dh = Math.floor(srcCanvas.height * scale);
+        ctx.drawImage(srcCanvas, Math.floor((c.width - dw) / 2), Math.floor((c.height - dh) / 2), dw, dh);
+      };
+
+      // 1. Humans (2.5~3 heads)
+      if (spriteManager.humanSprites) {
+        drawTo('prev-tamer', spriteManager.humanSprites.tamer_f0);
+        drawTo('prev-knight', spriteManager.humanSprites.knight);
+        drawTo('prev-ranger', spriteManager.humanSprites.ranger);
+        drawTo('prev-paladin', spriteManager.humanSprites.paladin);
+      }
+
+      // 2. Summons (Tier 1, Tier 2, Tier 3)
+      if (spriteManager.petSprites) {
+        drawTo('prev-ignis-t1', spriteManager.petSprites.ignis_t1);
+        drawTo('prev-ignis-t2', spriteManager.petSprites.ignis_t2);
+        drawTo('prev-ignis-t3', spriteManager.petSprites.ignis_t3);
+
+        drawTo('prev-bolt-t1', spriteManager.petSprites.bolt_t1);
+        drawTo('prev-bolt-t2', spriteManager.petSprites.bolt_t2);
+        drawTo('prev-bolt-t3', spriteManager.petSprites.bolt_t3);
+
+        drawTo('prev-sylph-t1', spriteManager.petSprites.sylph_t1);
+        drawTo('prev-sylph-t2', spriteManager.petSprites.sylph_t2);
+        drawTo('prev-sylph-t3', spriteManager.petSprites.sylph_t3);
+      }
+
+      // 3. DQ Monsters
+      if (spriteManager.dqMonsters) {
+        drawTo('prev-dq-slime', spriteManager.dqMonsters.slime);
+        drawTo('prev-dq-bat', spriteManager.dqMonsters.dracky_f0);
+        drawTo('prev-dq-lizard', spriteManager.dqMonsters.lizardman);
+        drawTo('prev-dq-skel', spriteManager.dqMonsters.skeleton);
+        drawTo('prev-dq-orc', spriteManager.dqMonsters.dark_orc);
+        drawTo('prev-dq-armor', spriteManager.dqMonsters.undead_knight);
+        drawTo('prev-dq-gigantes', spriteManager.dqMonsters.elite_minotaur);
+        drawTo('prev-dq-golem', spriteManager.dqMonsters.golem_boss);
+        drawTo('prev-dq-archmage', spriteManager.dqMonsters.lich_boss);
+        drawTo('prev-dq-dragon', spriteManager.dqMonsters.final_dragon_baal);
+      }
+    }
+
     function openSpriteGalleryModal() {
       if (engine) engine.isPaused = true;
       document.getElementById('sprite-gallery-modal').style.display = 'flex';
+      renderSpriteGalleryPreviews();
       updateGalleryToggleBtn();
     }
 
