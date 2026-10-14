@@ -166,6 +166,43 @@ class GameEngine {
     });
   }
 
+  // ⛰️ 지형 통행 가능 여부 판정 (산지 mountain, 물 water 진입 차단)
+  isPassable(x, y, radius = 14) {
+    const worldW = (GAME_DATA.world && GAME_DATA.world.width) || 16000;
+    const worldH = (GAME_DATA.world && GAME_DATA.world.height) || 16000;
+
+    // 1. 월드 외곽 경계 체크 (자연 대양 외곽)
+    if (x < radius + 60 || x > worldW - radius - 60 || y < radius + 60 || y > worldH - radius - 60) {
+      return false;
+    }
+
+    if (!GAME_DATA.world || typeof GAME_DATA.world.getTileType !== 'function') {
+      return true;
+    }
+
+    // 2. 캐릭터 중심 및 원형 경계점 8방위 샘플링
+    const pts = [
+      { x, y },
+      { x: x + radius, y },
+      { x: x - radius, y },
+      { x, y: y + radius },
+      { x, y: y - radius },
+      { x: x + radius * 0.707, y: y + radius * 0.707 },
+      { x: x - radius * 0.707, y: y + radius * 0.707 },
+      { x: x + radius * 0.707, y: y - radius * 0.707 },
+      { x: x - radius * 0.707, y: y - radius * 0.707 }
+    ];
+
+    for (let i = 0; i < pts.length; i++) {
+      const tile = GAME_DATA.world.getTileType(pts[i].x, pts[i].y);
+      // ⛰️ 산지 지형('mountain')과 🌊 물 지형('water')은 캐릭터 및 몹 모두 진입 불가!
+      if (tile === 'mountain' || tile === 'water') {
+        return false;
+      }
+    }
+    return true;
+  }
+
   // 👑 3대 직업군 (소환사 / 검사 / 궁수) 및 9대 세부 특화 시작
   start(classOrPetId = 'summoner', subclassId = 'ignis', combatStyle = 'ranged') {
     let heroClass = 'summoner';
@@ -554,14 +591,30 @@ class GameEngine {
       }
     }
 
-    this.player.x += dx * this.player.speed * 60 * dt;
-    this.player.y += dy * this.player.speed * 60 * dt;
+    // 현재 지형에 따른 이동속도 계수 (독늪 감속 등)
+    const curTerrain = (GAME_DATA.world && typeof GAME_DATA.world.getTileType === 'function')
+      ? GAME_DATA.world.getTileType(this.player.x, this.player.y)
+      : 'grass';
+    let terrainSpeedMul = 1.0;
+    if (curTerrain === 'swamp') terrainSpeedMul = 0.78; // 늪지대 발목 잡힘
+    else if (curTerrain === 'forest') terrainSpeedMul = 0.92; // 숲 소폭 감속
+
+    const stepX = dx * this.player.speed * terrainSpeedMul * 60 * dt;
+    const stepY = dy * this.player.speed * terrainSpeedMul * 60 * dt;
+
+    // ⛰️ 산지 및 🌊 물 지형 충돌 검사 (독립 X/Y 축 부드러운 슬라이딩)
+    if (this.isPassable(this.player.x + stepX, this.player.y, 14)) {
+      this.player.x += stepX;
+    }
+    if (this.isPassable(this.player.x, this.player.y + stepY, 14)) {
+      this.player.y += stepY;
+    }
 
     // World Boundary Clamping (16000 x 16000)
     const worldW = (GAME_DATA.world && GAME_DATA.world.width) || 16000;
     const worldH = (GAME_DATA.world && GAME_DATA.world.height) || 16000;
-    this.player.x = Math.max(50, Math.min(worldW - 50, this.player.x));
-    this.player.y = Math.max(50, Math.min(worldH - 50, this.player.y));
+    this.player.x = Math.max(60, Math.min(worldW - 60, this.player.x));
+    this.player.y = Math.max(60, Math.min(worldH - 60, this.player.y));
 
     if (dx > 0.05) this.player.facing = 1;
     if (dx < -0.05) this.player.facing = -1;
@@ -1808,10 +1861,24 @@ class GameEngine {
         if (this.gameTime >= b.time && !this.spawnedBosses.has(b.time)) {
           this.spawnedBosses.add(b.time);
 
-          const angle = Math.random() * Math.PI * 2;
+          let bx = 0, by = 0;
+          let foundBoss = false;
           const spawnDist = Math.max(this.canvas.width, this.canvas.height) / 2 + 100;
-          const bx = this.player.x + Math.cos(angle) * spawnDist;
-          const by = this.player.y + Math.sin(angle) * spawnDist;
+          for (let attempt = 0; attempt < 12; attempt++) {
+            const angle = (attempt * (Math.PI * 2 / 12));
+            const testX = this.player.x + Math.cos(angle) * spawnDist;
+            const testY = this.player.y + Math.sin(angle) * spawnDist;
+            if (this.isPassable(testX, testY, 35)) {
+              bx = testX;
+              by = testY;
+              foundBoss = true;
+              break;
+            }
+          }
+          if (!foundBoss) {
+            bx = this.player.x + Math.cos(0) * spawnDist;
+            by = this.player.y + Math.sin(0) * spawnDist;
+          }
 
           const mDef = GAME_DATA.monsters[b.type];
           if (mDef) {
@@ -1842,13 +1909,25 @@ class GameEngine {
     this.spawnTimer += dt;
     if (this.spawnTimer >= currentWave.interval) {
       this.spawnTimer = 0;
-      const angle = Math.random() * Math.PI * 2;
-      const spawnDist = Math.max(this.canvas.width, this.canvas.height) / 2 + 60;
-      const sx = this.player.x + Math.cos(angle) * spawnDist;
-      const sy = this.player.y + Math.sin(angle) * spawnDist;
+      const baseDist = Math.max(this.canvas.width, this.canvas.height) / 2 + 60;
+      let sx = 0, sy = 0;
+      let found = false;
+      for (let attempt = 0; attempt < 8; attempt++) {
+        const angle = Math.random() * Math.PI * 2;
+        const testX = this.player.x + Math.cos(angle) * (baseDist + Math.random() * 40);
+        const testY = this.player.y + Math.sin(angle) * (baseDist + Math.random() * 40);
+        if (this.isPassable(testX, testY, 20)) {
+          sx = testX;
+          sy = testY;
+          found = true;
+          break;
+        }
+      }
 
-      const mDef = GAME_DATA.monsters[currentWave.type] || GAME_DATA.monsters.slime;
-      this.enemies.push(new EngineEnemy(sx, sy, currentWave.type, mDef, this));
+      if (found) {
+        const mDef = GAME_DATA.monsters[currentWave.type] || GAME_DATA.monsters.slime;
+        this.enemies.push(new EngineEnemy(sx, sy, currentWave.type, mDef, this));
+      }
     }
   }
 
@@ -2381,13 +2460,17 @@ class GameEngine {
         bot.facing = nearestEnemy.x >= bot.x ? 1 : -1;
       }
 
-      const moveX = (targetX - bot.x) * 0.08;
-      const moveY = (targetY - bot.y) * 0.08;
-      bot.x += moveX * 60 * dt;
-      bot.y += moveY * 60 * dt;
+      const stepX = (targetX - bot.x) * 0.08 * 60 * dt;
+      const stepY = (targetY - bot.y) * 0.08 * 60 * dt;
+      if (this.isPassable(bot.x + stepX, bot.y, 14)) {
+        bot.x += stepX;
+      }
+      if (this.isPassable(bot.x, bot.y + stepY, 14)) {
+        bot.y += stepY;
+      }
 
-      if (!bot.isMelee && Math.abs(moveX) > 0.1) {
-        bot.facing = moveX > 0 ? 1 : -1;
+      if (!bot.isMelee && Math.abs(stepX) > 0.1) {
+        bot.facing = stepX > 0 ? 1 : -1;
       }
 
       // 소환사 봇이면 펫 따라오기
@@ -2878,8 +2961,16 @@ class EngineEnemy {
     const dist = Math.hypot(dx, dy);
 
     if (dist > 0.001) {
-      this.x += (dx / dist) * curSpeed * 60 * dt;
-      this.y += (dy / dist) * curSpeed * 60 * dt;
+      const stepX = (dx / dist) * curSpeed * 60 * dt;
+      const stepY = (dy / dist) * curSpeed * 60 * dt;
+
+      // ⛰️ 산지 및 🌊 물 지형 몹 진입 차단 (X/Y 독립 슬라이딩)
+      if (this.engine.isPassable(this.x + stepX, this.y, this.radius)) {
+        this.x += stepX;
+      }
+      if (this.engine.isPassable(this.x, this.y + stepY, this.radius)) {
+        this.y += stepY;
+      }
     }
 
     if (dist < this.radius + 12) {

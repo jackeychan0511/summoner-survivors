@@ -158,97 +158,156 @@ class SpriteManager {
       return cvs;
     };
 
-    // [1] 🌱 초원 타일 (Grass / Plains - 48x48)
-    // 클래식 드퀘의 상쾌하고 푸른 잔디와 들꽃
-    this.dqWorldTiles.grass = createTile(48, 48, (ctx, w, h) => {
-      ctx.fillStyle = '#3e8f26';
+    // =======================================================================
+    // 🌟 32비트 드래곤퀘스트 정통 고화질 월드맵 타일셋 (64x64px)
+    // =======================================================================
+
+    // [1] 🌱 32비트 푸른 초원 (Verdant Plains / Grass - 64x64)
+    // 수채화풍의 5단계 에메랄드 명암 그라데이션, 풀잎 결, 야생화
+    this.dqWorldTiles.grass = createTile(64, 64, (ctx, w, h) => {
+      // 1. 부드러운 초원 기본 그라데이션 (대각선 햇살)
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, '#38a126');
+      grad.addColorStop(0.5, '#2f8f20');
+      grad.addColorStop(1, '#277c1a');
+      ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
 
-      // 잔디 결 명암 텍스처
-      ctx.fillStyle = '#2c6b1a'; // 어두운 풀
-      for (let i = 0; i < 28; i++) {
-        const x = (i * 17) % 46;
-        const y = (i * 23) % 46;
-        ctx.fillRect(x, y, 2, 3);
-        ctx.fillRect(x + 1, y - 1, 2, 2);
+      // 2. 미세한 유기적 토양 텍스처 (하단 그림자)
+      ctx.fillStyle = '#1c5e13';
+      for (let i = 0; i < 48; i++) {
+        const x = (i * 23 + (i % 5) * 7) % w;
+        const y = (i * 31 + (i % 7) * 9) % h;
+        ctx.fillRect(x, y, 2, 2);
       }
 
-      ctx.fillStyle = '#5cbe33'; // 밝은 풀
-      for (let i = 0; i < 32; i++) {
-        const x = (i * 19 + 7) % 46;
-        const y = (i * 29 + 11) % 46;
-        ctx.fillRect(x, y, 2, 3);
-        ctx.fillRect(x - 1, y + 1, 1, 2);
-      }
+      // 3. 32비트 고화질 풀잎 다발 (입체감 있는 수직/사선 풀잎)
+      const drawBladeTuft = (bx, by) => {
+        // 밑그림자
+        ctx.fillStyle = '#195211';
+        ctx.fillRect(bx - 1, by + 4, 6, 2);
+        // 중간 풀
+        ctx.fillStyle = '#48b82e';
+        ctx.fillRect(bx, by + 1, 2, 4);
+        ctx.fillRect(bx + 2, by + 2, 2, 3);
+        // 밝은 풀잎 팁 (햇살 하이라이트)
+        ctx.fillStyle = '#78e052';
+        ctx.fillRect(bx, by, 1, 2);
+        ctx.fillRect(bx + 2, by + 1, 1, 2);
+        ctx.fillStyle = '#bbf797';
+        ctx.fillRect(bx, by, 1, 1);
+      };
 
-      ctx.fillStyle = '#82e04e'; // 하이라이트 풀잎 팁
-      for (let i = 0; i < 18; i++) {
-        const x = (i * 31 + 5) % 46;
-        const y = (i * 13 + 3) % 46;
-        ctx.fillRect(x, y, 1, 2);
-      }
+      // 타일 전역에 자연스럽게 엇갈려 배치 (경계선 이음매 완벽 처리)
+      const tufts = [
+        [8, 12], [24, 6], [44, 14], [56, 4],
+        [14, 28], [34, 24], [52, 32],
+        [4, 46], [22, 42], [40, 50], [58, 44],
+        [12, 58], [30, 56], [48, 60]
+      ];
+      tufts.forEach(pt => drawBladeTuft(pt[0], pt[1]));
 
-      // 앙증맞은 흰색/노란색 들꽃
-      ctx.fillStyle = '#fef08a';
-      ctx.fillRect(12, 14, 2, 2);
-      ctx.fillRect(34, 30, 2, 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(11, 14, 1, 2); ctx.fillRect(14, 14, 1, 2);
-      ctx.fillRect(33, 30, 1, 2); ctx.fillRect(36, 30, 1, 2);
+      // 4. 아기자기한 32비트 야생 들꽃 (화이트 데이지 & 옐로우 버터컵 & 레드 클로버)
+      const drawFlower = (fx, fy, petalColor, centerColor) => {
+        ctx.fillStyle = '#14532d'; // 줄기
+        ctx.fillRect(fx, fy + 2, 1, 3);
+        // 꽃잎
+        ctx.fillStyle = petalColor;
+        ctx.fillRect(fx - 1, fy, 3, 2);
+        ctx.fillRect(fx, fy - 1, 1, 4);
+        // 꽃술 (중심)
+        ctx.fillStyle = centerColor;
+        ctx.fillRect(fx, fy, 1, 1);
+      };
+
+      drawFlower(18, 18, '#ffffff', '#facc15'); // 하얀 들국화
+      drawFlower(46, 38, '#fef08a', '#eab308'); // 노란 민들레
+      drawFlower(28, 48, '#f87171', '#fbbf24'); // 붉은 들꽃
     });
 
-    // [2] 🌲 울창한 숲 타일 (Dense Forest - 48x48)
-    // 둥글둥글한 드퀘풍 상록수 3그루 군락
-    this.dqWorldTiles.forest = createTile(48, 48, (ctx, w, h) => {
-      // 잔디 밑바탕
-      ctx.drawImage(this.dqWorldTiles.grass, 0, 0);
+    // [2] 🌲 32비트 울창한 상록수 숲 (Dense Forest - 64x64)
+    // 수채화풍의 4단 입체 캐노피와 고목 줄기, 피톤치드 숲 바닥
+    this.dqWorldTiles.forest = createTile(64, 64, (ctx, w, h) => {
+      // 바닥: 깊은 숲 그늘 잔디
+      ctx.fillStyle = '#226917';
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = '#17490f';
+      for (let i = 0; i < 30; i++) {
+        const x = (i * 27) % w;
+        const y = (i * 37) % h;
+        ctx.fillRect(x, y, 3, 2);
+      }
 
+      // 32비트 거목 렌더러
       const drawTree = (tx, ty, r) => {
-        // 나무 그림자
-        ctx.fillStyle = 'rgba(0,0,0,0.32)';
+        // 1. 나무 그림자
+        ctx.fillStyle = 'rgba(10, 35, 10, 0.45)';
         ctx.beginPath();
-        ctx.ellipse(tx, ty + r * 0.9, r * 1.1, r * 0.45, 0, 0, Math.PI * 2);
+        ctx.ellipse(tx, ty + r * 0.95, r * 1.15, r * 0.45, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // 나무 기둥
-        ctx.fillStyle = '#451a03';
-        ctx.fillRect(tx - 2, ty + r * 0.2, 5, r * 0.75);
+        // 2. 나무 기둥 & 뿌리
+        ctx.fillStyle = '#381c0c';
+        ctx.fillRect(tx - 3, ty + r * 0.25, 7, r * 0.75);
+        ctx.fillStyle = '#592a11';
+        ctx.fillRect(tx - 2, ty + r * 0.3, 3, r * 0.65);
+        // 지면 뿌리
+        ctx.fillStyle = '#381c0c';
+        ctx.fillRect(tx - 5, ty + r * 0.85, 3, 2);
+        ctx.fillRect(tx + 3, ty + r * 0.85, 3, 2);
 
-        // 잎사귀 3단 레이어 (깊은녹색 -> 중간녹색 -> 하이라이트)
-        ctx.fillStyle = '#144a17';
+        // 3. 4단계 32비트 볼류메트릭 잎사귀 캐노피
+        // 심층 암영 (Shadow)
+        ctx.fillStyle = '#063f15';
         ctx.beginPath();
         ctx.arc(tx, ty, r, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = '#1e7325';
+        // 중간 잎사귀 (Midtone)
+        ctx.fillStyle = '#0d6b24';
         ctx.beginPath();
-        ctx.arc(tx - 1, ty - 2, r * 0.85, 0, Math.PI * 2);
+        ctx.arc(tx - 1.5, ty - 2, r * 0.88, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = '#3aa443';
+        // 양지 잎사귀 (Highlight)
+        ctx.fillStyle = '#1da039';
         ctx.beginPath();
-        ctx.arc(tx - 2, ty - 4, r * 0.55, 0, Math.PI * 2);
+        ctx.arc(tx - 3, ty - 4, r * 0.68, 0, Math.PI * 2);
         ctx.fill();
 
-        // 잎사귀 햇살 하이라이트
-        ctx.fillStyle = '#6ee7b7';
-        ctx.fillRect(tx - 3, ty - r * 0.6, 3, 2);
-        ctx.fillRect(tx - 1, ty - r * 0.4, 2, 2);
+        // 햇살 반사광 림라이트 (Top-Left Rim Light)
+        ctx.fillStyle = '#4ade80';
+        ctx.beginPath();
+        ctx.arc(tx - 4, ty - 6, r * 0.42, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 반짝이는 나뭇잎 디테일
+        ctx.fillStyle = '#86efac';
+        ctx.fillRect(tx - 5, ty - r * 0.55, 3, 2);
+        ctx.fillRect(tx - 2, ty - r * 0.72, 3, 2);
+        ctx.fillRect(tx + 2, ty - r * 0.45, 2, 2);
       };
 
-      drawTree(14, 20, 11);
-      drawTree(34, 18, 12);
-      drawTree(24, 32, 13);
+      // 겹쳐진 2그루의 웅장한 드퀘풍 거목
+      drawTree(20, 26, 17);
+      drawTree(46, 36, 19);
     });
 
-    // [3] ⛰️ 바위산맥 타일 (Rocky Mountains - 48x48)
-    // 깎아지른 바위산 봉우리와 만년설 캡
-    this.dqWorldTiles.mountain = createTile(48, 48, (ctx, w, h) => {
+    // [3] ⛰️ 32비트 험준한 바위산맥 (Rocky Mountains - 64x64)
+    // 깎아지른 화강암 암벽 릿지, 3D 셰이딩, 만년설 빙하 캡, 산기슭 자갈
+    this.dqWorldTiles.mountain = createTile(64, 64, (ctx, w, h) => {
       // 바닥 잔디
       ctx.drawImage(this.dqWorldTiles.grass, 0, 0);
 
-      const drawPeak = (px, py, bw, bh) => {
-        // 바위산 그림자 면 (우측)
+      // 입체 바위산 렌더러
+      const drawMountainPeak = (px, py, bw, bh) => {
+        // 산기슭 지면 암영
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
+        ctx.beginPath();
+        ctx.ellipse(px + bw * 0.1, py + bh, bw * 0.65, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 1. 우측 암영벽 (Shadow Face - 짙은 남색 화강암)
         ctx.fillStyle = '#1e293b';
         ctx.beginPath();
         ctx.moveTo(px, py);
@@ -257,7 +316,16 @@ class SpriteManager {
         ctx.closePath();
         ctx.fill();
 
-        // 바위산 본체 면 (좌측)
+        // 암영 단층 결
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.moveTo(px + 2, py + 8);
+        ctx.lineTo(px + bw * 0.4, py + bh * 0.7);
+        ctx.lineTo(px + 4, py + bh * 0.75);
+        ctx.closePath();
+        ctx.fill();
+
+        // 2. 좌측 채광벽 (Lit Face - 햇살 받는 슬레이트 암석)
         ctx.fillStyle = '#475569';
         ctx.beginPath();
         ctx.moveTo(px, py);
@@ -266,110 +334,202 @@ class SpriteManager {
         ctx.closePath();
         ctx.fill();
 
-        // 능선 하이라이트 릿지
+        // 채광벽 단층 하이라이트
+        ctx.fillStyle = '#64748b';
+        ctx.beginPath();
+        ctx.moveTo(px - 1, py + 4);
+        ctx.lineTo(px - bw * 0.35, py + bh * 0.65);
+        ctx.lineTo(px - 2, py + bh * 0.7);
+        ctx.closePath();
+        ctx.fill();
+
+        // 3. 중앙 깎아지른 암벽 능선 (Sharp Ridge Line)
         ctx.strokeStyle = '#94a3b8';
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(px, py);
         ctx.lineTo(px + 1, py + bh);
         ctx.stroke();
 
-        // 정상 만년설 눈 덮인 봉우리
+        // 4. 32비트 만년설 설산 빙하 (Glacier Snowcap)
+        // 설산 채광면
         ctx.fillStyle = '#f8fafc';
         ctx.beginPath();
         ctx.moveTo(px, py);
-        ctx.lineTo(px - bw * 0.22, py + bh * 0.32);
-        ctx.lineTo(px, py + bh * 0.38);
-        ctx.lineTo(px + bw * 0.22, py + bh * 0.32);
+        ctx.lineTo(px - bw * 0.28, py + bh * 0.38);
+        ctx.lineTo(px - bw * 0.08, py + bh * 0.45);
+        ctx.lineTo(px, py + bh * 0.36);
         ctx.closePath();
         ctx.fill();
+
+        // 설산 암영면 (푸른빛 설경)
+        ctx.fillStyle = '#93c5fd';
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px + bw * 0.28, py + bh * 0.38);
+        ctx.lineTo(px + bw * 0.08, py + bh * 0.44);
+        ctx.lineTo(px, py + bh * 0.36);
+        ctx.closePath();
+        ctx.fill();
+
+        // 정상 반짝이는 순백 하이라이트
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(px - 1, py, 2, 4);
       };
 
-      drawPeak(18, 10, 28, 34);
-      drawPeak(34, 16, 24, 28);
+      // 웅장한 연봉 (좌측 후방 봉우리 + 우측 전방 대형 주봉)
+      drawMountainPeak(22, 10, 36, 48);
+      drawMountainPeak(46, 18, 32, 42);
+
+      // 산기슭 자갈/부스러기 바위
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(10, 56, 4, 3);
+      ctx.fillRect(36, 58, 5, 3);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(11, 56, 2, 1);
+      ctx.fillRect(37, 58, 2, 1);
     });
 
-    // [4] 🌊 푸른 바다 / 호수 타일 (Deep Ocean / Lake - 48x48)
-    this.dqWorldTiles.water = createTile(48, 48, (ctx, w, h) => {
-      ctx.fillStyle = '#1d4ed8'; // 깊은 바다색
+    // [4] 🌊 32비트 푸른 바다 / 호수 (Deep Ocean & Lake - 64x64)
+    // 코발트 블루 심해 그라데이션, 반짝이는 물결 포말, 투명한 수면 광채
+    this.dqWorldTiles.water = createTile(64, 64, (ctx, w, h) => {
+      // 심해 그라데이션
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, '#172554'); // 깊은 심해
+      grad.addColorStop(0.5, '#1d4ed8'); // 코발트 블루
+      grad.addColorStop(1, '#2563eb'); // 수면
+      ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
 
-      // 물결 명암 텍스처
-      ctx.fillStyle = '#2563eb';
-      for (let y = 4; y < h; y += 10) {
-        ctx.fillRect(0, y, w, 3);
-      }
-
-      ctx.fillStyle = '#38bdf8'; // 반짝이는 물결
-      for (let i = 0; i < 8; i++) {
-        const wx = (i * 19) % 40;
-        const wy = (i * 12 + 6) % 44;
-        ctx.fillRect(wx, wy, 8, 2);
-        ctx.fillRect(wx + 2, wy + 2, 4, 1);
-      }
-
-      // 하얀 햇살 반사 포말
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(10, 8, 3, 1);
-      ctx.fillRect(28, 24, 4, 1);
-      ctx.fillRect(18, 38, 3, 1);
-    });
-
-    // [5] 🏜️ 황토 흙길 / 모래 사막 타일 (Dirt Road / Desert - 48x48)
-    this.dqWorldTiles.sand = createTile(48, 48, (ctx, w, h) => {
-      ctx.fillStyle = '#d97706';
-      ctx.fillRect(0, 0, w, h);
-
-      ctx.fillStyle = '#f59e0b';
-      for (let i = 0; i < 24; i++) {
-        const x = (i * 17) % 46;
-        const y = (i * 23) % 46;
-        ctx.fillRect(x, y, 3, 2);
-      }
-
-      ctx.fillStyle = '#b45309';
-      for (let i = 0; i < 20; i++) {
-        const x = (i * 19 + 5) % 46;
-        const y = (i * 27 + 7) % 46;
-        ctx.fillRect(x, y, 2, 2);
-      }
-
-      // 작은 조약돌/자갈
-      ctx.fillStyle = '#78350f';
-      ctx.fillRect(14, 18, 2, 2);
-      ctx.fillRect(32, 34, 2, 2);
-    });
-
-    // [6] 💜 독 늪지대 타일 (Poison Marsh - 48x48)
-    // 드래곤퀘스트의 명물 보랏빛 유독 늪
-    this.dqWorldTiles.swamp = createTile(48, 48, (ctx, w, h) => {
-      ctx.fillStyle = '#4a044e'; // 짙은 독늪
-      ctx.fillRect(0, 0, w, h);
-
-      ctx.fillStyle = '#701a75';
-      for (let y = 4; y < h; y += 12) {
+      // 잔잔한 수평 물결 굴절층
+      ctx.fillStyle = 'rgba(29, 78, 216, 0.6)';
+      for (let y = 6; y < h; y += 12) {
         ctx.fillRect(0, y, w, 4);
       }
 
-      // 뽀글거리는 독액 기포 거품
-      const drawBubble = (bx, by, br) => {
-        ctx.fillStyle = '#a21caf';
-        ctx.beginPath();
-        ctx.arc(bx, by, br, 0, Math.PI * 2);
-        ctx.fill();
+      // 햇살 반사 에메랄드/청록 광채 띠
+      ctx.fillStyle = '#06b6d4';
+      for (let i = 0; i < 10; i++) {
+        const wx = (i * 29) % (w - 12);
+        const wy = (i * 19 + 4) % (h - 6);
+        ctx.fillRect(wx, wy, 10, 2);
+        ctx.fillRect(wx + 2, wy + 2, 6, 1);
+      }
 
-        ctx.fillStyle = '#e879f9';
-        ctx.beginPath();
-        ctx.arc(bx - 1, by - 1, br * 0.6, 0, Math.PI * 2);
-        ctx.fill();
-
+      // 반짝이는 하얀 물결 포말 (White Wave Foam)
+      ctx.fillStyle = '#ffffff';
+      const waveFoams = [
+        [12, 10, 6], [38, 16, 8], [24, 28, 5],
+        [48, 36, 7], [8, 44, 6], [34, 52, 9]
+      ];
+      waveFoams.forEach(([fx, fy, len]) => {
+        ctx.fillRect(fx, fy, len, 2);
+        ctx.fillStyle = '#bae6fd';
+        ctx.fillRect(fx - 1, fy + 1, len + 2, 1);
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(bx - 1, by - br * 0.6, 1, 1);
+      });
+    });
+
+    // [5] 🏜️ 32비트 황토 흙길 / 모래 사막 (Dirt Road & Desert - 64x64)
+    // 로마식 판석 도로, 둥근 조약돌, 모래 텍스처
+    this.dqWorldTiles.sand = createTile(64, 64, (ctx, w, h) => {
+      // 따뜻한 황토빛 기본 베이스
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, '#d97706');
+      grad.addColorStop(1, '#b45309');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // 모래 자갈 입자
+      ctx.fillStyle = '#f59e0b';
+      for (let i = 0; i < 40; i++) {
+        const x = (i * 17) % w;
+        const y = (i * 23) % h;
+        ctx.fillRect(x, y, 2, 2);
+      }
+      ctx.fillStyle = '#92400e';
+      for (let i = 0; i < 35; i++) {
+        const x = (i * 31 + 5) % w;
+        const y = (i * 19 + 7) % h;
+        ctx.fillRect(x, y, 2, 2);
+      }
+
+      // 32비트 둥근 강돌/판석 (Paved Cobblestones)
+      const drawCobble = (cx, cy, cw, ch) => {
+        // 음각 그림자
+        ctx.fillStyle = '#451a03';
+        ctx.fillRect(cx - 1, cy - 1, cw + 2, ch + 2);
+        // 몸체
+        ctx.fillStyle = '#b45309';
+        ctx.fillRect(cx, cy, cw, ch);
+        // 양지 하이라이트
+        ctx.fillStyle = '#fde68a';
+        ctx.fillRect(cx, cy, cw - 1, 1);
+        ctx.fillRect(cx, cy, 1, ch - 1);
       };
 
-      drawBubble(12, 14, 4);
-      drawBubble(32, 22, 5);
-      drawBubble(20, 36, 3);
+      drawCobble(10, 12, 12, 8);
+      drawCobble(34, 8, 14, 9);
+      drawCobble(20, 28, 15, 10);
+      drawCobble(46, 26, 11, 7);
+      drawCobble(8, 44, 13, 8);
+      drawCobble(32, 46, 16, 9);
+    });
+
+    // [6] 💜 32비트 유독 늪지대 (Poison Marsh - 64x64)
+    // 짙은 보랏빛 맹독 수렁, 오색 슬라임 기름막, 뽀글거리는 독액 기포
+    this.dqWorldTiles.swamp = createTile(64, 64, (ctx, w, h) => {
+      // 심연의 독늪 그라데이션
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, '#2e1065');
+      grad.addColorStop(0.5, '#4a044e');
+      grad.addColorStop(1, '#581c87');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // 끈적이는 유독 슬라임 띠
+      ctx.fillStyle = '#701a75';
+      for (let y = 8; y < h; y += 14) {
+        ctx.fillRect(0, y, w, 5);
+      }
+
+      // 오색 무지개 독액 유막
+      ctx.fillStyle = '#a21caf';
+      for (let i = 0; i < 8; i++) {
+        const ox = (i * 23) % (w - 12);
+        const oy = (i * 17 + 6) % (h - 8);
+        ctx.fillRect(ox, oy, 14, 3);
+      }
+
+      // 32비트 입체 맹독 기포 (Toxic Bubbles with highlights)
+      const drawToxicBubble = (bx, by, r) => {
+        // 기포 외곽 글로우
+        ctx.fillStyle = 'rgba(232, 121, 249, 0.4)';
+        ctx.beginPath();
+        ctx.arc(bx, by, r + 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 본체
+        ctx.fillStyle = '#c026d3';
+        ctx.beginPath();
+        ctx.arc(bx, by, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 상단 반사광
+        ctx.fillStyle = '#f0abfc';
+        ctx.beginPath();
+        ctx.arc(bx - r * 0.35, by - r * 0.35, r * 0.45, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 찡긋 하이라이트
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(bx - r * 0.4, by - r * 0.4, 2, 2);
+      };
+
+      drawToxicBubble(16, 18, 6);
+      drawToxicBubble(44, 26, 7);
+      drawToxicBubble(28, 46, 5);
+      drawToxicBubble(52, 50, 4);
     });
 
     // [7] 🏰 랜드마크: 거대 라다톰 왕성 (Grand Castle - 128x128)

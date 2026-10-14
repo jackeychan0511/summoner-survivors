@@ -1312,13 +1312,109 @@ const GAME_DATA = {
   world: {
     width: 16000,
     height: 16000,
+    tileSize: 64, // 32비트 고화질 타일 해상도 (64x64px)
+    terrains: {
+      grass: { name: '푸른 초원', passable: true, speedMul: 1.0 },
+      sand: { name: '황토 흙길/사막', passable: true, speedMul: 1.0 },
+      forest: { name: '울창한 숲', passable: true, speedMul: 0.9 },
+      swamp: { name: '독 늪지대', passable: true, speedMul: 0.8 },
+      mountain: { name: '바위산맥 (진입 불가)', passable: false, speedMul: 0 },
+      water: { name: '푸른 바다/호수 (진입 불가)', passable: false, speedMul: 0 }
+    },
     landmarks: [
       { id: 'castle', spriteKey: 'landmark_castle', name: '🏰 라다톰 왕성 (중앙 수도)', x: 8000, y: 8000, radius: 280, color: '#38bdf8' },
       { id: 'crypt', spriteKey: 'landmark_crypt', name: '💀 암흑 묘지 (북서쪽 독늪)', x: 3500, y: 3500, radius: 240, color: '#a855f7' },
       { id: 'shrine', spriteKey: 'landmark_shrine', name: '⚡ 고대 번개 신전 (북동쪽 설산)', x: 12500, y: 3500, radius: 240, color: '#facc15' },
       { id: 'tree', spriteKey: 'landmark_tree', name: '🌳 신성 세계수 이그드라실 (남서쪽 대수림)', x: 3500, y: 12500, radius: 240, color: '#22c55e' },
       { id: 'volcano', spriteKey: 'landmark_volcano', name: '🌋 용왕의 화산 제단 (남동쪽)', x: 12500, y: 12500, radius: 240, color: '#ef4444' }
-    ]
+    ],
+    // 🗺️ 정밀 바이옴 & 지형 판정기 (이동 충돌 및 렌더링 동기화)
+    getTileType(x, y) {
+      const w = 16000;
+      const h = 16000;
+      const ts = 64;
+      const gx = Math.floor(x / ts);
+      const gy = Math.floor(y / ts);
+
+      // 1. 대륙 외곽 대양 바다 (진입 차단 자연 경계)
+      if (x < 640 || x > w - 640 || y < 640 || y > h - 640) {
+        return 'water';
+      }
+      // 해안가 황금빛 모래사장
+      if (x < 832 || x > w - 832 || y < 832 || y > h - 832) {
+        return 'sand';
+      }
+
+      // 2. 주요 거점 및 바이옴 지역 판정
+      // [중앙] 라다톰 왕성 (8000, 8000)
+      const dCenter = Math.hypot(x - 8000, y - 8000);
+      if (dCenter < 340) return 'sand'; // 왕성 안마당 광장
+      // 사방으로 시원하게 뻗은 로마식 왕도 포장도로
+      if ((Math.abs(x - 8000) < 64 && Math.abs(y - 8000) < 3600) ||
+          (Math.abs(y - 8000) < 64 && Math.abs(x - 8000) < 3600)) {
+        return 'sand';
+      }
+
+      // [북서쪽] 암흑 묘지 & 독 늪지대 (3500, 3500)
+      const dNW = Math.hypot(x - 3500, y - 3500);
+      if (dNW < 2000) {
+        if (dNW < 320) return 'sand'; // 묘지 제단 안마당
+        const swampNoise = Math.sin(gx * 0.32 - gy * 0.28) + Math.cos(gx * 0.24 + gy * 0.35);
+        if (swampNoise > 0.85) return 'water'; // 깊은 독극물 수렁 (진입 불가)
+        if (swampNoise > -0.3) return 'swamp'; // 독 늪지대
+        return 'sand';
+      }
+
+      // [북동쪽] 험준한 바위산맥 & 고대 번개 신전 (12500, 3500)
+      const dNE = Math.hypot(x - 12500, y - 3500);
+      if (dNE < 2400) {
+        if (dNE < 340) return 'sand'; // 신전 대리석 광장
+        // 신전으로 이어지는 협곡 산길
+        const roadNE = Math.abs((x - 12500) - (y - 3500));
+        if (roadNE < 80 && dNE < 2000) return 'sand';
+
+        const mountainRidge = Math.sin(gx * 0.28 + gy * 0.22) * 1.5 + Math.cos(gx * 0.18 - gy * 0.32) * 1.2;
+        if (mountainRidge > 0.35) return 'mountain'; // 깎아지른 바위산 (진입 불가)
+        if (mountainRidge > -0.2) return 'sand'; // 산기슭 자갈길
+        return 'grass';
+      }
+
+      // [남서쪽] 신성 세계수의 대수림 (3500, 12500)
+      const dSW = Math.hypot(x - 3500, y - 12500);
+      if (dSW < 2200) {
+        if (dSW < 360) return 'grass'; // 세계수 주변 신성한 잔디밭
+        const forestNoise = Math.cos(gx * 0.25 + gy * 0.3);
+        if (forestNoise > -0.25) return 'forest'; // 울창한 상록수림
+        return 'grass';
+      }
+
+      // [남동쪽] 용왕의 화산 제단 (12500, 12500)
+      const dSE = Math.hypot(x - 12500, y - 12500);
+      if (dSE < 2000) {
+        if (dSE < 340) return 'sand'; // 용암 제단 광장
+        // 화산 분화구 원형 외벽 산맥
+        if (dSE > 800 && dSE < 1350) {
+          // 남서쪽 협곡 입구는 뚫려 있음
+          const angle = Math.atan2(y - 12500, x - 12500);
+          if (Math.abs(angle - (-2.3)) > 0.4) {
+            return 'mountain'; // 분화구 암벽 (진입 불가)
+          }
+        }
+        const volcanoNoise = Math.sin(gx * 0.29 + gy * 0.41);
+        if (volcanoNoise > 0.2) return 'sand';
+        if (volcanoNoise > -0.2) return 'mountain';
+        return 'grass';
+      }
+
+      // 3. 필드 자연 지형 (절차적 노이즈: 호수, 바위산, 숲, 오솔길)
+      const noise = Math.sin(gx * 0.14 + gy * 0.18) * 1.6 + Math.cos(gx * 0.22 - gy * 0.12) * 1.3;
+      if (noise > 1.65) return 'forest';      // 울창한 숲 군락
+      if (noise < -2.15) return 'water';     // 맑은 호수 (진입 불가)
+      if (noise < -1.82) return 'mountain';  // 야생 바위산 (진입 불가)
+      if (noise > 1.25 && noise < 1.42) return 'sand'; // 오솔길
+
+      return 'grass'; // 정통 드퀘 푸른 초원
+    }
   },
 
   // 6. 🛡️ 테이머 3종 장비 시스템 (무기 1 / 갑옷 1 / 방패 1)
