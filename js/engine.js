@@ -513,6 +513,24 @@ class GameEngine {
     return true;
   }
 
+  // 🎯 플레이어 조준 각도 계산기 (이동 중 스킬 발사 시 이동 방향 또는 가까운 적 정확히 타겟팅)
+  getPlayerAimAngle(range = 140) {
+    if (!this.player) return 0;
+    // 1. 사거리 내에 가장 가까운 적이 있으면 그 적을 우선 정조준
+    const target = this.getNearestEnemy(this.player.x, this.player.y);
+    if (target && Math.hypot(target.x - this.player.x, target.y - this.player.y) <= range + (target.radius || 15)) {
+      const ang = Math.atan2(target.y - this.player.y, target.x - this.player.x);
+      this.player.facing = Math.cos(ang) >= 0 ? 1 : -1;
+      return ang;
+    }
+    // 2. 적이 멀리 있으면 조이스틱 또는 키보드로 현재 이동 중인 방향으로 조준
+    if (this.player.isMoving && this.player.moveAngle !== undefined) {
+      return this.player.moveAngle;
+    }
+    // 3. 정지 상태면 수평 바라보는 방향
+    return this.player.facing === 1 ? 0 : Math.PI;
+  }
+
   // 👑 3대 직업군 (소환사 / 검사 / 궁수) 및 9대 세부 특화 시작
   start(classOrPetId = 'summoner', subclassId = 'ignis', combatStyle = 'ranged') {
     this.audio.init();
@@ -744,8 +762,7 @@ class GameEngine {
 
     // [7] 궤도 포격 저격 (궁수: 스나이퍼)
     else if (ult.id === 'orbital_snipe') {
-      const target = this.getNearestEnemy(this.player.x, this.player.y);
-      const ang = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : (this.player.facing === 1 ? 0 : Math.PI);
+      const ang = this.getPlayerAimAngle(600);
       this.shakeScreen(18, 0.5);
       this.addShockwave(this.player.x, this.player.y, 180, '#06b6d4', 0.4);
       this.projectiles.push(new EngineProjectile(
@@ -776,8 +793,9 @@ class GameEngine {
     // [9] 야수 대군단 쇄도 (궁수: 트래퍼)
     else if (ult.id === 'beast_stampede') {
       this.shakeScreen(12, 0.4);
+      const baseAng = this.getPlayerAimAngle(300);
       for (let i = 0; i < 8; i++) {
-        const ang = (this.player.facing === 1 ? 0 : Math.PI) + (Math.random() - 0.5) * 0.8;
+        const ang = baseAng + (Math.random() - 0.5) * 0.8;
         this.projectiles.push(new EngineProjectile(
           this.player.x, this.player.y + (Math.random() - 0.5) * 100,
           Math.cos(ang) * 13, Math.sin(ang) * 13,
@@ -1006,8 +1024,14 @@ class GameEngine {
     this.player.x = Math.max(60, Math.min(worldW - 60, this.player.x));
     this.player.y = Math.max(60, Math.min(worldH - 60, this.player.y));
 
-    if (dx > 0.05) this.player.facing = 1;
-    if (dx < -0.05) this.player.facing = -1;
+    const isMoving = Math.hypot(dx, dy) > 0.05;
+    this.player.isMoving = isMoving;
+    if (isMoving) {
+      this.player.moveAngle = Math.atan2(dy, dx);
+      if (Math.abs(dx) > 0.05) {
+        this.player.facing = dx > 0 ? 1 : -1;
+      }
+    }
 
     // Update 2 Virtual AI Co-op Teammates
     if (this.aiTeammatesEnabled) {
@@ -1450,8 +1474,7 @@ class GameEngine {
 
     // [17] ✝️ 신성한 십자가 (Holy Cross)
     if (def.type === 'boomerang') {
-      const target = this.getNearestEnemy(this.player.x, this.player.y);
-      const ang = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : (this.player.facing === 1 ? 0 : Math.PI);
+      const ang = this.getPlayerAimAngle(320);
       this.projectiles.push(new EngineProjectile(
         this.player.x, this.player.y,
         Math.cos(ang) * 7.5, Math.sin(ang) * 7.5,
@@ -1527,8 +1550,8 @@ class GameEngine {
     if (def.type === 'summon_giant') {
       this.audio.playExplosion();
       this.shakeScreen(8, 0.25);
-      const faceAngle = (this.player.facing === 1) ? 0 : Math.PI;
       const range = 130;
+      const faceAngle = this.getPlayerAimAngle(range + 30);
       const arcSpan = Math.PI * 0.95;
       const arcHalf = arcSpan / 2;
 
@@ -1919,8 +1942,8 @@ class GameEngine {
     if (def.type === 'melee_slash_arc') {
       this.audio.playShoot();
       this.shakeScreen(4, 0.14);
-      const faceAngle = (this.player.facing === 1) ? 0 : Math.PI;
       const range = def.range || 85;
+      const faceAngle = this.getPlayerAimAngle(range + 30);
       const arcSpan = Math.PI * 0.88; // 약 160도
       const arcHalf = arcSpan / 2;
 
@@ -1959,8 +1982,8 @@ class GameEngine {
     if (def.type === 'shield_bash_melee') {
       this.audio.playExplosion();
       this.shakeScreen(6, 0.2);
-      const faceAngle = (this.player.facing === 1) ? 0 : Math.PI;
       const range = def.range || 75;
+      const faceAngle = this.getPlayerAimAngle(range + 30);
       const arcSpan = Math.PI * 0.72; // 약 130도
       const arcHalf = arcSpan / 2;
 
@@ -2032,8 +2055,7 @@ class GameEngine {
     if (def.type === 'sniper_beam') {
       this.audio.playShoot();
       this.shakeScreen(6, 0.18);
-      const target = this.getNearestEnemy(this.player.x, this.player.y);
-      const ang = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : (this.player.facing === 1 ? 0 : Math.PI);
+      const ang = this.getPlayerAimAngle(def.range || 500);
       this.projectiles.push(new EngineProjectile(
         this.player.x, this.player.y,
         Math.cos(ang) * (def.speed || 20), Math.sin(ang) * (def.speed || 20),
@@ -2045,8 +2067,7 @@ class GameEngine {
     if (def.type === 'rapid_arrow') {
       this.audio.playShoot();
       const count = def.count || 3;
-      const target = this.getNearestEnemy(this.player.x, this.player.y);
-      const baseAng = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : (this.player.facing === 1 ? 0 : Math.PI);
+      const baseAng = this.getPlayerAimAngle(def.range || 400);
       for (let i = 0; i < count; i++) {
         const spread = (i - (count - 1) / 2) * 0.14;
         const ang = baseAng + spread;
@@ -2078,8 +2099,8 @@ class GameEngine {
     if (def.type === 'melee_arc_mega') {
       this.audio.playExplosion();
       this.shakeScreen(12, 0.35);
-      const faceAngle = (this.player.facing === 1) ? 0 : Math.PI;
       const range = def.range || 105;
+      const faceAngle = this.getPlayerAimAngle(range + 30);
       const arcSpan = Math.PI * 0.95; // 약 170도 대형 참격
       const arcHalf = arcSpan / 2;
 
@@ -2183,8 +2204,7 @@ class GameEngine {
     if (def.type === 'sniper_cannon') {
       this.audio.playExplosion();
       this.shakeScreen(14, 0.4);
-      const target = this.getNearestEnemy(this.player.x, this.player.y);
-      const ang = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : (this.player.facing === 1 ? 0 : Math.PI);
+      const ang = this.getPlayerAimAngle(700);
       this.addShockwave(this.player.x, this.player.y, 110, '#facc15', 0.35);
       this.projectiles.push(new EngineProjectile(
         this.player.x, this.player.y,
@@ -2196,8 +2216,7 @@ class GameEngine {
     // [45] 🌪️ 폭풍의 질풍궁 (Tempest Bow - 궁수 합성 진화)
     if (def.type === 'rapid_gatling') {
       this.audio.playShoot();
-      const target = this.getNearestEnemy(this.player.x, this.player.y);
-      const baseAng = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : (this.player.facing === 1 ? 0 : Math.PI);
+      const baseAng = this.getPlayerAimAngle(500);
       for (let i = 0; i < 6; i++) {
         const spread = (Math.random() - 0.5) * 0.4;
         const ang = baseAng + spread;
@@ -3410,8 +3429,8 @@ class GameEngine {
       this.keys[e.code] = true;
       this.audio.init();
 
-      // Spacebar to trigger ultimate
-      if (e.code === 'Space') {
+      // Spacebar, E, Q, Shift to trigger ultimate skill
+      if (e.code === 'Space' || e.code === 'KeyE' || e.code === 'KeyQ' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
         e.preventDefault();
         this.triggerUltimate();
       }

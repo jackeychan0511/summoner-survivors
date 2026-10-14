@@ -223,7 +223,15 @@
       cursor: pointer;
       box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
       overflow: hidden;
-      touch-action: manipulation;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+    #btn-ultimate * {
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
     }
     #btn-ultimate:active {
       transform: scale(0.92);
@@ -253,6 +261,7 @@
       line-height: 1;
       margin-bottom: 2px;
       z-index: 2;
+      pointer-events: none;
     }
     #ult-text {
       font-size: 10px;
@@ -1431,11 +1440,11 @@
 
   <!-- Load Modules -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="js/data.js?v=20261014_1830"></script>
-  <script src="js/sprites.js?v=20261014_1830"></script>
-  <script src="js/render.js?v=20261014_1830"></script>
-  <script src="js/engine.js?v=20261014_1830"></script>
-  <script src="js/network.js?v=20261014_1830"></script>
+  <script src="js/data.js?v=20261014_2050"></script>
+  <script src="js/sprites.js?v=20261014_2050"></script>
+  <script src="js/render.js?v=20261014_2050"></script>
+  <script src="js/engine.js?v=20261014_2050"></script>
+  <script src="js/network.js?v=20261014_2050"></script>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -2026,7 +2035,10 @@
     const maxRadius = 45;
 
     function handleJoyStart(e) {
-      engine.audio.init();
+      if (e.cancelable) e.preventDefault();
+      e.stopPropagation();
+      if (engine && engine.audio) engine.audio.init();
+
       const touch = e.changedTouches ? e.changedTouches[0] : e;
       if (joyTouchId !== null && e.changedTouches) return;
 
@@ -2039,6 +2051,9 @@
     }
 
     function handleJoyMove(e) {
+      if (e.cancelable && joyTouchId !== null) e.preventDefault();
+      e.stopPropagation();
+
       let touch = null;
       if (e.changedTouches) {
         for (let i = 0; i < e.changedTouches.length; i++) {
@@ -2065,14 +2080,16 @@
       joyKnob.style.transform = `translate(${knobX}px, ${knobY}px)`;
 
       // Pass normalized velocity to engine
-      if (dist > 6) {
-        engine.joystick.active = true;
-        engine.joystick.vx = Math.cos(angle) * (clampedDist / maxRadius);
-        engine.joystick.vy = Math.sin(angle) * (clampedDist / maxRadius);
-      } else {
-        engine.joystick.active = false;
-        engine.joystick.vx = 0;
-        engine.joystick.vy = 0;
+      if (engine && engine.joystick) {
+        if (dist > 6) {
+          engine.joystick.active = true;
+          engine.joystick.vx = Math.cos(angle) * (clampedDist / maxRadius);
+          engine.joystick.vy = Math.sin(angle) * (clampedDist / maxRadius);
+        } else {
+          engine.joystick.active = false;
+          engine.joystick.vx = 0;
+          engine.joystick.vy = 0;
+        }
       }
     }
 
@@ -2087,12 +2104,14 @@
 
       joyTouchId = null;
       joyKnob.style.transform = 'translate(0px, 0px)';
-      engine.joystick.active = false;
-      engine.joystick.vx = 0;
-      engine.joystick.vy = 0;
+      if (engine && engine.joystick) {
+        engine.joystick.active = false;
+        engine.joystick.vx = 0;
+        engine.joystick.vy = 0;
+      }
     }
 
-    // Touch event listeners for mobile
+    // Touch event listeners for mobile joystick
     joyZone.addEventListener('touchstart', handleJoyStart, { passive: false });
     window.addEventListener('touchmove', handleJoyMove, { passive: false });
     window.addEventListener('touchend', handleJoyEnd, { passive: false });
@@ -2113,6 +2132,30 @@
         handleJoyEnd(e);
       }
     });
+
+    /* ==========================================================================
+       ULTIMATE SKILL BUTTON MULTI-TOUCH CONTROLLER (동시 터치 완벽 지원)
+       ========================================================================== */
+    const ultBtn = document.getElementById('btn-ultimate');
+    function triggerUltimateSkill(e) {
+      if (e) {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+      }
+      if (engine) {
+        if (engine.audio) engine.audio.init();
+        engine.triggerUltimate();
+      }
+    }
+    if (ultBtn) {
+      ultBtn.addEventListener('touchstart', triggerUltimateSkill, { passive: false });
+      ultBtn.addEventListener('pointerdown', (e) => {
+        if (e.pointerType !== 'touch') { // 마우스 / 펜 클릭
+          triggerUltimateSkill(e);
+        }
+      });
+      ultBtn.addEventListener('click', triggerUltimateSkill);
+    }
 
     /* Game Loop */
     let lastTime = performance.now();
