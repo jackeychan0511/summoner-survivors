@@ -1083,71 +1083,147 @@ class GameEngine {
     // [22] 👑 사령의 지옥군주 (Abyss Necromancer) - [합성 진화: 해골소환수+송곳니]
     if (def.type === 'summon_giant') {
       this.audio.playExplosion();
-      const target = this.getNearestEnemy(this.player.x, this.player.y);
-      const ang = target ? Math.atan2(target.y - this.player.y, target.x - this.player.x) : (this.player.facing === 1 ? 0 : Math.PI);
-      this.projectiles.push(new EngineProjectile(
-        this.player.x, this.player.y,
-        Math.cos(ang) * 8.0, Math.sin(ang) * 8.0,
-        dmg, 12, 'dark_slash'
-      ));
-    }
+      this.shakeScreen(8, 0.25);
+      const faceAngle = (this.player.facing === 1) ? 0 : Math.PI;
+      const range = 130;
+      const arcSpan = Math.PI * 0.95;
+      const arcHalf = arcSpan / 2;
 
-    // --- [근거리/원거리 신규 특화 스킬 시전 로직] ---
-    // [23] 🔥 화염 발톱 (Fire Claw - 근거리 전방 180도 베기)
-    if (def.type === 'melee_slash') {
-      const faceAngle = pet.facing === 1 ? 0 : Math.PI;
-      this.audio.playShoot();
+      // 시각 연출: 거대 해골 군주의 암흑 대참격 호
+      this.addSlashEffect(this.player.x, this.player.y, faceAngle, range, '#a855f7', arcSpan, 30, 0.24);
+
+      let hitCount = 0;
       this.enemies.forEach(e => {
-        const dist = Math.hypot(e.x - pet.x, e.y - pet.y);
-        if (dist < (def.range || 95)) {
-          const ang = Math.atan2(e.y - pet.y, e.x - pet.x);
-          const diff = Math.abs(ang - faceAngle);
-          if (diff < 1.6 || Math.abs(diff - Math.PI * 2) < 1.6) {
+        const dx = e.x - this.player.x;
+        const dy = e.y - this.player.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= range + (e.radius || 15)) {
+          const enemyAngle = Math.atan2(dy, dx);
+          let diff = Math.abs(enemyAngle - faceAngle);
+          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+          if (diff <= arcHalf) {
             e.takeDamage(dmg);
-            e.x += Math.cos(faceAngle) * 8;
-            e.y += Math.sin(faceAngle) * 8;
+            e.x += Math.cos(enemyAngle) * 40;
+            e.y += Math.sin(enemyAngle) * 40;
+            hitCount++;
+            for (let k = 0; k < 3; k++) {
+              this.particles.push({
+                x: e.x + (Math.random() - 0.5) * 20,
+                y: e.y + (Math.random() - 0.5) * 20,
+                color: '#c084fc', life: 0.3, maxLife: 0.3, size: 5
+              });
+            }
           }
         }
       });
-      // Fire slash claw particle
-      for (let i = 0; i < 6; i++) {
-        this.particles.push({
-          x: pet.x + Math.cos(faceAngle) * 45 + (Math.random() - 0.5) * 30,
-          y: pet.y + Math.sin(faceAngle) * 45 + (Math.random() - 0.5) * 30,
-          color: '#f97316', life: 0.25, maxLife: 0.25, size: 5
-        });
-      }
+      if (hitCount > 0) this.audio.playHit();
     }
 
-    // [24] 🐲 용왕의 찢어발기기 (Dragon Claw - 3연속 폭염 할퀴기)
+    // --- [소환수 근거리 특화 스킬: 진정한 초근접 발톱/검기 참격 & 넉백] ---
+    // [23] 🔥 화염 발톱 (Fire Claw - 이그니스 1차 전방 부채꼴 발톱 베기)
+    if (def.type === 'melee_slash') {
+      const faceAngle = pet.facing === 1 ? 0 : Math.PI;
+      const range = def.range || 95;
+      const arcSpan = Math.PI * 0.88;
+      const arcHalf = arcSpan / 2;
+
+      this.audio.playShoot();
+      this.shakeScreen(3, 0.12);
+      this.addSlashEffect(pet.x, pet.y, faceAngle, range, '#f97316', arcSpan, 20, 0.16);
+
+      let hitCount = 0;
+      this.enemies.forEach(e => {
+        const dx = e.x - pet.x;
+        const dy = e.y - pet.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= range + (e.radius || 15)) {
+          const enemyAngle = Math.atan2(dy, dx);
+          let diff = Math.abs(enemyAngle - faceAngle);
+          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+          if (diff <= arcHalf) {
+            e.takeDamage(dmg);
+            e.x += Math.cos(enemyAngle) * 25;
+            e.y += Math.sin(enemyAngle) * 25;
+            hitCount++;
+            for (let k = 0; k < 2; k++) {
+              this.particles.push({
+                x: e.x + (Math.random() - 0.5) * 16,
+                y: e.y + (Math.random() - 0.5) * 16,
+                color: '#f97316', life: 0.25, maxLife: 0.25, size: 5
+              });
+            }
+          }
+        }
+      });
+      if (hitCount > 0) this.audio.playHit();
+    }
+
+    // [24] 🐲 용왕의 찢어발기기 (Dragon Claw - 이그니스 2차 바하무트 3연속 폭염 할퀴기)
     if (def.type === 'melee_slash_multi') {
       this.audio.playExplosion();
+      this.shakeScreen(6, 0.2);
       const faceAngle = pet.facing === 1 ? 0 : Math.PI;
+      const range = def.range || 125;
+      const arcSpan = Math.PI * 0.92;
+      const arcHalf = arcSpan / 2;
+
+      // 3중 거대 폭염 발톱 참격 연출
+      this.addSlashEffect(pet.x, pet.y, faceAngle - 0.18, range, '#ef4444', arcSpan, 24, 0.2);
+      this.addSlashEffect(pet.x, pet.y, faceAngle, range * 0.92, '#f97316', arcSpan, 20, 0.18);
+      this.addSlashEffect(pet.x, pet.y, faceAngle + 0.18, range * 0.85, '#f59e0b', arcSpan, 18, 0.16);
+
+      let hitCount = 0;
       this.enemies.forEach(e => {
-        if (Math.hypot(e.x - pet.x, e.y - pet.y) < (def.range || 125)) {
-          e.takeDamage(dmg);
+        const dx = e.x - pet.x;
+        const dy = e.y - pet.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= range + (e.radius || 15)) {
+          const enemyAngle = Math.atan2(dy, dx);
+          let diff = Math.abs(enemyAngle - faceAngle);
+          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+          if (diff <= arcHalf) {
+            e.takeDamage(dmg);
+            e.x += Math.cos(enemyAngle) * 35;
+            e.y += Math.sin(enemyAngle) * 35;
+            hitCount++;
+            for (let k = 0; k < 3; k++) {
+              this.particles.push({
+                x: e.x + (Math.random() - 0.5) * 20,
+                y: e.y + (Math.random() - 0.5) * 20,
+                color: '#ef4444', life: 0.35, maxLife: 0.35, size: 6
+              });
+            }
+          }
         }
       });
-      for (let i = 0; i < 12; i++) {
-        this.particles.push({
-          x: pet.x + Math.cos(faceAngle) * 55 + (Math.random() - 0.5) * 40,
-          y: pet.y + Math.sin(faceAngle) * 55 + (Math.random() - 0.5) * 40,
-          color: '#ef4444', life: 0.35, maxLife: 0.35, size: 6
-        });
-      }
+      if (hitCount > 0) this.audio.playHit();
     }
 
-    // [25] 🌋 업화의 분화구 (Hellfire Eruption - 지면 마그마 대폭발)
+    // [25] 🌋 업화의 분화구 (Hellfire Eruption - 이그니스 3차 지면 마그마 대폭발)
     if (def.type === 'ground_eruption') {
       this.audio.playExplosion();
+      this.shakeScreen(8, 0.25);
+      const radius = def.radius || 160;
+
+      // 360도 전방위 화염 참격 링 및 충격파
+      this.addSlashEffect(pet.x, pet.y, 0, radius, '#f97316', Math.PI * 2, 26, 0.25);
+      this.addShockwave(pet.x, pet.y, radius, '#ef4444', 0.4);
+
+      let hitCount = 0;
       this.enemies.forEach(e => {
-        if (Math.hypot(e.x - pet.x, e.y - pet.y) < (def.radius || 160)) {
+        const dist = Math.hypot(e.x - pet.x, e.y - pet.y);
+        if (dist <= radius + (e.radius || 15)) {
+          const ang = Math.atan2(e.y - pet.y, e.x - pet.x);
           e.takeDamage(dmg);
+          e.x += Math.cos(ang) * 40;
+          e.y += Math.sin(ang) * 40;
+          hitCount++;
         }
       });
+      if (hitCount > 0) this.audio.playHit();
       for (let i = 0; i < 24; i++) {
         const a = Math.random() * Math.PI * 2;
-        const d = Math.random() * (def.radius || 160);
+        const d = Math.random() * radius;
         this.particles.push({
           x: pet.x + Math.cos(a) * d,
           y: pet.y + Math.sin(a) * d,
@@ -1156,18 +1232,36 @@ class GameEngine {
       }
     }
 
-    // [26] 🌋 마그마 크러셔 (Magma Crusher - 합성 진화)
+    // [26] 🌋 마그마 크러셔 (Magma Crusher - 이그니스 근접 합성 진화)
     if (def.type === 'crusher_slash') {
       this.audio.playExplosion();
+      this.shakeScreen(10, 0.3);
       const faceAngle = pet.facing === 1 ? 0 : Math.PI;
+      const range = def.range || 140;
+      const arcSpan = Math.PI * 0.98;
+      const arcHalf = arcSpan / 2;
+
+      this.addSlashEffect(pet.x, pet.y, faceAngle, range, '#dc2626', arcSpan, 32, 0.25);
+      this.addShockwave(pet.x, pet.y, range, '#ef4444', 0.35);
+
+      let hitCount = 0;
       this.enemies.forEach(e => {
-        if (Math.hypot(e.x - pet.x, e.y - pet.y) < (def.range || 140)) {
-          e.takeDamage(dmg);
-          const pa = Math.atan2(e.y - pet.y, e.x - pet.x);
-          e.x += Math.cos(pa) * 35;
-          e.y += Math.sin(pa) * 35;
+        const dx = e.x - pet.x;
+        const dy = e.y - pet.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= range + (e.radius || 15)) {
+          const enemyAngle = Math.atan2(dy, dx);
+          let diff = Math.abs(enemyAngle - faceAngle);
+          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+          if (diff <= arcHalf) {
+            e.takeDamage(dmg);
+            e.x += Math.cos(enemyAngle) * 45;
+            e.y += Math.sin(enemyAngle) * 45;
+            hitCount++;
+          }
         }
       });
+      if (hitCount > 0) this.audio.playHit();
       for (let i = 0; i < 20; i++) {
         this.particles.push({
           x: pet.x + Math.cos(faceAngle) * 70 + (Math.random() - 0.5) * 60,
@@ -1177,15 +1271,35 @@ class GameEngine {
       }
     }
 
-    // [27] ⚡ 질풍의 뇌인 (Thunder Slash - 3연속 쾌속 뇌격참)
+    // [27] ⚡ 질풍의 뇌인 (Thunder Slash - 테슬라 1차 쾌속 뇌격참)
     if (def.type === 'melee_slash_fast') {
       const faceAngle = pet.facing === 1 ? 0 : Math.PI;
+      const range = def.range || 90;
+      const arcSpan = Math.PI * 0.85;
+      const arcHalf = arcSpan / 2;
+
       this.audio.playShoot();
+      this.shakeScreen(3, 0.12);
+      this.addSlashEffect(pet.x, pet.y, faceAngle, range, '#38bdf8', arcSpan, 18, 0.14);
+
+      let hitCount = 0;
       this.enemies.forEach(e => {
-        if (Math.hypot(e.x - pet.x, e.y - pet.y) < (def.range || 90)) {
-          e.takeDamage(dmg);
+        const dx = e.x - pet.x;
+        const dy = e.y - pet.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= range + (e.radius || 15)) {
+          const enemyAngle = Math.atan2(dy, dx);
+          let diff = Math.abs(enemyAngle - faceAngle);
+          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+          if (diff <= arcHalf) {
+            e.takeDamage(dmg);
+            e.x += Math.cos(enemyAngle) * 25;
+            e.y += Math.sin(enemyAngle) * 25;
+            hitCount++;
+          }
         }
       });
+      if (hitCount > 0) this.audio.playHit();
       for (let i = 0; i < 4; i++) {
         this.lightningBolts.push({
           x1: pet.x, y1: pet.y,
@@ -1196,41 +1310,96 @@ class GameEngine {
       }
     }
 
-    // [28] ⚔️ 십자 뇌격참 (Lightning Cross)
+    // [28] ⚔️ 십자 뇌격참 (Lightning Cross - 테슬라 2차 X자 교차 뇌격참)
     if (def.type === 'cross_slash') {
       this.audio.playShoot();
+      this.shakeScreen(5, 0.18);
       const faceAngle = pet.facing === 1 ? 0 : Math.PI;
+      const range = def.range || 130;
+      const arcSpan = Math.PI * 0.75;
+
+      // X자 2중 교차 참격 호
+      this.addSlashEffect(pet.x, pet.y, faceAngle - 0.35, range, '#facc15', arcSpan, 22, 0.18);
+      this.addSlashEffect(pet.x, pet.y, faceAngle + 0.35, range, '#38bdf8', arcSpan, 22, 0.18);
+
+      let hitCount = 0;
       this.enemies.forEach(e => {
-        if (Math.hypot(e.x - pet.x, e.y - pet.y) < (def.range || 130)) {
-          e.takeDamage(dmg);
+        const dx = e.x - pet.x;
+        const dy = e.y - pet.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= range + (e.radius || 15)) {
+          const enemyAngle = Math.atan2(dy, dx);
+          let diff = Math.abs(enemyAngle - faceAngle);
+          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+          if (diff <= (Math.PI * 0.85) / 2) {
+            e.takeDamage(dmg);
+            e.x += Math.cos(enemyAngle) * 35;
+            e.y += Math.sin(enemyAngle) * 35;
+            hitCount++;
+          }
         }
       });
+      if (hitCount > 0) this.audio.playHit();
       const cx = pet.x + Math.cos(faceAngle) * 60;
       const cy = pet.y + Math.sin(faceAngle) * 60;
       this.lightningBolts.push({ x1: cx - 45, y1: cy - 45, x2: cx + 45, y2: cy + 45, color: '#facc15', life: 0.2 });
       this.lightningBolts.push({ x1: cx - 45, y1: cy + 45, x2: cx + 45, y2: cy - 45, color: '#facc15', life: 0.2 });
     }
 
-    // [29] 🔱 뇌신의 심판창 (Zeus Spear)
+    // [29] 🔱 뇌신의 심판창 (Zeus Spear - 테슬라 3차 최종 벼락 강타)
     if (def.type === 'spear_slam') {
       this.audio.playExplosion();
+      this.shakeScreen(8, 0.25);
+      const radius = def.radius || 180;
+      this.addShockwave(pet.x, pet.y, radius, '#facc15', 0.4);
+      this.addSlashEffect(pet.x, pet.y, 0, radius, '#38bdf8', Math.PI * 2, 24, 0.22);
+
+      let hitCount = 0;
       this.enemies.forEach(e => {
-        if (Math.hypot(e.x - pet.x, e.y - pet.y) < (def.radius || 180)) {
+        const dist = Math.hypot(e.x - pet.x, e.y - pet.y);
+        if (dist <= radius + (e.radius || 15)) {
+          const ang = Math.atan2(e.y - pet.y, e.x - pet.x);
           e.takeDamage(dmg);
+          e.x += Math.cos(ang) * 45;
+          e.y += Math.sin(ang) * 45;
+          hitCount++;
         }
       });
+      if (hitCount > 0) this.audio.playHit();
       this.lightningBolts.push({ x1: pet.x, y1: pet.y - 350, x2: pet.x, y2: pet.y, color: '#fef08a', width: 6, life: 0.35 });
     }
 
-    // [30] ⚡ 뇌화난무 (Thunder Frenzy - 합성 진화)
+    // [30] ⚡ 뇌화난무 (Thunder Frenzy - 테슬라 근접 합성 진화: 쾌속 난무 뇌격참)
     if (def.type === 'frenzy_slashes') {
       this.audio.playShoot();
+      this.shakeScreen(4, 0.15);
       const faceAngle = pet.facing === 1 ? 0 : Math.PI;
+      const range = def.range || 135;
+      const arcSpan = Math.PI * 0.9;
+      const arcHalf = arcSpan / 2;
+
+      // 쾌속 번개 참격 호 2연속 번뜩임
+      this.addSlashEffect(pet.x, pet.y, faceAngle + (Math.random() - 0.5) * 0.4, range, '#a855f7', arcSpan, 20, 0.14);
+      this.addSlashEffect(pet.x, pet.y, faceAngle + (Math.random() - 0.5) * 0.4, range * 0.9, '#c084fc', arcSpan, 16, 0.12);
+
+      let hitCount = 0;
       this.enemies.forEach(e => {
-        if (Math.hypot(e.x - pet.x, e.y - pet.y) < (def.range || 135)) {
-          e.takeDamage(dmg * 0.4);
+        const dx = e.x - pet.x;
+        const dy = e.y - pet.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= range + (e.radius || 15)) {
+          const enemyAngle = Math.atan2(dy, dx);
+          let diff = Math.abs(enemyAngle - faceAngle);
+          while (diff > Math.PI) diff = Math.abs(diff - Math.PI * 2);
+          if (diff <= arcHalf) {
+            e.takeDamage(dmg * 0.4);
+            e.x += Math.cos(enemyAngle) * 20;
+            e.y += Math.sin(enemyAngle) * 20;
+            hitCount++;
+          }
         }
       });
+      if (hitCount > 0) this.audio.playHit();
       for (let i = 0; i < 3; i++) {
         this.lightningBolts.push({
           x1: pet.x + (Math.random() - 0.5) * 30, y1: pet.y + (Math.random() - 0.5) * 30,
