@@ -24,6 +24,7 @@ class SpriteManager {
     this.humanSprites = {};  // { tamer_f0, tamer_f1, knight, ranger, paladin }
     this.heroSprites = {};   // { warrior_berserker_t1~t3, archer_sniper_t1~t3, ... }
     this.dqMonsters = {};    // { slime, dracky_f0, dracky_f1, lizardman, ... }
+    this.dqWorldTiles = {};  // 🗺️ 32비트 드래곤퀘스트 월드맵 타일셋 { grass, forest, mountain, water, sand, swamp, castle, tree, shrine, volcano }
 
     this.init();
   }
@@ -140,6 +141,537 @@ class SpriteManager {
     this.generateHeroClassSprites();
     this.generateMajesticPetSprites();
     this.generateDqMonsterSprites();
+    this.generateDqWorldTiles();
+  }
+
+  // =========================================================================
+  // 🗺️ 32비트 드래곤퀘스트 스타일 월드맵 타일셋 & 랜드마크 생성기
+  // =========================================================================
+  generateDqWorldTiles() {
+    const createTile = (w, h, drawFn) => {
+      const cvs = document.createElement('canvas');
+      cvs.width = w;
+      cvs.height = h;
+      const ctx = cvs.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      drawFn(ctx, w, h);
+      return cvs;
+    };
+
+    // [1] 🌱 초원 타일 (Grass / Plains - 48x48)
+    // 클래식 드퀘의 상쾌하고 푸른 잔디와 들꽃
+    this.dqWorldTiles.grass = createTile(48, 48, (ctx, w, h) => {
+      ctx.fillStyle = '#3e8f26';
+      ctx.fillRect(0, 0, w, h);
+
+      // 잔디 결 명암 텍스처
+      ctx.fillStyle = '#2c6b1a'; // 어두운 풀
+      for (let i = 0; i < 28; i++) {
+        const x = (i * 17) % 46;
+        const y = (i * 23) % 46;
+        ctx.fillRect(x, y, 2, 3);
+        ctx.fillRect(x + 1, y - 1, 2, 2);
+      }
+
+      ctx.fillStyle = '#5cbe33'; // 밝은 풀
+      for (let i = 0; i < 32; i++) {
+        const x = (i * 19 + 7) % 46;
+        const y = (i * 29 + 11) % 46;
+        ctx.fillRect(x, y, 2, 3);
+        ctx.fillRect(x - 1, y + 1, 1, 2);
+      }
+
+      ctx.fillStyle = '#82e04e'; // 하이라이트 풀잎 팁
+      for (let i = 0; i < 18; i++) {
+        const x = (i * 31 + 5) % 46;
+        const y = (i * 13 + 3) % 46;
+        ctx.fillRect(x, y, 1, 2);
+      }
+
+      // 앙증맞은 흰색/노란색 들꽃
+      ctx.fillStyle = '#fef08a';
+      ctx.fillRect(12, 14, 2, 2);
+      ctx.fillRect(34, 30, 2, 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(11, 14, 1, 2); ctx.fillRect(14, 14, 1, 2);
+      ctx.fillRect(33, 30, 1, 2); ctx.fillRect(36, 30, 1, 2);
+    });
+
+    // [2] 🌲 울창한 숲 타일 (Dense Forest - 48x48)
+    // 둥글둥글한 드퀘풍 상록수 3그루 군락
+    this.dqWorldTiles.forest = createTile(48, 48, (ctx, w, h) => {
+      // 잔디 밑바탕
+      ctx.drawImage(this.dqWorldTiles.grass, 0, 0);
+
+      const drawTree = (tx, ty, r) => {
+        // 나무 그림자
+        ctx.fillStyle = 'rgba(0,0,0,0.32)';
+        ctx.beginPath();
+        ctx.ellipse(tx, ty + r * 0.9, r * 1.1, r * 0.45, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 나무 기둥
+        ctx.fillStyle = '#451a03';
+        ctx.fillRect(tx - 2, ty + r * 0.2, 5, r * 0.75);
+
+        // 잎사귀 3단 레이어 (깊은녹색 -> 중간녹색 -> 하이라이트)
+        ctx.fillStyle = '#144a17';
+        ctx.beginPath();
+        ctx.arc(tx, ty, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#1e7325';
+        ctx.beginPath();
+        ctx.arc(tx - 1, ty - 2, r * 0.85, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#3aa443';
+        ctx.beginPath();
+        ctx.arc(tx - 2, ty - 4, r * 0.55, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 잎사귀 햇살 하이라이트
+        ctx.fillStyle = '#6ee7b7';
+        ctx.fillRect(tx - 3, ty - r * 0.6, 3, 2);
+        ctx.fillRect(tx - 1, ty - r * 0.4, 2, 2);
+      };
+
+      drawTree(14, 20, 11);
+      drawTree(34, 18, 12);
+      drawTree(24, 32, 13);
+    });
+
+    // [3] ⛰️ 바위산맥 타일 (Rocky Mountains - 48x48)
+    // 깎아지른 바위산 봉우리와 만년설 캡
+    this.dqWorldTiles.mountain = createTile(48, 48, (ctx, w, h) => {
+      // 바닥 잔디
+      ctx.drawImage(this.dqWorldTiles.grass, 0, 0);
+
+      const drawPeak = (px, py, bw, bh) => {
+        // 바위산 그림자 면 (우측)
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px + bw / 2, py + bh);
+        ctx.lineTo(px, py + bh);
+        ctx.closePath();
+        ctx.fill();
+
+        // 바위산 본체 면 (좌측)
+        ctx.fillStyle = '#475569';
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px - bw / 2, py + bh);
+        ctx.lineTo(px, py + bh);
+        ctx.closePath();
+        ctx.fill();
+
+        // 능선 하이라이트 릿지
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px + 1, py + bh);
+        ctx.stroke();
+
+        // 정상 만년설 눈 덮인 봉우리
+        ctx.fillStyle = '#f8fafc';
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px - bw * 0.22, py + bh * 0.32);
+        ctx.lineTo(px, py + bh * 0.38);
+        ctx.lineTo(px + bw * 0.22, py + bh * 0.32);
+        ctx.closePath();
+        ctx.fill();
+      };
+
+      drawPeak(18, 10, 28, 34);
+      drawPeak(34, 16, 24, 28);
+    });
+
+    // [4] 🌊 푸른 바다 / 호수 타일 (Deep Ocean / Lake - 48x48)
+    this.dqWorldTiles.water = createTile(48, 48, (ctx, w, h) => {
+      ctx.fillStyle = '#1d4ed8'; // 깊은 바다색
+      ctx.fillRect(0, 0, w, h);
+
+      // 물결 명암 텍스처
+      ctx.fillStyle = '#2563eb';
+      for (let y = 4; y < h; y += 10) {
+        ctx.fillRect(0, y, w, 3);
+      }
+
+      ctx.fillStyle = '#38bdf8'; // 반짝이는 물결
+      for (let i = 0; i < 8; i++) {
+        const wx = (i * 19) % 40;
+        const wy = (i * 12 + 6) % 44;
+        ctx.fillRect(wx, wy, 8, 2);
+        ctx.fillRect(wx + 2, wy + 2, 4, 1);
+      }
+
+      // 하얀 햇살 반사 포말
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(10, 8, 3, 1);
+      ctx.fillRect(28, 24, 4, 1);
+      ctx.fillRect(18, 38, 3, 1);
+    });
+
+    // [5] 🏜️ 황토 흙길 / 모래 사막 타일 (Dirt Road / Desert - 48x48)
+    this.dqWorldTiles.sand = createTile(48, 48, (ctx, w, h) => {
+      ctx.fillStyle = '#d97706';
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = '#f59e0b';
+      for (let i = 0; i < 24; i++) {
+        const x = (i * 17) % 46;
+        const y = (i * 23) % 46;
+        ctx.fillRect(x, y, 3, 2);
+      }
+
+      ctx.fillStyle = '#b45309';
+      for (let i = 0; i < 20; i++) {
+        const x = (i * 19 + 5) % 46;
+        const y = (i * 27 + 7) % 46;
+        ctx.fillRect(x, y, 2, 2);
+      }
+
+      // 작은 조약돌/자갈
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(14, 18, 2, 2);
+      ctx.fillRect(32, 34, 2, 2);
+    });
+
+    // [6] 💜 독 늪지대 타일 (Poison Marsh - 48x48)
+    // 드래곤퀘스트의 명물 보랏빛 유독 늪
+    this.dqWorldTiles.swamp = createTile(48, 48, (ctx, w, h) => {
+      ctx.fillStyle = '#4a044e'; // 짙은 독늪
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = '#701a75';
+      for (let y = 4; y < h; y += 12) {
+        ctx.fillRect(0, y, w, 4);
+      }
+
+      // 뽀글거리는 독액 기포 거품
+      const drawBubble = (bx, by, br) => {
+        ctx.fillStyle = '#a21caf';
+        ctx.beginPath();
+        ctx.arc(bx, by, br, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#e879f9';
+        ctx.beginPath();
+        ctx.arc(bx - 1, by - 1, br * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(bx - 1, by - br * 0.6, 1, 1);
+      };
+
+      drawBubble(12, 14, 4);
+      drawBubble(32, 22, 5);
+      drawBubble(20, 36, 3);
+    });
+
+    // [7] 🏰 랜드마크: 거대 라다톰 왕성 (Grand Castle - 128x128)
+    this.dqWorldTiles.landmark_castle = createTile(128, 128, (ctx, w, h) => {
+      const cx = 64;
+
+      // 성 외곽 해자 그림자
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.beginPath();
+      ctx.ellipse(cx, 115, 54, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 성벽 본체 석조 베이스
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(cx - 44, 45, 88, 65);
+
+      // 벽돌 텍스처
+      ctx.fillStyle = '#334155';
+      for (let r = 48; r < 105; r += 8) {
+        const offset = (r % 16 === 0) ? 0 : 5;
+        for (let c = cx - 42 + offset; c < cx + 40; c += 10) {
+          ctx.fillRect(c, r, 9, 7);
+        }
+      }
+
+      // 좌우 망루 타워
+      const drawTower = (tx) => {
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(tx - 12, 35, 24, 75);
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(tx - 10, 37, 20, 71);
+
+        // 뾰족 붉은 원뿔 지붕
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.moveTo(tx, 14);
+        ctx.lineTo(tx + 14, 35);
+        ctx.lineTo(tx - 14, 35);
+        ctx.closePath();
+        ctx.fill();
+
+        // 펄럭이는 왕국 깃발
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(tx, 14);
+        ctx.lineTo(tx, 5);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.moveTo(tx, 5);
+        ctx.lineTo(tx + 10, 8);
+        ctx.lineTo(tx, 11);
+        ctx.closePath();
+        ctx.fill();
+      };
+
+      drawTower(cx - 36);
+      drawTower(cx + 36);
+
+      // 중앙 대성전 돔 & 메인 타워
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(cx - 20, 25, 40, 30);
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(cx - 18, 27, 36, 26);
+
+      // 메인 왕성 대형 청금 지붕
+      ctx.fillStyle = '#1d4ed8';
+      ctx.beginPath();
+      ctx.moveTo(cx, 4);
+      ctx.lineTo(cx + 22, 25);
+      ctx.lineTo(cx - 22, 25);
+      ctx.closePath();
+      ctx.fill();
+
+      // 황금 십자가 심볼
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(cx - 1, 0, 3, 7);
+      ctx.fillRect(cx - 3, 2, 7, 2);
+
+      // 성문 아치 (거대 철문)
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(cx, 95, 14, Math.PI, Math.PI * 2);
+      ctx.lineTo(cx + 14, 110);
+      ctx.lineTo(cx - 14, 110);
+      ctx.closePath();
+      ctx.fill();
+
+      // 성문 황금 쇠창살
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 8, 95); ctx.lineTo(cx - 8, 110);
+      ctx.moveTo(cx, 82); ctx.lineTo(cx, 110);
+      ctx.moveTo(cx + 8, 95); ctx.lineTo(cx + 8, 110);
+      ctx.stroke();
+    });
+
+    // [8] 🌳 랜드마크: 신성 세계수 이그드라실 (World Tree - 128x128)
+    this.dqWorldTiles.landmark_tree = createTile(128, 128, (ctx, w, h) => {
+      const cx = 64;
+
+      // 신성한 빛무리 후광 (골드/그린 오라)
+      const grad = ctx.createRadialGradient(cx, 60, 20, cx, 60, 60);
+      grad.addColorStop(0, 'rgba(52, 211, 153, 0.45)');
+      grad.addColorStop(0.7, 'rgba(250, 204, 21, 0.2)');
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // 거대 고목 줄기
+      ctx.fillStyle = '#451a03';
+      ctx.beginPath();
+      ctx.moveTo(cx - 14, 60);
+      ctx.lineTo(cx + 14, 60);
+      ctx.lineTo(cx + 24, 115);
+      ctx.lineTo(cx - 24, 115);
+      ctx.closePath();
+      ctx.fill();
+
+      // 풍성한 세계수 캐노피 (에메랄드)
+      ctx.fillStyle = '#065f46';
+      ctx.beginPath();
+      ctx.arc(cx, 50, 44, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#059669';
+      ctx.beginPath();
+      ctx.arc(cx - 6, 46, 38, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.arc(cx - 12, 40, 26, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 황금빛 영적 열매들
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(cx - 15, 35, 4, 4);
+      ctx.fillRect(cx + 18, 45, 4, 4);
+      ctx.fillRect(cx + 2, 22, 5, 5);
+      ctx.fillRect(cx - 25, 55, 4, 4);
+    });
+
+    // [9] 💀 랜드마크: 북서쪽 암흑 지하 묘지 (Ancient Crypt - 128x128)
+    this.dqWorldTiles.landmark_crypt = createTile(128, 128, (ctx, w, h) => {
+      const cx = 64;
+      // 보랏빛 음산한 아우라
+      const grad = ctx.createRadialGradient(cx, 64, 15, cx, 64, 58);
+      grad.addColorStop(0, 'rgba(168, 85, 247, 0.4)');
+      grad.addColorStop(0.7, 'rgba(88, 28, 135, 0.2)');
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // 석조 묘지 기단
+      ctx.fillStyle = '#1e1b4b';
+      ctx.fillRect(cx - 38, 70, 76, 36);
+      ctx.fillStyle = '#312e81';
+      ctx.fillRect(cx - 34, 74, 68, 28);
+
+      // 고대 흑마법 룬 오벨리스크 (중앙 비석)
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.moveTo(cx, 16);
+      ctx.lineTo(cx + 18, 74);
+      ctx.lineTo(cx - 18, 74);
+      ctx.closePath();
+      ctx.fill();
+
+      // 발광하는 보랏빛 룬 문자
+      ctx.shadowColor = '#c084fc';
+      ctx.shadowBlur = 8;
+      ctx.fillStyle = '#c084fc';
+      ctx.fillRect(cx - 2, 28, 4, 12);
+      ctx.fillRect(cx - 6, 32, 12, 3);
+      ctx.fillRect(cx - 4, 46, 8, 4);
+      ctx.fillRect(cx - 2, 54, 4, 10);
+      ctx.shadowBlur = 0;
+
+      // 좌우 해골 횃불 화로
+      const drawTorch = (tx) => {
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(tx - 4, 60, 8, 22);
+        ctx.fillStyle = '#c084fc';
+        ctx.beginPath();
+        ctx.arc(tx, 54, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(tx, 52, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      };
+      drawTorch(cx - 26);
+      drawTorch(cx + 26);
+    });
+
+    // [10] ⚡ 랜드마크: 북동쪽 고대 번개 신전 (Thunder Shrine - 128x128)
+    this.dqWorldTiles.landmark_shrine = createTile(128, 128, (ctx, w, h) => {
+      const cx = 64;
+      // 황금빛 뇌광 아우라
+      const grad = ctx.createRadialGradient(cx, 64, 15, cx, 64, 58);
+      grad.addColorStop(0, 'rgba(250, 204, 21, 0.45)');
+      grad.addColorStop(0.7, 'rgba(234, 179, 8, 0.2)');
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // 신전 백옥 대리석 기단
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(cx - 44, 82, 88, 24);
+      ctx.fillStyle = '#f1f5f9';
+      ctx.fillRect(cx - 40, 84, 80, 18);
+
+      // 4개의 그리스풍 신전 대리석 기둥
+      [-30, -10, 10, 30].forEach(px => {
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(cx + px - 4, 42, 8, 42);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(cx + px - 3, 42, 4, 40);
+      });
+
+      // 신전 삼각 페디먼트 지붕
+      ctx.fillStyle = '#e2e8f0';
+      ctx.beginPath();
+      ctx.moveTo(cx, 18);
+      ctx.lineTo(cx + 42, 42);
+      ctx.lineTo(cx - 42, 42);
+      ctx.closePath();
+      ctx.fill();
+
+      // 황금 번개 엠블럼
+      ctx.shadowColor = '#facc15';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.moveTo(cx + 2, 24);
+      ctx.lineTo(cx - 6, 33);
+      ctx.lineTo(cx, 33);
+      ctx.lineTo(cx - 2, 40);
+      ctx.lineTo(cx + 6, 31);
+      ctx.lineTo(cx, 31);
+      ctx.closePath();
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+
+    // [11] 🌋 랜드마크: 남동쪽 용왕의 화산 제단 (Dragon Altar - 128x128)
+    this.dqWorldTiles.landmark_volcano = createTile(128, 128, (ctx, w, h) => {
+      const cx = 64;
+      // 붉은 용암 불꽃 아우라
+      const grad = ctx.createRadialGradient(cx, 64, 15, cx, 64, 58);
+      grad.addColorStop(0, 'rgba(239, 68, 68, 0.45)');
+      grad.addColorStop(0.7, 'rgba(220, 38, 38, 0.2)');
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // 흑요석 용암 제단 기단
+      ctx.fillStyle = '#1c1917';
+      ctx.fillRect(cx - 40, 80, 80, 26);
+      ctx.fillStyle = '#292524';
+      ctx.fillRect(cx - 36, 82, 72, 20);
+
+      // 제단 틈새로 흐르는 붉은 마그마
+      ctx.fillStyle = '#f97316';
+      ctx.fillRect(cx - 26, 88, 52, 3);
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(cx - 14, 89, 28, 2);
+
+      // 흑요석 드래곤 머리 석상
+      ctx.fillStyle = '#0c0a09';
+      ctx.beginPath();
+      ctx.moveTo(cx, 32);
+      ctx.lineTo(cx + 18, 50);
+      ctx.lineTo(cx + 14, 76);
+      ctx.lineTo(cx - 14, 76);
+      ctx.lineTo(cx - 18, 50);
+      ctx.closePath();
+      ctx.fill();
+
+      // 화염의 용 안광 (타오르는 붉은 눈)
+      ctx.shadowColor = '#ef4444';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(cx - 8, 48, 4, 3);
+      ctx.fillRect(cx + 4, 48, 4, 3);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx - 7, 49, 2, 1);
+      ctx.fillRect(cx + 5, 49, 2, 1);
+
+      // 중앙 타오르는 화염 성화
+      ctx.shadowColor = '#f97316';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.arc(cx, 38, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
   }
 
   // =========================================================================

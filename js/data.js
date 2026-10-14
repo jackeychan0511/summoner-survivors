@@ -1308,16 +1308,16 @@ const GAME_DATA = {
     { baseSkill: 'explosive_trap', reqPassive: 'sage_tome', result: 'armageddon_traps' }
   ],
 
-  // 5. 🗺️ 뱀파이어 서바이벌급 초대형 월드 맵 (16000 x 16000)
+  // 5. 🗺️ 드래곤퀘스트 32비트 초대형 월드 맵 (16000 x 16000)
   world: {
     width: 16000,
     height: 16000,
     landmarks: [
-      { name: '고대 마법진 (중앙 성소)', x: 8000, y: 8000, radius: 280, color: '#38bdf8' },
-      { name: '북서쪽 암흑 묘지', x: 3500, y: 3500, radius: 240, color: '#a855f7' },
-      { name: '북동쪽 번개 신전', x: 12500, y: 3500, radius: 240, color: '#facc15' },
-      { name: '남서쪽 세계수의 숲', x: 3500, y: 12500, radius: 240, color: '#22c55e' },
-      { name: '남동쪽 용의 제단', x: 12500, y: 12500, radius: 240, color: '#ef4444' }
+      { id: 'castle', spriteKey: 'landmark_castle', name: '🏰 라다톰 왕성 (중앙 수도)', x: 8000, y: 8000, radius: 280, color: '#38bdf8' },
+      { id: 'crypt', spriteKey: 'landmark_crypt', name: '💀 암흑 묘지 (북서쪽 독늪)', x: 3500, y: 3500, radius: 240, color: '#a855f7' },
+      { id: 'shrine', spriteKey: 'landmark_shrine', name: '⚡ 고대 번개 신전 (북동쪽 설산)', x: 12500, y: 3500, radius: 240, color: '#facc15' },
+      { id: 'tree', spriteKey: 'landmark_tree', name: '🌳 신성 세계수 이그드라실 (남서쪽 대수림)', x: 3500, y: 12500, radius: 240, color: '#22c55e' },
+      { id: 'volcano', spriteKey: 'landmark_volcano', name: '🌋 용왕의 화산 제단 (남동쪽)', x: 12500, y: 12500, radius: 240, color: '#ef4444' }
     ]
   },
 

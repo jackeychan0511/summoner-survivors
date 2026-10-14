@@ -144,76 +144,145 @@ class GameRenderer {
     this.renderMiniRadar(engine);
   }
 
+  // =========================================================================
+  // 🗺️ 32비트 드래곤퀘스트 스타일 초대형 월드맵 렌더러
+  // =========================================================================
+  getDqTileType(gx, gy, x, y, worldW, worldH) {
+    // 1. 외곽 대양 바다 (Ocean Boundary)
+    if (x < 480 || x > worldW - 480 || y < 480 || y > worldH - 480) {
+      return 'water';
+    }
+    // 해안가 황금빛 모래사장 (Coast Sandy Beaches)
+    if (x < 672 || x > worldW - 672 || y < 672 || y > worldH - 672) {
+      return 'sand';
+    }
+
+    // 2. 주요 거점 및 바이옴 지역
+    // [중앙] 라다톰 왕성 (8000, 8000)
+    const dCenter = Math.hypot(x - 8000, y - 8000);
+    if (dCenter < 340) return 'sand'; // 왕성 안마당 광장
+    // 사방으로 시원하게 뻗은 로마식 왕도 포장도로
+    if ((Math.abs(x - 8000) < 54 && Math.abs(y - 8000) < 3200) ||
+        (Math.abs(y - 8000) < 54 && Math.abs(x - 8000) < 3200)) {
+      return 'sand';
+    }
+
+    // [북서쪽] 암흑 지하 묘지 & 독 늪지대 (3500, 3500)
+    const dNW = Math.hypot(x - 3500, y - 3500);
+    if (dNW < 1900) {
+      const nNW = Math.sin(gx * 0.38 + gy * 0.32);
+      if (dNW < 650 || nNW > -0.2) return 'swamp';
+      return nNW > -0.6 ? 'sand' : 'grass';
+    }
+
+    // [북동쪽] 험준한 바위산맥 & 고대 번개 신전 (12500, 3500)
+    const dNE = Math.hypot(x - 12500, y - 3500);
+    if (dNE < 2100) {
+      const nNE = Math.sin(gx * 0.35 - gy * 0.28);
+      if (dNE < 750 || nNE > 0.0) return 'mountain';
+      return nNE > -0.5 ? 'sand' : 'grass';
+    }
+
+    // [남서쪽] 신성 세계수의 대수림 (3500, 12500)
+    const dSW = Math.hypot(x - 3500, y - 12500);
+    if (dSW < 2100) {
+      const nSW = Math.cos(gx * 0.32 + gy * 0.36);
+      if (dSW < 800 || nSW > -0.3) return 'forest';
+      return 'grass';
+    }
+
+    // [남동쪽] 용왕의 화산 제단 (12500, 12500)
+    const dSE = Math.hypot(x - 12500, y - 12500);
+    if (dSE < 1900) {
+      const nSE = Math.sin(gx * 0.29 + gy * 0.41);
+      if (dSE < 650 || nSE > 0.1) return 'sand';
+      if (nSE > -0.3) return 'mountain';
+      return 'grass';
+    }
+
+    // 3. 필드 자연 지형 (절차적 노이즈: 숲, 호수, 바위 언덕, 오솔길)
+    const noise = Math.sin(gx * 0.18 + gy * 0.22) * 1.4 + Math.cos(gx * 0.27 - gy * 0.16) * 1.1;
+    if (noise > 1.55) return 'forest';      // 울창한 상록수 숲
+    if (noise < -1.88) return 'water';     // 맑고 푸른 호수
+    if (noise < -1.52) return 'mountain';  // 암벽 릿지 언덕
+    if (noise > 1.18 && noise < 1.34) return 'sand'; // 여행자의 오솔길
+
+    return 'grass'; // 정통 드래곤퀘스트 푸른 초원
+  }
+
   renderBackground(player) {
     const ctx = this.ctx;
-    const worldW = (GAME_DATA.world && GAME_DATA.world.width) || 4800;
-    const worldH = (GAME_DATA.world && GAME_DATA.world.height) || 4800;
-    const tileSize = 64;
+    const worldW = (GAME_DATA.world && GAME_DATA.world.width) || 16000;
+    const worldH = (GAME_DATA.world && GAME_DATA.world.height) || 16000;
+    const tileSize = 48; // 32비트 드래곤퀘스트 타일 규격 (48x48)
 
     const startX = Math.floor((player.x - this.canvas.width / 2) / tileSize) * tileSize;
     const endX = startX + this.canvas.width + tileSize * 2;
     const startY = Math.floor((player.y - this.canvas.height / 2) / tileSize) * tileSize;
     const endY = startY + this.canvas.height + tileSize * 2;
 
-    if (typeof spriteManager !== 'undefined' && spriteManager.usePixelArt && spriteManager.isLoaded && spriteManager.grassPattern) {
+    const tiles = (typeof spriteManager !== 'undefined' && spriteManager.usePixelArt) ? spriteManager.dqWorldTiles : null;
+
+    if (tiles && tiles.grass) {
       ctx.save();
       ctx.imageSmoothingEnabled = false;
-      ctx.fillStyle = spriteManager.grassPattern;
-      const rx = Math.max(0, startX);
-      const ry = Math.max(0, startY);
-      const rw = Math.min(worldW - rx, endX - rx);
-      const rh = Math.min(worldH - ry, endY - ry);
-      if (rw > 0 && rh > 0) {
-        ctx.fillRect(rx, ry, rw, rh);
-      }
-      ctx.restore();
-    } else {
+
+      // 뷰포트 내 화면 타일만 고속 렌더링 (Culling)
       for (let x = startX; x < endX; x += tileSize) {
         for (let y = startY; y < endY; y += tileSize) {
-          // Outside World Boundary: Void Space
+          // 월드 밖: 깊고 푸른 바다
           if (x < 0 || x >= worldW || y < 0 || y >= worldH) {
-            ctx.fillStyle = '#05070e';
-            ctx.fillRect(x, y, tileSize, tileSize);
+            ctx.drawImage(tiles.water, x, y, tileSize, tileSize);
             continue;
           }
 
-          const hash = (Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1;
-          ctx.fillStyle = Math.abs(hash) > 0.5 ? '#0c101d' : '#0f1424';
-          ctx.fillRect(x, y, tileSize, tileSize);
-          ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(x, y, tileSize, tileSize);
+          const gx = Math.floor(x / tileSize);
+          const gy = Math.floor(y / tileSize);
+          const tileType = this.getDqTileType(gx, gy, x, y, worldW, worldH);
+          const sprite = tiles[tileType] || tiles.grass;
 
-          if (Math.abs(hash) > 0.88) {
-            ctx.strokeStyle = 'rgba(168, 85, 247, 0.2)';
-            ctx.strokeRect(x + 16, y + 16, 32, 32);
-          }
+          ctx.drawImage(sprite, x, y, tileSize, tileSize);
         }
       }
+      ctx.restore();
+    } else {
+      // 폴백 렌더러
+      ctx.fillStyle = '#3e8f26';
+      ctx.fillRect(startX, startY, endX - startX, endY - startY);
     }
 
-    // World Boundary Barrier Glow (Ancient Runes Barrier)
+    // 월드 경계 고대 황금 결계선 (World Boundary Barrier)
     ctx.save();
-    ctx.strokeStyle = '#ef4444';
-    ctx.lineWidth = 6;
-    ctx.shadowBlur = 18;
-    ctx.shadowColor = '#ef4444';
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 5;
+    ctx.shadowBlur = 16;
+    ctx.shadowColor = '#facc15';
     ctx.strokeRect(0, 0, worldW, worldH);
 
-    // Inner dashed warning line
-    ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+    // 내측 점선 경고 결계
+    ctx.strokeStyle = 'rgba(250, 204, 21, 0.45)';
     ctx.lineWidth = 2;
-    ctx.setLineDash([12, 12]);
-    ctx.strokeRect(15, 15, worldW - 30, worldH - 30);
+    ctx.setLineDash([16, 16]);
+    ctx.strokeRect(16, 16, worldW - 32, worldH - 32);
     ctx.restore();
 
-    // Landmarks (Central Magic Altar)
+    // 🏰 드래곤퀘스트 5대 랜드마크 32비트 고화질 렌더링
     if (GAME_DATA.world && GAME_DATA.world.landmarks) {
+      const halfW = this.canvas.width / 2 + 250;
+      const halfH = this.canvas.height / 2 + 250;
+
       GAME_DATA.world.landmarks.forEach(lm => {
+        // 화면 뷰포트 컬링: 화면 근처에 있을 때만 렌더링
+        if (Math.abs(lm.x - player.x) > halfW || Math.abs(lm.y - player.y) > halfH) {
+          return;
+        }
+
         ctx.save();
+
+        // 1. 신비한 랜드마크 마법진 바닥 후광
         ctx.strokeStyle = lm.color;
         ctx.lineWidth = 3;
-        ctx.shadowBlur = 16;
+        ctx.shadowBlur = 20;
         ctx.shadowColor = lm.color;
         ctx.beginPath();
         ctx.arc(lm.x, lm.y, lm.radius, 0, Math.PI * 2);
@@ -222,17 +291,28 @@ class GameRenderer {
         ctx.fillStyle = `${lm.color}15`;
         ctx.fill();
 
-        // Inner rune star
-        ctx.setLineDash([8, 8]);
+        // 내부 보조 회전 마법진
+        ctx.setLineDash([10, 10]);
         ctx.beginPath();
-        ctx.arc(lm.x, lm.y, lm.radius * 0.6, 0, Math.PI * 2);
+        ctx.arc(lm.x, lm.y, lm.radius * 0.65, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Altar Label
-        ctx.font = 'bold 13px sans-serif';
+        // 2. 32비트 실물 랜드마크 스프라이트 렌더링
+        const lmSprite = tiles && lm.spriteKey && tiles[lm.spriteKey];
+        if (lmSprite) {
+          const sz = 160;
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(lmSprite, lm.x - sz / 2, lm.y - sz / 2 - 12, sz, sz);
+        }
+
+        // 3. 랜드마크 명칭 명판
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#000000';
+        ctx.font = 'bold 15px sans-serif';
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center';
-        ctx.fillText(lm.name, lm.x, lm.y + 5);
+        ctx.fillText(lm.name, lm.x, lm.y + lm.radius * 0.42 + 20);
+
         ctx.restore();
       });
     }
