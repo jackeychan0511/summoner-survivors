@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>소환수 키워서 살아남기 - 4인 가족 협동 서바이벌</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #0b0f19;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      touch-action: none; /* Prevents scroll bounce on mobile */
+    }
+    #top-bar {
+      height: 48px;
+      min-height: 48px;
+      background: rgba(15, 23, 42, 0.98);
+      border-bottom: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 20;
+    }
+    .hud-stat {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hud-stat span {
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 15px;
+    }
+    .btn {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #f8fafc;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn:active {
+      transform: scale(0.96);
+    }
+    #game-container {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: calc(100vh - 48px);
+      background: #000;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    #exp-bar-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 14px;
+      background: rgba(0, 0, 0, 0.7);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      z-index: 10;
+    }
+    #exp-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      box-shadow: 0 0 10px #38bdf8;
+      transition: width 0.1s linear;
+    }
+    #exp-text {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 10px;
+      line-height: 14px;
+      font-weight: bold;
+      color: #ffffff;
+      text-shadow: 1px 1px 2px #000;
+    }
+    #player-hud {
+      position: absolute;
+      top: 20px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .bar-wrapper {
+      background: rgba(15, 23, 42, 0.92);
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .hp-bar {
+      width: 110px;
+      height: 9px;
+      background: #334155;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .hp-fill {
+      height: 100%;
+      width: 100%;
+      background: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+      transition: width 0.15s ease;
+    }
+    #pet-badge {
+      font-size: 11px;
+      color: #facc15;
+      font-weight: 800;
+    }
+    #weapons-hud {
+      position: absolute;
+      top: 20px;
+      right: 16px;
+      display: flex;
+      gap: 5px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .weapon-badge {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #475569;
+      border-radius: 6px;
+      padding: 3px 6px;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 38px;
+    }
+    .weapon-badge .lvl { font-weight: bold; color: #f59e0b; font-size: 10px; }
+
+    /* ==========================================================================
+       MOBILE CONTROLS: Virtual Pad (Left) & Ultimate Button (Right)
+       ========================================================================== */
+    /* Virtual Joystick Touch Zone */
+    #joystick-zone {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      width: 140px;
+      height: 140px;
+      z-index: 25;
+      touch-action: none;
+    }
+    #joystick-base {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(15, 23, 42, 0.6) 70%);
+      border: 2px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+    }
+    #joystick-knob {
+      position: absolute;
+      top: 45px;
+      left: 45px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 14px #38bdf8;
+      border: 2px solid #ffffff;
+      pointer-events: none;
+      transition: transform 0.05s ease-out;
+    }
+
+    /* Ultimate Skill Button Zone */
+    #ultimate-zone {
+      position: absolute;
+      bottom: 28px;
+      right: 28px;
+      z-index: 25;
+    }
+    #btn-ultimate {
+      position: relative;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: #1e1b4b;
+      border: 3px solid #6366f1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+    #btn-ultimate:active {
+      transform: scale(0.92);
+    }
+    #btn-ultimate.ready {
+      border-color: #facc15;
+      background: radial-gradient(circle, #b45309 0%, #1e1b4b 70%);
+      box-shadow: 0 0 25px rgba(250, 204, 21, 0.65);
+      animation: pulseGlow 1.2s infinite alternate;
+    }
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 15px rgba(250, 204, 21, 0.5); transform: scale(1); }
+      100% { box-shadow: 0 0 30px rgba(250, 204, 21, 0.9); transform: scale(1.04); }
+    }
+    #ult-cd-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0%;
+      background: rgba(0, 0, 0, 0.65);
+      pointer-events: none;
+      transition: height 0.1s linear;
+    }
+    #ult-icon {
+      font-size: 28px;
+      line-height: 1;
+      margin-bottom: 2px;
+      z-index: 2;
+    }
+    #ult-text {
+      font-size: 10px;
+      font-weight: 800;
+      color: #ffffff;
+      z-index: 2;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(3, 7, 18, 0.92);
+      backdrop-filter: blur(6px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    .modal-box {
+      background: #1e293b;
+      border: 2px solid #38bdf8;
+      border-radius: 14px;
+      padding: 22px;
+      max-width: 580px;
+      width: 90%;
+      box-shadow: 0 0 35px rgba(56, 189, 248, 0.35);
+      text-align: center;
+      position: relative;
+    }
+    .modal-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #facc15;
+      margin-bottom: 4px;
+    }
+    .modal-sub {
+      color: #94a3b8;
+      font-size: 12px;
+      margin-bottom: 16px;
+    }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+    .card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: all 0.12s ease;
+      text-align: left;
+    }
+    .card:active {
+      background: #1e293b;
+      border-color: #38bdf8;
+      transform: scale(0.98);
+    }
+    .card-icon {
+      font-size: 28px;
+      width: 44px;
+      height: 44px;
+      background: #1e293b;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #475569;
+      flex-shrink: 0;
+    }
+    .card-info h4 {
+      font-size: 14px;
+      color: #f8fafc;
+      margin-bottom: 2px;
+    }
+    .card-info p {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    /* Main Title Menu & Multi Lobby Extra Styles */
+    .title-logo {
+      font-size: 32px;
+      font-weight: 900;
+      color: #facc15;
+      text-shadow: 0 0 20px rgba(250, 204, 21, 0.6);
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+    .title-sub {
+      color: #38bdf8;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+    .menu-cards-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+    .menu-main-btn {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border: 2px solid #475569;
+      border-radius: 12px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+    .menu-main-btn:hover, .menu-main-btn:active {
+      transform: translateY(-2px);
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.4);
+      border-color: #38bdf8;
+    }
+    .menu-main-btn.btn-coop {
+      border-color: #a855f7;
+    }
+    .menu-main-btn.btn-coop:hover, .menu-main-btn.btn-coop:active {
+      box-shadow: 0 0 22px rgba(168, 85, 247, 0.5);
+      border-color: #c084fc;
+    }
+    .menu-btn-icon {
+      font-size: 32px;
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.06);
+      flex-shrink: 0;
+    }
+    .menu-btn-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #f8fafc;
+      margin-bottom: 2px;
+    }
+    .menu-btn-desc {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    /* 4-Player Lobby Slots */
+    .lobby-slots-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .lobby-slot {
+      border: 1.5px dashed #334155;
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      min-height: 85px;
+      justify-content: center;
+    }
+    .modal-back-btn {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: #334155;
+      border: 1px solid #475569;
+      color: #f8fafc;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* Combat Style Selection Toggles & Tabs */
+    .style-btn-toggle {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #94a3b8;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .style-btn-toggle:hover {
+      background: #334155;
+      color: #fff;
+    }
+    .style-btn-toggle.active-melee {
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      border-color: #f87171;
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+    }
+    .style-btn-toggle.active-ranged {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      border-color: #38bdf8;
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }
+    .style-tab-btn {
+      flex: 1;
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #94a3b8;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .style-tab-btn:hover {
+      background: #334155;
+      color: #fff;
+    }
+    .style-tab-btn.active-melee {
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      border-color: #ef4444;
+      color: #fff;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+    }
+    .style-tab-btn.active-ranged {
+      background: linear-gradient(135deg, #0284c7 0%, #075985 100%);
+      border-color: #38bdf8;
+      color: #fff;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div id="top-bar">
+    <div style="display:flex; align-items:center; gap: 14px;">
+      <button class="btn" style="background:#0f172a; border-color:#38bdf8; color:#38bdf8;" onclick="openTitleMenuModal()">🏠 메인</button>
+      <div class="hud-stat">생존: <span id="time-display">00:00</span></div>
+      <div class="hud-stat">처치: <span id="kill-display">0</span></div>
+      <div class="hud-stat">레벨: <span id="lvl-display">1</span></div>
+      <div class="hud-stat" id="net-badge" style="color:#a855f7; display:none;">🌐 <span id="net-status-text" style="color:#c084fc;">솔로 모드</span></div>
+    </div>
+    <div style="display:flex; gap: 6px;">
+      <button id="btn-speed" class="btn" style="background:#1e293b; border-color:#475569;" onclick="engine.toggleTimeScale()">⏩ 1x 배속</button>
+      <button id="btn-ai-team" class="btn" style="background:#7c3aed; border-color:#a78bfa;" onclick="engine.toggleAiTeammates()">🤖 AI 3인 파티: ON</button>
+      <button id="btn-auto-play" class="btn" style="background:#1e293b; border-color:#475569;" onclick="engine.toggleAutoPlay()">⚡ 오토 플레이: OFF</button>
+      <button class="btn" style="background:#0284c7; border-color:#38bdf8;" onclick="openMultiplayModal()">👨‍👧‍👦 4인 멀티</button>
+      <button class="btn" onclick="openPetSelectModal()">🐾 펫 변경</button>
+      <button class="btn" style="background:#334155; border-color:#64748b;" onclick="openSettingsModal()">⚙️ 설정</button>
+      <button id="btn-sound" class="btn" onclick="engine.audio.init(); toggleSound()">🔊 사운드 ON</button>
+    </div>
+  </div>
+
+  <!-- Game Container -->
+  <div id="game-container">
+    <div id="exp-bar-container">
+      <div id="exp-bar-fill"></div>
+      <div id="exp-text">EXP 0 / 10</div>
+    </div>
+
+    <!-- Tamer & Pet HUD -->
+    <div id="player-hud">
+      <div class="bar-wrapper">
+        <span id="player-role-label">🧙 테이머</span>
+        <div class="hp-bar">
+          <div id="hp-fill" class="hp-fill"></div>
+        </div>
+        <span id="hp-text" style="font-family:monospace; color:#ef4444; font-size:11px;">100/100</span>
+      </div>
+      <div class="bar-wrapper" style="border-color: rgba(250, 204, 21, 0.3);">
+        <span id="pet-badge">🔥 이그니스 (Lv.1)</span>
+      </div>
+    </div>
+
+    <div id="weapons-hud"></div>
+
+    <!-- Equipment 3 Slots HUD (Top Center/Right) -->
+    <div id="equip-hud" style="position:absolute; top:20px; left:210px; display:flex; gap:6px; z-index:10; pointer-events:none;">
+      <div id="slot-weapon" class="weapon-badge" style="border-color:#38bdf8;"><span>🗡️</span><span class="lvl" style="color:#38bdf8;">무기</span></div>
+      <div id="slot-armor" class="weapon-badge" style="border-color:#10b981;"><span>🥋</span><span class="lvl" style="color:#10b981;">갑옷</span></div>
+      <div id="slot-shield" class="weapon-badge" style="border-color:#f59e0b;"><span>🛡️</span><span class="lvl" style="color:#f59e0b;">방패</span></div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- LEFT: Virtual Pad Joystick for Mobile -->
+    <div id="joystick-zone">
+      <div id="joystick-base"></div>
+      <div id="joystick-knob"></div>
+    </div>
+
+    <!-- RIGHT: Active Ultimate Skill Button -->
+    <div id="ultimate-zone">
+      <div id="btn-ultimate" onclick="engine.triggerUltimate()">
+        <div id="ult-cd-overlay"></div>
+        <div id="ult-icon">💥</div>
+        <div id="ult-text">READY!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       0. MAIN TITLE MENU MODAL (시작 시 맨 처음 표시되는 로비 화면)
+       ========================================================================= -->
+  <div id="title-menu-modal" class="modal-overlay" style="display: flex;">
+    <div class="modal-box" style="max-width: 520px; border-color: #facc15; box-shadow: 0 0 50px rgba(250, 204, 21, 0.45); padding: 28px 24px;">
+      <div class="title-logo">🐾 소환수 키워서 살아남기</div>
+      <div class="title-sub">~ 고대 신수 육성 & 4인 가족 협동 서바이벌 ~</div>
+
+      <div class="menu-cards-container">
+        <!-- 1. Single Play -->
+        <div class="menu-main-btn" onclick="startSinglePlayerFlow()">
+          <div class="menu-btn-icon" style="color: #38bdf8;">⚔️</div>
+          <div>
+            <div class="menu-btn-title">싱글 플레이 (Single Play)</div>
+            <div class="menu-btn-desc">혼자서 또는 가상 AI 동료와 함께 거대한 고대 유적 탐험</div>
+          </div>
+        </div>
+
+        <!-- 2. Multi Play -->
+        <div class="menu-main-btn btn-coop" onclick="openMultiplayModal()">
+          <div class="menu-btn-icon" style="color: #c084fc;">👨‍👩‍👧‍👦</div>
+          <div>
+            <div class="menu-btn-title" style="color: #facc15;">멀티플레이 (최대 4인 협동)</div>
+            <div class="menu-btn-desc">아빠와 자녀들이 방을 만들어 한 화면에서 실시간 협동 생존!</div>
+          </div>
+        </div>
+
+        <!-- 3. Settings -->
+        <div class="menu-main-btn" onclick="openSettingsModal()">
+          <div class="menu-btn-icon" style="color: #10b981;">⚙️</div>
+          <div>
+            <div class="menu-btn-title">게임 설정 (Settings)</div>
+            <div class="menu-btn-desc">사운드, AI 가상 동료 인원수, 배속 및 오토플레이 설정</div>
+          </div>
+        </div>
+
+        <!-- 4. Recipe Guide -->
+        <div class="menu-main-btn" onclick="openGuideModal()">
+          <div class="menu-btn-icon" style="color: #fbbf24;">📜</div>
+          <div>
+            <div class="menu-btn-title">조합 도감 & 가이드</div>
+            <div class="menu-btn-desc">11대 합성 진화 레시피 및 근거리/원거리 전직 계보 안내</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MULTI-PLAY 4-PLAYER CO-OP MODAL (방 만들기 / 방 참가 / 4인 대기실)
+       ========================================================================= -->
+  <div id="multi-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 520px; border-color: #a855f7; box-shadow: 0 0 40px rgba(168, 85, 247, 0.45);">
+      <button class="modal-back-btn" onclick="backToTitleFromMulti()">← 메인 메뉴</button>
+      
+      <div class="modal-title" style="color: #c084fc; margin-top: 10px;">👨‍👩‍👧‍👦 4인 가족 협동 멀티플레이</div>
+      <div class="modal-sub">아빠와 아이들이 한 맵에서 몬스터를 함께 물리치고 생존합니다!</div>
+
+      <!-- Player Nickname Input -->
+      <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px 14px; margin-bottom:14px; display:flex; align-items:center; gap:10px;">
+        <span style="font-size:12px; font-weight:bold; color:#cbd5e1; white-space:nowrap;">내 닉네임:</span>
+        <input id="multi-nickname" type="text" value="아빠" maxlength="8" placeholder="예: 아빠, 첫째, 둘째" style="flex:1; background:#1e293b; border:1px solid #475569; color:#fff; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:13px;">
+      </div>
+
+      <!-- 1. Selection View (방 만들기 or 참가하기) -->
+      <div id="multi-lobby-selection" style="display:flex; flex-direction:column; gap:12px; text-align:left;">
+        <!-- Create Room -->
+        <div style="background:#0f172a; padding:14px; border-radius:10px; border:1px solid #334155;">
+          <h4 style="color:#38bdf8; margin-bottom:4px; font-size:14px;">👑 방 만들기 (호스트 / 방장)</h4>
+          <p style="font-size:11px; color:#94a3b8; margin-bottom:10px;">방을 생성하여 4자리 코드를 발급받고 자녀들을 초대합니다.</p>
+          <button class="btn" style="background:#0284c7; border-color:#38bdf8; width:100%; justify-content:center; padding:10px; font-size:13px;" onclick="networkManager.hostRoom()">
+            👑 4인 협동 방 생성하기
+          </button>
+        </div>
+
+        <!-- Join Room -->
+        <div style="background:#0f172a; padding:14px; border-radius:10px; border:1px solid #334155;">
+          <h4 style="color:#facc15; margin-bottom:4px; font-size:14px;">🚀 방 참가하기 (게스트)</h4>
+          <p style="font-size:11px; color:#94a3b8; margin-bottom:10px;">호스트(아빠)가 알려준 4자리 방 코드를 입력하고 접속하세요.</p>
+          <div style="display:flex; gap:8px;">
+            <input id="join-room-code" type="text" placeholder="예: 7777" maxlength="6" style="flex:1; background:#1e293b; border:1px solid #475569; color:#fff; padding:8px 12px; border-radius:6px; font-weight:bold; font-size:15px; text-transform:uppercase; text-align:center;">
+            <button class="btn" style="background:#ca8a04; border-color:#facc15; padding:8px 18px; font-size:13px;" onclick="networkManager.joinRoom()">
+              🚀 참가
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Waiting Room View (접속 후 4인 대기실) -->
+      <div id="multi-lobby-waiting" style="display:none; text-align:center;">
+        <div style="background:#0f172a; border:2px solid #facc15; border-radius:10px; padding:12px; margin-bottom:12px;">
+          <div style="font-size:12px; color:#94a3b8;">가족/친구들에게 알려줄 방 코드</div>
+          <div id="lobby-room-code-val" style="font-size:32px; font-weight:900; color:#facc15; letter-spacing:4px; font-family:monospace;">----</div>
+        </div>
+
+        <!-- 4 Slots Grid -->
+        <div class="lobby-slots-grid" id="lobby-slots"></div>
+
+        <div id="lobby-guest-notice" style="display:none; color:#facc15; font-size:12px; font-weight:bold; margin-bottom:10px;">
+          ⏳ 방장(호스트)이 게임을 시작할 때까지 대기 중입니다...
+        </div>
+
+        <!-- Host Start Button -->
+        <button id="btn-lobby-start" class="btn" style="background:#16a34a; border-color:#4ade80; color:#fff; width:100%; justify-content:center; padding:12px; font-size:15px; font-weight:bold; display:none; margin-bottom:8px;" onclick="networkManager.startMultiGame()">
+          🚀 게임 시작 (모두 함께 영웅 선택)
+        </button>
+
+        <button class="btn" style="background:#334155; border-color:#475569; width:100%; justify-content:center; padding:8px;" onclick="leaveMultiLobby()">
+          🚪 방 나가기
+        </button>
+      </div>
+
+      <div id="net-room-info" style="font-size:12px; color:#a855f7; font-weight:bold; margin-top:12px; min-height:18px;"></div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       SETTINGS MODAL (환경 설정)
+       ========================================================================= -->
+  <div id="settings-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 480px; border-color: #10b981; box-shadow: 0 0 35px rgba(16, 185, 129, 0.4);">
+      <button class="modal-back-btn" onclick="closeSettingsModal()">← 닫기</button>
+      <div class="modal-title" style="color: #34d399; margin-top: 10px;">⚙️ 게임 환경 설정</div>
+      <div class="modal-sub">사운드, AI 가상 동료, 게임 배속 및 오토플레이 설정</div>
+
+      <div style="display:flex; flex-direction:column; gap:12px; margin: 16px 0; text-align:left;">
+        <!-- 1. Sound Toggle -->
+        <div style="background:#0f172a; padding:12px 16px; border-radius:8px; border:1px solid #334155; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:bold; color:#fff; font-size:13px;">🔊 효과음 / 오디오</div>
+            <div style="font-size:11px; color:#94a3b8;">웹 오디오 신디사이저 효과음</div>
+          </div>
+          <button id="cfg-btn-sound" class="btn" onclick="toggleSound(); updateSettingsUI();">ON</button>
+        </div>
+
+        <!-- 2. AI Teammates Count -->
+        <div style="background:#0f172a; padding:12px 16px; border-radius:8px; border:1px solid #334155;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div>
+              <div style="font-weight:bold; color:#fff; font-size:13px;">🤖 가상 AI 동료 인원수</div>
+              <div style="font-size:11px; color:#94a3b8;">싱글 플레이 시 함께 싸워주는 동료 봇</div>
+            </div>
+            <span id="cfg-ai-count-text" style="color:#a855f7; font-weight:bold; font-size:13px;">2명 (3인 파티)</span>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-ai-opt" onclick="setAiTeammatesCount(0)">0명 (솔로)</button>
+            <button class="btn btn-ai-opt" onclick="setAiTeammatesCount(1)">1명 (2인)</button>
+            <button class="btn btn-ai-opt" onclick="setAiTeammatesCount(2)">2명 (3인)</button>
+            <button class="btn btn-ai-opt" onclick="setAiTeammatesCount(3)">3명 (4인)</button>
+          </div>
+        </div>
+
+        <!-- 3. Time Scale -->
+        <div style="background:#0f172a; padding:12px 16px; border-radius:8px; border:1px solid #334155; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:bold; color:#fff; font-size:13px;">⏩ 게임 배속</div>
+            <div style="font-size:11px; color:#94a3b8;">시간 가속 시뮬레이션</div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-spd-opt" onclick="engine.timeScale=1.0; engine.updateSpeedButton(); updateSettingsUI();">1x</button>
+            <button class="btn btn-spd-opt" onclick="engine.timeScale=2.0; engine.updateSpeedButton(); updateSettingsUI();">2x</button>
+            <button class="btn btn-spd-opt" onclick="engine.timeScale=5.0; engine.updateSpeedButton(); updateSettingsUI();">5x</button>
+          </div>
+        </div>
+
+        <!-- 4. Auto Play -->
+        <div style="background:#0f172a; padding:12px 16px; border-radius:8px; border:1px solid #334155; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:bold; color:#fff; font-size:13px;">⚡ 내 캐릭터 오토플레이</div>
+            <div style="font-size:11px; color:#94a3b8;">자동 회피/자석 파밍/스킬 선택</div>
+          </div>
+          <button id="cfg-btn-autoplay" class="btn" onclick="engine.toggleAutoPlay(); updateSettingsUI();">OFF</button>
+        </div>
+      </div>
+
+      <button class="btn" style="background:#10b981; border-color:#34d399; color:#000; width:100%; justify-content:center; padding:10px; font-weight:bold; font-size:13px;" onclick="closeSettingsModal()">
+        확인 및 저장
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       GUIDE MODAL (조합 도감 및 도움말)
+       ========================================================================= -->
+  <div id="guide-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 580px; border-color: #fbbf24; box-shadow: 0 0 35px rgba(251, 191, 36, 0.4);">
+      <button class="modal-back-btn" onclick="document.getElementById('guide-modal').style.display='none'">← 닫기</button>
+      <div class="modal-title" style="color: #fbbf24; margin-top: 10px;">📜 11대 합성 진화 레시피 도감</div>
+      <div class="modal-sub">기본 스킬(Lv.8) + 필수 패시브(Lv.1 이상) 보유 시 레벨업 모달에 등장!</div>
+
+      <div style="background:#0f172a; padding:12px; border-radius:10px; border:1px solid #334155; max-height:55vh; overflow-y:auto; text-align:left; font-size:12px; display:flex; flex-direction:column; gap:8px;">
+        <div style="padding:6px; border-bottom:1px solid #1e293b;">
+          <span style="color:#ef4444; font-weight:bold;">☄️ 헬파이어 메테오 [원거리]</span> = 화염구(Lv.8) + 야수의 송곳니
+        </div>
+        <div style="padding:6px; border-bottom:1px solid #1e293b;">
+          <span style="color:#f97316; font-weight:bold;">🌋 마그마 크러셔 [근거리]</span> = 화염 발톱(Lv.8) + 야수의 송곳니
+        </div>
+        <div style="padding:6px; border-bottom:1px solid #1e293b;">
+          <span style="color:#38bdf8; font-weight:bold;">⚡ 뇌전망 테슬라 [원거리]</span> = 연쇄 번개(Lv.8) + 바람의 호각
+        </div>
+        <div style="padding:6px; border-bottom:1px solid #1e293b;">
+          <span style="color:#818cf8; font-weight:bold;">⚡ 뇌화난무 [근거리]</span> = 질풍의 뇌인(Lv.8) + 바람의 호각
+        </div>
+        <div style="padding:6px; border-bottom:1px solid #1e293b;">
+          <span style="color:#fb7185; font-weight:bold;">🥀 흡혈의 장미 [근거리/방어]</span> = 가시 덩굴(Lv.8) + 인력의 수정
+        </div>
+        <div style="padding:6px; border-bottom:1px solid #1e293b;">
+          <span style="color:#22c55e; font-weight:bold;">🍃 질풍의 꽃보라 [원거리/사수]</span> = 칼날 잎사귀(Lv.8) + 유대의 방울
+        </div>
+        <div style="padding:6px; border-bottom:1px solid #1e293b;">
+          <span style="color:#e879f9; font-weight:bold;">🌌 초신성 오비탈</span> = 정령 위성(Lv.8) + 유대의 방울
+        </div>
+        <div style="padding:6px; border-bottom:1px solid #1e293b;">
+          <span style="color:#67e8f9; font-weight:bold;">❄️ 절대영도 블리자드</span> = 고드름 창(Lv.8) + 현자의 고서
+        </div>
+        <div style="padding:6px; border-bottom:1px solid #1e293b;">
+          <span style="color:#2dd4bf; font-weight:bold;">🌀 타이푼 볼텍스</span> = 바람의 칼날(Lv.8) + 유대의 방울
+        </div>
+        <div style="padding:6px; border-bottom:1px solid #1e293b;">
+          <span style="color:#facc15; font-weight:bold;">⚔️ 천상의 심판도끼</span> = 신성한 십자가(Lv.8) + 행운의 네잎클로버
+        </div>
+        <div style="padding:6px;">
+          <span style="color:#c084fc; font-weight:bold;">👑 사령의 지옥군주</span> = 해골 소환수(Lv.8) + 야수의 송곳니
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Equipment Drop Selection Modal (From Mini-Boss Chest) -->
+  <div id="equipment-modal" class="modal-overlay">
+    <div class="modal-box" style="border-color: #38bdf8; box-shadow: 0 0 45px rgba(56, 189, 248, 0.45);">
+      <div class="modal-title" style="font-size: 24px; color: #38bdf8;">🎁 전설의 보물 상자 발견! 🎁</div>
+      <div class="modal-sub">준보스를 물리치고 획득한 고대 장비 중 1개를 선택하여 착용하세요!</div>
+      <div class="cards-grid" id="equip-options"></div>
+    </div>
+  </div>
+
+  <!-- 1. Initial Pet Selection Modal -->
+  <div id="pet-select-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 620px;">
+      <button class="modal-back-btn" onclick="backToTitleFromPetSelect()">← 메인 메뉴</button>
+      <div class="modal-title" style="margin-top:10px;">🐾 소환수 선택 🐾</div>
+      <div class="modal-sub">함께 싸울 영웅 소환수를 선택하세요. [상세보기]를 눌러 전직 트리와 조합법을 확인할 수 있습니다.</div>
+      <div class="cards-grid" id="pet-cards-container"></div>
+    </div>
+  </div>
+
+  <!-- 1-1. Pet Detail Modal (전직 트리 및 스킬 조합 상세 안내) -->
+  <div id="pet-detail-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 620px; border-color: #facc15; box-shadow: 0 0 50px rgba(250, 204, 21, 0.45); max-height: 85vh; display: flex; flex-direction: column;">
+      <button class="modal-back-btn" onclick="closePetDetailModal()">← 뒤로가기</button>
+      
+      <!-- 소환수 헤더 -->
+      <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-top:10px; margin-bottom:4px;">
+        <span id="dtl-pet-icon" style="font-size:36px;">🔥</span>
+        <div style="text-align:left;">
+          <div id="dtl-pet-name" class="modal-title" style="margin:0; font-size:22px; color:#facc15;">이그니스</div>
+          <div id="dtl-pet-element" style="font-size:11px; font-weight:bold; color:#f97316;">[화염 속성] 폭발 & 단일 누킹 특화</div>
+        </div>
+      </div>
+      
+      <div id="dtl-pet-desc" class="modal-sub" style="margin-bottom:12px; font-size:12px;"></div>
+
+      <!-- 스타일 전환 탭 (근거리 vs 원거리) -->
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <button id="dtl-tab-melee" class="style-tab-btn" onclick="switchDetailStyleTab('melee')">
+          ⚔️ 근거리 전투 트리
+        </button>
+        <button id="dtl-tab-ranged" class="style-tab-btn" onclick="switchDetailStyleTab('ranged')">
+          🏹 원거리 포격 트리
+        </button>
+      </div>
+
+      <div style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:12px; padding:2px; text-align:left;">
+        
+        <!-- 1. 3단계 전직 계보도 -->
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px;">
+          <div style="color:#38bdf8; font-weight:800; font-size:13px; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+            <span>🌟</span> 3단계 전직 계보도 (Evolution Tree)
+          </div>
+          <div id="dtl-evo-tree" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+
+        <!-- 2. 필살기(궁극기) 안내 -->
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px;">
+          <div style="color:#facc15; font-weight:800; font-size:13px; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+            <span>💥</span> 전용 액티브 필살기 (Ultimate Skill)
+          </div>
+          <div id="dtl-ultimate-info" style="font-size:12px; color:#cbd5e1;"></div>
+        </div>
+
+        <!-- 3. 추천 스킬 조합 & 합성 진화 레시피 -->
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px;">
+          <div style="color:#a855f7; font-weight:800; font-size:13px; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+            <span>⭐</span> 핵심 추천 합성 진화 (Combo Recipe)
+          </div>
+          <div id="dtl-combo-info" style="font-size:12px; color:#cbd5e1;"></div>
+        </div>
+
+      </div>
+
+      <!-- 하단 출격 버튼 -->
+      <div style="margin-top:14px; display:flex; gap:10px;">
+        <button class="btn" style="flex:1; background:#334155; border-color:#475569; justify-content:center; padding:10px;" onclick="closePetDetailModal()">
+          닫기
+        </button>
+        <button id="btn-dtl-select" class="btn" style="flex:2; background:#f59e0b; border-color:#facc15; color:#000; font-weight:bold; font-size:14px; justify-content:center; padding:10px;">
+          ⚔️ 이 소환수로 출격하기
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 2. Level Up Modal -->
+  <div id="level-up-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-title">🎉 펫 레벨 업! 🎉</div>
+      <div class="modal-sub">펫에게 전수할 새로운 스킬 또는 시너지 패시브를 선택하세요.</div>
+      <div class="cards-grid" id="upgrade-options"></div>
+    </div>
+  </div>
+
+  <!-- 3. Evolution (2nd/3rd Job) Modal -->
+  <div id="evolution-modal" class="modal-overlay">
+    <div class="modal-box" style="border-color: #facc15; box-shadow: 0 0 45px rgba(250, 204, 21, 0.45);">
+      <div id="evo-modal-title" class="modal-title" style="font-size: 26px; color: #facc15;">🌟 펫 2차 전직 (각성) 🌟</div>
+      <div class="modal-sub">영웅 펫이 극한의 시련을 이겨내고 상위 신수로 각성합니다!</div>
+      <div style="font-size: 60px; margin: 10px 0;" id="evo-icon">🐲</div>
+      <h3 style="font-size: 20px; color: #f8fafc; margin-bottom: 6px;" id="evo-name">용왕 바하무트</h3>
+      <p style="font-size: 13px; color: #94a3b8; max-width: 440px; margin: 0 auto 16px auto;" id="evo-desc">
+        고대 화염의 용으로 진화했습니다. 전방위 브레스와 폭발력이 극대화됩니다.
+      </p>
+      <button id="btn-confirm-evo" class="btn" style="background:#f59e0b; border-color:#facc15; color:#000; font-size:14px; padding:10px 32px;">
+        🔥 각성 수락 및 궁극기 해금! 🔥
+      </button>
+    </div>
+  </div>
+
+  <!-- 5. Final Game Clear (Victory) Modal -->
+  <div id="game-clear-modal" class="modal-overlay">
+    <div class="modal-box" style="border-color: #facc15; box-shadow: 0 0 60px rgba(250, 204, 21, 0.7); max-width: 520px;">
+      <div style="font-size: 54px; margin-bottom: 8px;">🏆</div>
+      <div class="modal-title" style="font-size: 28px; color: #facc15;">VICTORY! 게임 클리어!</div>
+      <div class="modal-sub" style="color: #cbd5e1; font-size: 13px; margin-bottom: 18px;">
+        60분의 사투 끝에 <span style="color:#ef4444; font-weight:bold;">심연의 마룡 바알</span>을 물리치고 세상을 구원했습니다!
+      </div>
+      <div style="background:#0f172a; padding:16px; border-radius:10px; border:1px solid #334155; margin-bottom:18px; text-align:left; font-size:13px; display:flex; flex-direction:column; gap:6px;">
+        <div>⏱️ 최종 생존 시간: <span id="clear-time" style="color:#38bdf8; font-family:monospace; font-weight:bold;">60:00</span></div>
+        <div>☠️ 총 몬스터 처치 수: <span id="clear-kills" style="color:#facc15; font-family:monospace; font-weight:bold;">0</span>마리</div>
+        <div>🌟 최종 영웅 레벨: <span id="clear-lvl" style="color:#4ade80; font-family:monospace; font-weight:bold;">Lv.1</span></div>
+        <div>🐾 영웅 펫 칭호: <span id="clear-pet" style="color:#f59e0b; font-weight:bold;">-</span></div>
+      </div>
+      <button class="btn" style="background:#f59e0b; border-color:#facc15; color:#000; font-size:15px; font-weight:bold; padding:12px 36px; border-radius:8px;" onclick="document.getElementById('game-clear-modal').style.display='none'; openPetSelectModal();">
+        🎉 새로운 모험 시작하기
+      </button>
+    </div>
+  </div>
+
+  <!-- Load Modules -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/network.js"></script>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    let engine = null;
+    window.aiTeammatesCount = 2; // Default 2 AI bots (3-Player Party)
+
+    function resizeCanvas() {
+      const container = document.getElementById('game-container');
+      canvas.width = container ? container.clientWidth : window.innerWidth;
+      canvas.height = container ? container.clientHeight : (window.innerHeight - 48);
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function isAnyModalOpen() {
+      const modals = document.querySelectorAll('.modal-overlay');
+      for (let m of modals) {
+        if (m.style.display === 'flex' || m.style.display === 'block') return true;
+      }
+      return false;
+    }
+
+    /* 0. Main Title Menu Flow */
+    function openTitleMenuModal() {
+      if (engine) engine.isPaused = true;
+      document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none');
+      document.getElementById('title-menu-modal').style.display = 'flex';
+    }
+
+    function startSinglePlayerFlow() {
+      document.getElementById('title-menu-modal').style.display = 'none';
+      openPetSelectModal();
+    }
+
+    /* 1. Multiplay 4-Player Flow */
+    function openMultiplayModal() {
+      if (engine) engine.isPaused = true;
+      document.getElementById('title-menu-modal').style.display = 'none';
+      document.getElementById('multi-modal').style.display = 'flex';
+
+      if (!networkManager.isConnected) {
+        document.getElementById('multi-lobby-selection').style.display = 'flex';
+        document.getElementById('multi-lobby-waiting').style.display = 'none';
+      } else {
+        networkManager.updateLobbyUI();
+      }
+    }
+
+    function backToTitleFromMulti() {
+      document.getElementById('multi-modal').style.display = 'none';
+      openTitleMenuModal();
+    }
+
+    function leaveMultiLobby() {
+      if (networkManager.peer) {
+        networkManager.peer.destroy();
+        networkManager.peer = null;
+      }
+      networkManager.isConnected = false;
+      networkManager.connections = [];
+      document.getElementById('multi-lobby-selection').style.display = 'flex';
+      document.getElementById('multi-lobby-waiting').style.display = 'none';
+      const infoEl = document.getElementById('net-room-info');
+      if (infoEl) infoEl.textContent = '';
+      networkManager.updateStatusBadge('🌐 솔로 모드');
+    }
+
+    /* 2. Hero Pet Select Flow & Detail View (근거리 vs 원거리 분기 지원) */
+    let currentDetailPetId = null;
+    let currentDetailStyle = 'melee';
+    window.selectedPetStyles = window.selectedPetStyles || {
+      ignis: 'melee',
+      bolt: 'melee',
+      sylph: 'melee'
+    };
+
+    function setPetStyle(petId, style) {
+      window.selectedPetStyles[petId] = style;
+      openPetSelectModal();
+    }
+
+    function openPetSelectModal() {
+      if (engine) engine.isPaused = true;
+      const modal = document.getElementById('pet-select-modal');
+      const container = document.getElementById('pet-cards-container');
+      container.innerHTML = '';
+
+      Object.keys(GAME_DATA.pets).forEach(petId => {
+        const p = GAME_DATA.pets[petId];
+        const curStyle = window.selectedPetStyles[petId] || 'melee';
+        const styleDef = (p.styles && p.styles[curStyle]) || p;
+        const startSkillDef = GAME_DATA.skills[styleDef.startingSkill || p.startingSkill] || {};
+        const ultDef = styleDef.ultimate || p.ultimate || {};
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.borderColor = curStyle === 'melee' ? '#ef4444' : '#38bdf8';
+        card.innerHTML = `
+          <div class="card-icon" style="color:${p.color}; border-color:${p.color}; font-size:32px;">${p.icon}</div>
+          <div class="card-info" style="flex:1;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h4>${p.name}</h4>
+              <span style="font-size:10px; color:${p.color}; font-weight:bold;">[${p.element === 'fire' ? '화염' : p.element === 'lightning' ? '뇌전' : '자연'}]</span>
+            </div>
+            
+            <!-- Melee vs Ranged Style Switcher Buttons -->
+            <div style="display:flex; gap:6px; margin: 6px 0; align-items:center; flex-wrap:wrap;">
+              <button class="style-btn-toggle ${curStyle === 'melee' ? 'active-melee' : ''}" onclick="event.stopPropagation(); setPetStyle('${petId}', 'melee')">
+                ⚔️ 근거리
+              </button>
+              <button class="style-btn-toggle ${curStyle === 'ranged' ? 'active-ranged' : ''}" onclick="event.stopPropagation(); setPetStyle('${petId}', 'ranged')">
+                🏹 원거리
+              </button>
+              <span style="font-size:11px; font-weight:bold; color:${curStyle === 'melee' ? '#f87171' : '#38bdf8'}; margin-left:4px;">
+                ${styleDef.styleName || ''}
+              </span>
+            </div>
+
+            <p style="font-size:11px; color:#cbd5e1;">${styleDef.desc || p.desc}</p>
+            <div style="margin-top:4px; font-size:11px; color:#facc15;">
+              기본스킬: <span style="color:#fff; font-weight:bold;">[${startSkillDef.name}]</span> | 필살기: <span style="color:#fff; font-weight:bold;">[${ultDef.name}]</span>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0;">
+            <button class="btn" style="background:#0284c7; border-color:#38bdf8; padding:6px 10px; font-size:11px;" onclick="event.stopPropagation(); openPetDetailModal('${petId}', '${curStyle}')">
+              🔍 전직/조합 정보
+            </button>
+            <button class="btn" style="background:#16a34a; border-color:#4ade80; padding:6px 10px; font-size:11px; font-weight:bold;" onclick="event.stopPropagation(); selectPetAndStart('${petId}', '${curStyle}')">
+              ⚔️ 출격하기
+            </button>
+          </div>
+        `;
+        card.onclick = () => {
+          selectPetAndStart(petId, curStyle);
+        };
+        container.appendChild(card);
+      });
+
+      modal.style.display = 'flex';
+    }
+
+    function switchDetailStyleTab(style) {
+      if (!currentDetailPetId) return;
+      openPetDetailModal(currentDetailPetId, style);
+    }
+
+    function openPetDetailModal(petId, style = null) {
+      currentDetailPetId = petId;
+      currentDetailStyle = style || window.selectedPetStyles[petId] || 'melee';
+      const p = GAME_DATA.pets[petId];
+      if (!p) return;
+
+      const styleDef = (p.styles && p.styles[currentDetailStyle]) || p;
+
+      // Update Tabs UI
+      const tabMelee = document.getElementById('dtl-tab-melee');
+      const tabRanged = document.getElementById('dtl-tab-ranged');
+      if (tabMelee && tabRanged) {
+        if (currentDetailStyle === 'melee') {
+          tabMelee.className = 'style-tab-btn active-melee';
+          tabRanged.className = 'style-tab-btn';
+        } else {
+          tabMelee.className = 'style-tab-btn';
+          tabRanged.className = 'style-tab-btn active-ranged';
+        }
+      }
+
+      document.getElementById('dtl-pet-icon').textContent = p.icon;
+      document.getElementById('dtl-pet-name').textContent = `${p.name}`;
+      document.getElementById('dtl-pet-name').style.color = currentDetailStyle === 'melee' ? '#f87171' : '#38bdf8';
+
+      const elemNames = {
+        fire: '화염 속성 - 고열 폭발 & 파괴적인 타격',
+        lightning: '뇌전 속성 - 초고속 번개 & 공간 돌파',
+        nature: '자연 속성 - 대지의 수호 성역 & 생명력 회복'
+      };
+      document.getElementById('dtl-pet-element').textContent = `[${elemNames[p.element] || p.element}] · ${styleDef.styleName || ''}`;
+      document.getElementById('dtl-pet-element').style.color = currentDetailStyle === 'melee' ? '#f87171' : '#38bdf8';
+      document.getElementById('dtl-pet-desc').textContent = styleDef.desc || p.desc;
+
+      // 1. 3단계 전직 계보도 (현재 선택된 스타일에 맞춰서 표시)
+      const treeContainer = document.getElementById('dtl-evo-tree');
+      treeContainer.innerHTML = '';
+
+      const evo1Skill = GAME_DATA.skills[styleDef.startingSkill || p.startingSkill] || {};
+      const evo2Def = styleDef.evolution2 || p.evolution2 || {};
+      const evo2Skill = GAME_DATA.skills[evo2Def.unlockSkill] || {};
+      const evo3Def = styleDef.evolution3 || p.evolution3 || {};
+      const evo3Skill = GAME_DATA.skills[evo3Def.unlockSkill] || {};
+
+      treeContainer.innerHTML = `
+        <!-- 1차 기본 -->
+        <div style="background:#1e293b; border:1px solid #475569; border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:10px;">
+          <div style="font-size:24px;">${p.icon}</div>
+          <div style="flex:1;">
+            <div style="font-weight:bold; color:#f8fafc; font-size:12px;">1차: ${p.name} <span style="color:#94a3b8; font-weight:normal;">(시작 단계)</span></div>
+            <div style="font-size:11px; color:#38bdf8;">기본 스킬: [${evo1Skill.name}] - ${evo1Skill.desc || ''}</div>
+          </div>
+        </div>
+
+        <div style="text-align:center; color:#facc15; font-size:12px; font-weight:bold;">⬇️ Lv.15 도달 시 2차 전직 (각성)</div>
+
+        <!-- 2차 전직 -->
+        <div style="background:#1e293b; border:1px solid #f59e0b; border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:10px;">
+          <div style="font-size:24px;">${evo2Def.icon || '🐲'}</div>
+          <div style="flex:1;">
+            <div style="font-weight:bold; color:#facc15; font-size:12px;">2차: ${evo2Def.name}</div>
+            <div style="font-size:11px; color:#cbd5e1; margin-bottom:2px;">${evo2Def.desc}</div>
+            <div style="font-size:11px; color:#4ade80; font-weight:bold;">해금 스킬: [${evo2Skill.name}] - ${evo2Skill.desc || ''}</div>
+          </div>
+        </div>
+
+        <div style="text-align:center; color:#facc15; font-size:12px; font-weight:bold;">⬇️ Lv.35 도달 시 3차 최종 각성 (신수 강림)</div>
+
+        <!-- 3차 최종 각성 -->
+        <div style="background:radial-gradient(circle, rgba(250, 204, 21, 0.15) 0%, #1e293b 80%); border:1.5px solid #facc15; border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:10px;">
+          <div style="font-size:26px;">${evo3Def.icon || '👑'}</div>
+          <div style="flex:1;">
+            <div style="font-weight:bold; color:#facc15; font-size:13px;">3차 최종 각성: ${evo3Def.name}</div>
+            <div style="font-size:11px; color:#cbd5e1; margin-bottom:2px;">${evo3Def.desc}</div>
+            <div style="font-size:11px; color:#facc15; font-weight:bold;">해금 스킬: [${evo3Skill.name}] - ${evo3Skill.desc || ''}</div>
+          </div>
+        </div>
+      `;
+
+      // 2. 궁극기 정보
+      const ult = styleDef.ultimate || p.ultimate;
+      document.getElementById('dtl-ultimate-info').innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-weight:bold; color:#f8fafc; font-size:13px;">${ult.icon} ${ult.name}</span>
+          <span style="color:#facc15; font-size:11px; font-weight:bold;">쿨타임: ${ult.cooldown}초</span>
+        </div>
+        <div>${ult.desc}</div>
+      `;
+
+      // 3. 추천 합성 진화 조합 레시피
+      const cb = styleDef.recommendedCombo || {
+        recipe: '기본 스킬 + 시너지 패시브',
+        result: '초강력 합성 진화',
+        desc: '최대 레벨 도달 시 합성 진화 해금'
+      };
+      document.getElementById('dtl-combo-info').innerHTML = `
+        <div style="font-weight:bold; color:#facc15; font-size:13px; margin-bottom:2px;">결과: ${cb.result}</div>
+        <div style="color:#38bdf8; font-weight:bold; font-size:11px; margin-bottom:4px;">필요 재료: ${cb.recipe}</div>
+        <div style="font-size:11px; color:#94a3b8;">${cb.desc}</div>
+      `;
+
+      // 하단 출격 버튼
+      const btnSelect = document.getElementById('btn-dtl-select');
+      btnSelect.textContent = `⚔️ [${styleDef.styleName || p.name}] 로 출격하기`;
+      btnSelect.onclick = () => {
+        closePetDetailModal();
+        selectPetAndStart(petId, currentDetailStyle);
+      };
+
+      document.getElementById('pet-detail-modal').style.display = 'flex';
+    }
+
+    function closePetDetailModal() {
+      document.getElementById('pet-detail-modal').style.display = 'none';
+    }
+
+    function selectPetAndStart(petId, style = 'melee') {
+      window.selectedPetStyles[petId] = style;
+      document.getElementById('pet-select-modal').style.display = 'none';
+      document.getElementById('pet-detail-modal').style.display = 'none';
+      engine.start(petId, style);
+    }
+
+    function backToTitleFromPetSelect() {
+      document.getElementById('pet-select-modal').style.display = 'none';
+      openTitleMenuModal();
+    }
+
+    /* 3. Settings Flow */
+    function openSettingsModal() {
+      if (engine) engine.isPaused = true;
+      document.getElementById('settings-modal').style.display = 'flex';
+      updateSettingsUI();
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settings-modal').style.display = 'none';
+      if (engine && engine.pet && !isAnyModalOpen()) {
+        engine.isPaused = false;
+      }
+    }
+
+    function setAiTeammatesCount(count) {
+      window.aiTeammatesCount = count;
+      if (engine) engine.setAiTeammatesCount(count);
+      updateSettingsUI();
+    }
+
+    function updateSettingsUI() {
+      if (!engine) return;
+      // Sound
+      const soundBtn = document.getElementById('cfg-btn-sound');
+      if (soundBtn) {
+        soundBtn.textContent = engine.audio.enabled ? 'ON' : 'OFF';
+        soundBtn.style.background = engine.audio.enabled ? '#0284c7' : '#334155';
+      }
+
+      // AI Count
+      const count = window.aiTeammatesCount !== undefined ? window.aiTeammatesCount : 2;
+      const countLabel = document.getElementById('cfg-ai-count-text');
+      if (countLabel) {
+        const labels = ['0명 (솔로)', '1명 (2인 파티)', '2명 (3인 파티)', '3명 (4인 파티)'];
+        countLabel.textContent = labels[count] || `${count}명`;
+      }
+      document.querySelectorAll('.btn-ai-opt').forEach((btn, idx) => {
+        if (idx === count) {
+          btn.style.background = '#7c3aed';
+          btn.style.borderColor = '#c084fc';
+        } else {
+          btn.style.background = '#1e293b';
+          btn.style.borderColor = '#475569';
+        }
+      });
+
+      // Speed
+      const curSpd = engine.timeScale || 1.0;
+      document.querySelectorAll('.btn-spd-opt').forEach(btn => {
+        const spd = parseFloat(btn.textContent);
+        if (spd === curSpd) {
+          btn.style.background = '#0284c7';
+          btn.style.borderColor = '#38bdf8';
+        } else {
+          btn.style.background = '#1e293b';
+          btn.style.borderColor = '#475569';
+        }
+      });
+
+      // Auto play
+      const autoBtn = document.getElementById('cfg-btn-autoplay');
+      if (autoBtn) {
+        autoBtn.textContent = engine.autoPlay ? 'ON' : 'OFF';
+        autoBtn.style.background = engine.autoPlay ? '#f59e0b' : '#334155';
+      }
+    }
+
+    function openGuideModal() {
+      document.getElementById('guide-modal').style.display = 'flex';
+    }
+
+    function toggleSound() {
+      engine.audio.enabled = !engine.audio.enabled;
+      document.getElementById('btn-sound').textContent = engine.audio.enabled ? '🔊 사운드 ON' : '🔈 사운드 OFF';
+      updateSettingsUI();
+    }
+
+    /* ==========================================================================
+       VIRTUAL JOYSTICK CONTROLLER (Left Touch Pad)
+       ========================================================================== */
+    const joyZone = document.getElementById('joystick-zone');
+    const joyKnob = document.getElementById('joystick-knob');
+    let joyTouchId = null;
+    let joyCenterX = 0;
+    let joyCenterY = 0;
+    const maxRadius = 45;
+
+    function handleJoyStart(e) {
+      engine.audio.init();
+      const touch = e.changedTouches ? e.changedTouches[0] : e;
+      if (joyTouchId !== null && e.changedTouches) return;
+
+      if (e.changedTouches) joyTouchId = touch.identifier;
+      const rect = joyZone.getBoundingClientRect();
+      joyCenterX = rect.left + rect.width / 2;
+      joyCenterY = rect.top + rect.height / 2;
+
+      handleJoyMove(e);
+    }
+
+    function handleJoyMove(e) {
+      let touch = null;
+      if (e.changedTouches) {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === joyTouchId) {
+            touch = e.changedTouches[i];
+            break;
+          }
+        }
+      } else {
+        touch = e;
+      }
+      if (!touch) return;
+
+      const dx = touch.clientX - joyCenterX;
+      const dy = touch.clientY - joyCenterY;
+      const dist = Math.hypot(dx, dy);
+
+      const angle = Math.atan2(dy, dx);
+      const clampedDist = Math.min(dist, maxRadius);
+
+      const knobX = Math.cos(angle) * clampedDist;
+      const knobY = Math.sin(angle) * clampedDist;
+
+      joyKnob.style.transform = `translate(${knobX}px, ${knobY}px)`;
+
+      // Pass normalized velocity to engine
+      if (dist > 6) {
+        engine.joystick.active = true;
+        engine.joystick.vx = Math.cos(angle) * (clampedDist / maxRadius);
+        engine.joystick.vy = Math.sin(angle) * (clampedDist / maxRadius);
+      } else {
+        engine.joystick.active = false;
+        engine.joystick.vx = 0;
+        engine.joystick.vy = 0;
+      }
+    }
+
+    function handleJoyEnd(e) {
+      if (e.changedTouches) {
+        let match = false;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === joyTouchId) match = true;
+        }
+        if (!match) return;
+      }
+
+      joyTouchId = null;
+      joyKnob.style.transform = 'translate(0px, 0px)';
+      engine.joystick.active = false;
+      engine.joystick.vx = 0;
+      engine.joystick.vy = 0;
+    }
+
+    // Touch event listeners for mobile
+    joyZone.addEventListener('touchstart', handleJoyStart, { passive: false });
+    window.addEventListener('touchmove', handleJoyMove, { passive: false });
+    window.addEventListener('touchend', handleJoyEnd, { passive: false });
+    window.addEventListener('touchcancel', handleJoyEnd, { passive: false });
+
+    // Mouse fallback for PC testing
+    let isMouseDownOnJoy = false;
+    joyZone.addEventListener('mousedown', e => {
+      isMouseDownOnJoy = true;
+      handleJoyStart(e);
+    });
+    window.addEventListener('mousemove', e => {
+      if (isMouseDownOnJoy) handleJoyMove(e);
+    });
+    window.addEventListener('mouseup', e => {
+      if (isMouseDownOnJoy) {
+        isMouseDownOnJoy = false;
+        handleJoyEnd(e);
+      }
+    });
+
+    /* Game Loop */
+    let lastTime = performance.now();
+    function loop(now) {
+      const dt = Math.min(0.1, (now - lastTime) / 1000);
+      lastTime = now;
+
+      if (engine) {
+        const timeScale = engine.timeScale || 1.0;
+        const steps = Math.ceil(timeScale);
+        const subDt = (dt * timeScale) / steps;
+        for (let i = 0; i < steps; i++) {
+          engine.update(subDt);
+        }
+        engine.renderer.render(engine);
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      resizeCanvas();
+      engine = new GameEngine(canvas);
+      openTitleMenuModal(); // Start at the Main Title Menu!
+      lastTime = performance.now();
+      requestAnimationFrame(loop);
+    });
+  </script>
+</body>
+</html>
