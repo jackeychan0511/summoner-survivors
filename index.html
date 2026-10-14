@@ -758,13 +758,21 @@
       <div class="modal-sub">사운드, AI 가상 동료, 게임 배속 및 오토플레이 설정</div>
 
       <div style="display:flex; flex-direction:column; gap:12px; margin: 16px 0; text-align:left;">
-        <!-- 1. Sound Toggle -->
+        <!-- 1. Sound Toggles: SFX & BGM -->
         <div style="background:#0f172a; padding:12px 16px; border-radius:8px; border:1px solid #334155; display:flex; justify-content:space-between; align-items:center;">
           <div>
-            <div style="font-weight:bold; color:#fff; font-size:13px;">🔊 효과음 / 오디오</div>
-            <div style="font-size:11px; color:#94a3b8;">웹 오디오 신디사이저 효과음</div>
+            <div style="font-weight:bold; color:#fff; font-size:13px;">⚔️ 전투 효과음 (SFX)</div>
+            <div style="font-size:11px; color:#94a3b8;">타격음, 참격, 발사음, 보석 획득음</div>
           </div>
-          <button id="cfg-btn-sound" class="btn" onclick="toggleSound(); updateSettingsUI();">ON</button>
+          <button id="cfg-btn-sfx" class="btn" onclick="toggleSfx(); updateSettingsUI();">ON</button>
+        </div>
+
+        <div style="background:#0f172a; padding:12px 16px; border-radius:8px; border:1px solid #334155; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:bold; color:#fff; font-size:13px;">🎵 모험 배경음악 (BGM)</div>
+            <div style="font-size:11px; color:#94a3b8;">레트로 칩튠 필드 음악</div>
+          </div>
+          <button id="cfg-btn-bgm" class="btn" onclick="toggleBgm(); updateSettingsUI();">OFF</button>
         </div>
 
         <!-- 2. AI Teammates Count -->
@@ -1423,11 +1431,11 @@
 
   <!-- Load Modules -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="js/data.js?v=20261014_1752"></script>
-  <script src="js/sprites.js?v=20261014_1752"></script>
-  <script src="js/render.js?v=20261014_1752"></script>
-  <script src="js/engine.js?v=20261014_1752"></script>
-  <script src="js/network.js?v=20261014_1752"></script>
+  <script src="js/data.js?v=20261014_1756"></script>
+  <script src="js/sprites.js?v=20261014_1756"></script>
+  <script src="js/render.js?v=20261014_1756"></script>
+  <script src="js/engine.js?v=20261014_1756"></script>
+  <script src="js/network.js?v=20261014_1756"></script>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -1789,11 +1797,16 @@
 
     function updateSettingsUI() {
       if (!engine) return;
-      // Sound
-      const soundBtn = document.getElementById('cfg-btn-sound');
-      if (soundBtn) {
-        soundBtn.textContent = engine.audio.enabled ? 'ON' : 'OFF';
-        soundBtn.style.background = engine.audio.enabled ? '#0284c7' : '#334155';
+      // SFX & BGM Buttons
+      const sfxBtn = document.getElementById('cfg-btn-sfx');
+      if (sfxBtn && engine.audio) {
+        sfxBtn.textContent = engine.audio.sfxEnabled ? 'ON' : 'OFF';
+        sfxBtn.style.background = engine.audio.sfxEnabled ? '#0284c7' : '#334155';
+      }
+      const bgmBtn = document.getElementById('cfg-btn-bgm');
+      if (bgmBtn && engine.audio) {
+        bgmBtn.textContent = engine.audio.bgmEnabled ? 'ON' : 'OFF';
+        bgmBtn.style.background = engine.audio.bgmEnabled ? '#0284c7' : '#334155';
       }
 
       // AI Count
@@ -1844,11 +1857,21 @@
         topBtn.style.background = enabled ? '#0284c7' : '#334155';
         topBtn.style.borderColor = enabled ? '#38bdf8' : '#64748b';
       }
-      const cfgBtn = document.getElementById('cfg-btn-sound');
-      if (cfgBtn) {
-        cfgBtn.textContent = enabled ? 'ON' : 'OFF';
-        cfgBtn.style.background = enabled ? '#0284c7' : '#334155';
-      }
+      updateSettingsUI();
+    }
+
+    function toggleSfx() {
+      if (!engine || !engine.audio) return;
+      engine.audio.init();
+      engine.audio.toggleSfx();
+      updateSettingsUI();
+    }
+
+    function toggleBgm() {
+      if (!engine || !engine.audio) return;
+      engine.audio.init();
+      engine.audio.toggleBgm();
+      updateSettingsUI();
     }
 
     function openGuideModal() {
