@@ -392,967 +392,969 @@ class SpriteManager {
   // 2-1. ⚔️ 검사 & 🏹 궁수 6대 세부 특화 x 3단계 전직 32비트 고화질(HD) 스프라이트 (18종)
   // 32비트 콘솔 RPG (PS1/세가새턴/네오지오) 수준의 32~36px 고해상도 + 5단계 입체 셰이딩 + 네온 발광
   // =========================================================================
+// =========================================================================
+  // 🌟 진정한 32비트 HD 고화질 캐릭터 아트 생성기 (PS1 / 던파 / 택틱스 오우거급)
+  // 64x80 고해상도 정밀 드로잉 + 5단계 그라데이션 명암 + 섬세한 이목구비 & 무기 디테일
+  // =========================================================================
   generateHeroClassSprites() {
-    // -----------------------------------------------------------------------
-    // [1] 검사: 광전사 (Berserker) 32비트 3단계
-    // -----------------------------------------------------------------------
-    // T1: 견습 광전사 (와일드 갈기머리, 붉은 머리띠, 거친 가죽흉갑, 강철 숄더가드, 양손 대검)
-    this.heroSprites.warrior_berserker_t1 = this.render32BitSprite(32, 38, [
-      "............BBBB................",
-      "..........BBBBBBBB..............",
-      ".........BBBBBBBBBB.............",
-      "........RRRRRRRRRRRR............",
-      ".......RRbbbbbbbbbbRR...........",
-      "......BBBBBBBBBBBBBBBB..........",
-      ".....BBFFFFFFFFFFFFFFBB.........",
-      ".....BBFssFFFFFFFFssFBB.........",
-      ".....BBFsEFFFsFFFEsFBB..........",
-      ".....BBFFFFFFFFFFFFFFBB.........",
-      "......BFFFFFDDFDDFFFFB...ssss...",
-      ".......BFFFFDDDDFFFFB...ssssss..",
-      "......MMMMLDDDDDLMMMM...sSSSSs..",
-      ".....MMMMMMLDDDLMMMMMM..sSSSSs..",
-      "....MMMMmmmmDDDDmmmmMMM.sSSSSs..",
-      "...MMMMmmmmmDDDDmmmmmMMMsSSSSs..",
-      "...MM.MMmmmLLLLLLmmmMM.MsSSSSs..",
-      "...MM.MMLLLLLLLLLLMM.MM.sSSSSs..",
-      "...MM.MMLLLLLLLLLLMM.MM.sSSSSs..",
-      "......MMLLLLLLLLLLMM....sSSSSs..",
-      "......MMLLLLLLLLLLMM....sSSSSs..",
-      ".......LLLLLLLLLLLL.....sSSSSs..",
-      ".......LLLLLLLLLLLL....GGGGGGGG.",
-      ".......LLLL....LLLL....GGGGGGGG.",
-      ".......LLLL....LLLL.......GG....",
-      ".......KKKK....KKKK.......BB....",
-      "......KKKKKK..KKKKKK......BB....",
-      "......KKKKKK..KKKKKK......BB....",
-      "......KKKKKK..KKKKKK......BB....",
-      "......KKKKKK..KKKKKK......BB....",
-      "......OOOOOO..OOOOOO......BB....",
-      "......OOOOOO..OOOOOO............",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'R': '#dc2626', 'r': '#ef4444',
-      'B': '#291404', 'b': '#451a03',
-      'F': '#fed7aa', 's': '#ea580c',
-      'E': '#ef4444', 'D': '#9a3412',
-      'L': '#78350f', 'M': '#475569',
-      'm': '#94a3b8', 'S': '#f8fafc',
-      'G': '#f59e0b', 'K': '#1e293b',
-      'O': '#0f172a'
-    }, {
-      highlights: [{ x: 13, y: 14, w: 2, h: 1, c: '#ffffff' }, { x: 26, y: 15, w: 1, h: 5, c: '#ffffff' }]
+    this.heroSprites = {};
+
+    // 헬퍼: 32비트 고해상도 캔버스 생성기
+    const createHdCanvas = (w, h, drawFn) => {
+      const cvs = document.createElement('canvas');
+      cvs.width = w;
+      cvs.height = h;
+      const ctx = cvs.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      drawFn(ctx, w, h);
+      return cvs;
+    };
+
+    // =======================================================================
+    // [1] 검사: 광전사 3단계 (Warrior - Berserker)
+    // =======================================================================
+
+    // 1차: 견습 광전사 (가죽 흉갑, 붉은 헤드밴드, 야성미 넘치는 장발, 양손 대검)
+    this.heroSprites.warrior_berserker_t1 = createHdCanvas(64, 80, (ctx, w, h) => {
+      const cx = 28, cy = 40;
+
+      // 그림자
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.beginPath();
+      ctx.ellipse(cx, 74, 16, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 양손 대검 (등 뒤에서 비스듬히 세워짐)
+      ctx.save();
+      ctx.translate(46, 38);
+      ctx.rotate(0.2);
+      // 칼날 그림자 & 본체
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(-5, -28, 10, 52);
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillRect(-4, -28, 4, 50);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(-2, -28, 2, 50); // 하이라이트
+      // 혈조(피홈)
+      ctx.fillStyle = '#991b1b';
+      ctx.fillRect(-1, -22, 2, 38);
+      // 코등이(가드)
+      ctx.fillStyle = '#d97706';
+      ctx.fillRect(-9, 22, 18, 5);
+      ctx.fillStyle = '#fde047';
+      ctx.fillRect(-7, 23, 14, 2);
+      // 손잡이 & 폼멜
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(-2, 27, 4, 12);
+      ctx.fillStyle = '#d97706';
+      ctx.beginPath();
+      ctx.arc(0, 40, 3.5, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+
+      // 다리 & 가죽 부츠
+      ctx.fillStyle = '#1c1917';
+      ctx.fillRect(cx - 9, 56, 7, 16);
+      ctx.fillRect(cx + 2, 56, 7, 16);
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(cx - 10, 62, 8, 11);
+      ctx.fillRect(cx + 2, 62, 8, 11);
+      ctx.fillStyle = '#d97706'; // 부츠 버클
+      ctx.fillRect(cx - 10, 66, 8, 2);
+      ctx.fillRect(cx + 2, 66, 8, 2);
+
+      // 상체: 거친 가죽 조끼 & 흉근
+      ctx.fillStyle = '#78350f';
+      ctx.beginPath();
+      ctx.moveTo(cx - 11, 36);
+      ctx.lineTo(cx + 11, 36);
+      ctx.lineTo(cx + 9, 58);
+      ctx.lineTo(cx - 9, 58);
+      ctx.closePath();
+      ctx.fill();
+      // 가죽 명암 셰이딩
+      ctx.fillStyle = '#92400e';
+      ctx.fillRect(cx - 7, 38, 14, 18);
+      // 흉터 X자 스티치
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cx - 4, 42); ctx.lineTo(cx + 4, 50);
+      ctx.moveTo(cx + 4, 42); ctx.lineTo(cx - 4, 50);
+      ctx.stroke();
+
+      // 강철 숄더가드 (어깨 갑옷)
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(cx - 15, 34, 6, 8);
+      ctx.fillRect(cx + 9, 34, 6, 8);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(cx - 14, 35, 4, 3);
+      ctx.fillRect(cx + 10, 35, 4, 3);
+
+      // 팔 & 가죽 건틀릿
+      ctx.fillStyle = '#fed7aa';
+      ctx.fillRect(cx - 14, 42, 5, 10);
+      ctx.fillRect(cx + 9, 42, 5, 10);
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(cx - 15, 48, 6, 7);
+      ctx.fillRect(cx + 9, 48, 6, 7);
+
+      // 머리 & 얼굴 (미려한 2.5등신 인체 비례)
+      ctx.fillStyle = '#fed7aa';
+      ctx.beginPath();
+      ctx.arc(cx, 24, 10, 0, Math.PI * 2);
+      ctx.fill();
+      // 목선
+      ctx.fillStyle = '#ea580c';
+      ctx.fillRect(cx - 3, 31, 6, 6);
+
+      // 눈매 & 눈썹 (강렬한 눈빛)
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(cx - 6, 21, 4, 2);
+      ctx.fillRect(cx + 2, 21, 4, 2);
+      ctx.fillStyle = '#dc2626'; // 붉은 안광
+      ctx.fillRect(cx - 5, 23, 3, 3);
+      ctx.fillRect(cx + 2, 23, 3, 3);
+      ctx.fillStyle = '#ffffff'; // 눈동자 하이라이트
+      ctx.fillRect(cx - 4, 23, 1, 1);
+      ctx.fillRect(cx + 3, 23, 1, 1);
+
+      // 야생 사자갈기 머리카락
+      ctx.fillStyle = '#291404';
+      ctx.beginPath();
+      ctx.arc(cx, 19, 13, Math.PI * 0.8, Math.PI * 2.2);
+      ctx.fill();
+      ctx.fillRect(cx - 14, 18, 5, 14);
+      ctx.fillRect(cx + 9, 18, 5, 14);
+      // 머리결 하이라이트
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(cx - 8, 11, 16, 3);
+
+      // 붉은 헤드밴드 & 휘날리는 끈
+      ctx.fillStyle = '#dc2626';
+      ctx.fillRect(cx - 12, 17, 24, 4);
+      ctx.fillStyle = '#f87171';
+      ctx.fillRect(cx - 12, 17, 24, 1.5);
+      // 휘날리는 밴드 끝
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath();
+      ctx.moveTo(cx - 12, 19);
+      ctx.lineTo(cx - 20, 24);
+      ctx.lineTo(cx - 14, 27);
+      ctx.closePath();
+      ctx.fill();
     });
 
-    // T2: 블러드 버서커 (흑철 풀플레이트, 혈흔 룬 각인, 핏빛 휘날리는 망토, 거대한 핏빛 참마도)
-    this.heroSprites.warrior_berserker_t2 = this.render32BitSprite(32, 38, [
-      "............RRRR................",
-      "..........RRRRRRRR..............",
-      ".........RRRRRRRRRR.............",
-      "........OOOOOOOOOOOO............",
-      ".......OOooooooooooOO...........",
-      "......OOOOOOOOOOOOOOOO..........",
-      ".....OOooooooooooooooOO.........",
-      ".....OOooVVVVooVVVVooOO.........",
-      ".....OOooVVVVooVVVVooOO.........",
-      ".....OOooooooooooooooOO...rrrr..",
-      "......OOOOOOOOOOOOOOOO...rrrrrr.",
-      ".....COOOOOOOOOOOOOOOOC..rSSSSr.",
-      "....CCOOooGGGGGGooOOCC...rSSSSr.",
-      "...CCCOOOOOGGGGOOOOOCCC..rSSSSr.",
-      "...CC.OOOOOOOOOOOOOO.CC..rSSSSr.",
-      "..CCC.OOOOOOOOOOOOOO.CCC.rSSSSr.",
-      "..CCC.OOOOOOOOOOOOOO.CCC.rSSSSr.",
-      "..CCC.OOOOOOOOOOOOOO.CCC.rSSSSr.",
-      "..CCC.OOOOOOOOOOOOOO.CCC.rSSSSr.",
-      "......OOOOOOOOOOOOOO.....rSSSSr.",
-      "......OOOOOOOOOOOOOO.....rSSSSr.",
-      ".......OOOOOOOOOOOO......rSSSSr.",
-      ".......OOOO....OOOO.....GGGGGGGG",
-      ".......OOOO....OOOO.....GGGGGGGG",
-      ".......OOOO....OOOO........GG...",
-      ".......KKKK....KKKK........OO...",
-      "......KKKKKK..KKKKKK.......OO...",
-      "......KKKKKK..KKKKKK.......OO...",
-      "......KKKKKK..KKKKKK.......OO...",
-      "......KKKKKK..KKKKKK.......OO...",
-      "......OOOOOO..OOOOOO.......OO...",
-      "......OOOOOO..OOOOOO............",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'R': '#991b1b', 'O': '#090d16', 'o': '#334155',
-      'V': '#ff0033', 'C': '#991b1b', 'c': '#ef4444',
-      'G': '#f59e0b', 'r': '#b91c1c', 'S': '#ff2244',
-      'K': '#1e293b'
-    }, {
-      auraColor: 'rgba(239, 68, 68, 0.25)',
-      highlights: [{ x: 9, y: 7, w: 2, h: 2, c: '#ff99aa' }, { x: 19, y: 7, w: 2, h: 2, c: '#ff99aa' }, { x: 27, y: 14, w: 1, h: 7, c: '#ffffff' }],
-      weaponGlow: { color: '#ef4444', blur: 6, pixels: [[26, 12, 3, 10]] }
+    // 2차: 블러드 버서커 (흑철 풀플레이트, 혈흔 룬 각인, 펄럭이는 진홍빛 망토, 거대한 핏빛 참마도)
+    this.heroSprites.warrior_berserker_t2 = createHdCanvas(64, 80, (ctx, w, h) => {
+      const cx = 28;
+
+      // 그림자
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.beginPath();
+      ctx.ellipse(cx, 74, 18, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 펄럭이는 진홍 망토 (배경 레이어)
+      const capeGrad = ctx.createLinearGradient(cx - 16, 28, cx - 24, 68);
+      capeGrad.addColorStop(0, '#7f1d1d');
+      capeGrad.addColorStop(0.5, '#b91c1c');
+      capeGrad.addColorStop(1, '#450a0a');
+      ctx.fillStyle = capeGrad;
+      ctx.beginPath();
+      ctx.moveTo(cx - 12, 32);
+      ctx.lineTo(cx - 24, 68);
+      ctx.lineTo(cx - 14, 66);
+      ctx.lineTo(cx - 8, 70);
+      ctx.lineTo(cx + 6, 50);
+      ctx.closePath();
+      ctx.fill();
+
+      // 거대 핏빛 참마도 (혈검)
+      ctx.save();
+      ctx.translate(47, 36);
+      ctx.rotate(0.18);
+      // 검신 아우라 블룸
+      ctx.shadowColor = '#ef4444';
+      ctx.shadowBlur = 8;
+      ctx.fillStyle = '#991b1b';
+      ctx.fillRect(-7, -32, 14, 58);
+      ctx.fillStyle = '#dc2626';
+      ctx.fillRect(-5, -30, 10, 54);
+      ctx.fillStyle = '#ff6b81';
+      ctx.fillRect(-2, -30, 4, 52); // 중앙 발광 혈선
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-1, -30, 2, 52);
+      ctx.shadowBlur = 0;
+      // 가드(해골 문양 가드)
+      ctx.fillStyle = '#d97706';
+      ctx.fillRect(-10, 24, 20, 6);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-2, 28, 4, 14);
+      ctx.restore();
+
+      // 다리 & 흑철 그리브
+      ctx.fillStyle = '#090d16';
+      ctx.fillRect(cx - 10, 54, 8, 18);
+      ctx.fillRect(cx + 2, 54, 8, 18);
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(cx - 9, 56, 3, 14);
+      ctx.fillRect(cx + 3, 56, 3, 14);
+
+      // 상체: 흑철 흉갑 & 붉은 룬 각인
+      ctx.fillStyle = '#090d16';
+      ctx.beginPath();
+      ctx.moveTo(cx - 13, 32); ctx.lineTo(cx + 13, 32);
+      ctx.lineTo(cx + 10, 56); ctx.lineTo(cx - 10, 56);
+      ctx.closePath();
+      ctx.fill();
+      // 흑철 하이라이트
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(cx - 10, 34, 4, 18);
+      // 붉은 혈흔 룬
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, 36); ctx.lineTo(cx, 50);
+      ctx.moveTo(cx - 5, 42); ctx.lineTo(cx + 5, 42);
+      ctx.stroke();
+
+      // 가시 달린 스파이크 숄더가드
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(cx - 18, 30, 8, 10);
+      ctx.fillRect(cx + 10, 30, 8, 10);
+      ctx.fillStyle = '#dc2626'; // 숄더 스파이크
+      ctx.beginPath();
+      ctx.moveTo(cx - 18, 30); ctx.lineTo(cx - 22, 24); ctx.lineTo(cx - 14, 30);
+      ctx.moveTo(cx + 18, 30); ctx.lineTo(cx + 22, 24); ctx.lineTo(cx + 14, 30);
+      ctx.fill();
+
+      // 흑철 바이저 투구 & 붉은 안광
+      ctx.fillStyle = '#090d16';
+      ctx.beginPath();
+      ctx.arc(cx, 22, 11, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(cx - 8, 16, 16, 4);
+      // 바이저 틈새에서 타오르는 붉은 안광
+      ctx.shadowColor = '#ef4444';
+      ctx.shadowBlur = 6;
+      ctx.fillStyle = '#ff0033';
+      ctx.fillRect(cx - 7, 21, 14, 3.5);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx - 5, 22, 4, 1.5);
+      ctx.fillRect(cx + 1, 22, 4, 1.5);
+      ctx.shadowBlur = 0;
     });
 
-    // T3: 👑 광룡의 헬블레이더 (악마의 진홍 뿔 투구, 칠흑 드래곤 마갑, 전신 핏빛 화염 아우라, 거대한 헬블레이드)
-    this.heroSprites.warrior_berserker_t3 = this.render32BitSprite(36, 42, [
-      "HH............................HH",
-      "HHHH........................HHHH",
-      "HHHHH......RRRRRRRRRR......HHHHH",
-      ".HHHHH...RRRRRRRRRRRRRR...HHHHH.",
-      "..HHHH..RRbbbbbbbbbbbbRR..HHHH..",
-      "...HH..RRRRRRRRRRRRRRRRRR..HH...",
-      "......OOooooooooooooooooOO......",
-      ".....OOooVVVVVVooVVVVVVooOO.FFFF",
-      ".....OOooVVVVVVooVVVVVVooOO.FFFF",
-      ".....OOooooooooooooooooooOO.FFFF",
-      "......OOOOOOOOOOOOOOOOOO...FFFFF",
-      ".....COOOOOOOOOOOOOOOOOOC..fSSSf",
-      "....CCOOooGGGGGGGGooOOCCC..fSSSf",
-      "...CCCOOOOOGGGGGGOOOOOCCCC.fSSSf",
-      "...CC.OOOOOOOOOOOOOOOO.CCC.fSSSf",
-      "..CCC.OOOOOOOOOOOOOOOO.CCC.fSSSf",
-      "..CCC.OOOOOOOOOOOOOOOO.CCC.fSSSf",
-      "..CCC.OOOOOOOOOOOOOOOO.CCC.fSSSf",
-      "..CCC.OOOOOOOOOOOOOOOO.CCC.fSSSf",
-      "......OOOOOOOOOOOOOOOO.....fSSSf",
-      "......OOOOOOOOOOOOOOOO.....fSSSf",
-      ".......OOOOOOOOOOOOOO......fSSSf",
-      ".......OOOOO....OOOOO.....GGGGGG",
-      ".......OOOOO....OOOOO.....GGGGGG",
-      ".......OOOOO....OOOOO........GG.",
-      ".......KKKKK....KKKKK........OO.",
-      "......KKKKKKK..KKKKKKK.......OO.",
-      "......KKKKKKK..KKKKKKK.......OO.",
-      "......KKKKKKK..KKKKKKK.......OO.",
-      "......OOOOOOO..OOOOOOO.......OO.",
-      "......OOOOOOO..OOOOOOO..........",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'H': '#dc2626', 'R': '#7f1d1d', 'b': '#1f2937',
-      'O': '#030712', 'o': '#374151', 'V': '#ff0055',
-      'C': '#b91c1c', 'G': '#fbbf24', 'F': '#ff1100',
-      'f': '#991b1b', 'S': '#ffffff', 'K': '#111827'
-    }, {
-      auraColor: 'rgba(239, 68, 68, 0.45)',
-      highlights: [{ x: 10, y: 7, w: 3, h: 2, c: '#ff99bb' }, { x: 21, y: 7, w: 3, h: 2, c: '#ff99bb' }, { x: 28, y: 12, w: 2, h: 9, c: '#ffffff' }],
-      weaponGlow: { color: '#ff2200', blur: 10, pixels: [[27, 11, 4, 12]] }
+    // 3차: 👑 광룡의 헬블레이더 (악마의 진홍 뿔 투구, 칠흑 드래곤 마갑, 전신 화염 아우라, 헬블레이드)
+    this.heroSprites.warrior_berserker_t3 = createHdCanvas(72, 88, (ctx, w, h) => {
+      const cx = 32;
+
+      // 전신 핏빛 화염 아우라
+      const aura = ctx.createRadialGradient(cx, 44, 10, cx, 44, 36);
+      aura.addColorStop(0, 'rgba(239, 68, 68, 0.45)');
+      aura.addColorStop(0.7, 'rgba(185, 28, 28, 0.15)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura;
+      ctx.fillRect(0, 0, w, h);
+
+      // 그림자
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.beginPath();
+      ctx.ellipse(cx, 80, 22, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 악마의 날개형 찢어진 망토
+      ctx.fillStyle = '#7f1d1d';
+      ctx.beginPath();
+      ctx.moveTo(cx - 16, 32);
+      ctx.lineTo(cx - 30, 52); ctx.lineTo(cx - 24, 56);
+      ctx.lineTo(cx - 32, 74); ctx.lineTo(cx - 18, 70);
+      ctx.lineTo(cx - 12, 76); ctx.lineTo(cx + 8, 48);
+      ctx.closePath();
+      ctx.fill();
+
+      // 초거대 헬블레이드 (칼날 전체 화염 이펙트)
+      ctx.save();
+      ctx.translate(52, 38);
+      ctx.rotate(0.2);
+      ctx.shadowColor = '#ff2200';
+      ctx.shadowBlur = 14;
+      ctx.fillStyle = '#450a0a';
+      ctx.fillRect(-8, -38, 16, 68);
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(-6, -36, 12, 64);
+      ctx.fillStyle = '#fde047';
+      ctx.fillRect(-3, -36, 6, 62);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-1, -36, 2, 62);
+      ctx.shadowBlur = 0;
+      // 황금 악마 문양 코등이
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(-12, 28, 24, 7);
+      ctx.fillStyle = '#1c1917';
+      ctx.fillRect(-3, 34, 6, 16);
+      ctx.restore();
+
+      // 드래곤 비늘 그리브 & 발톱 부츠
+      ctx.fillStyle = '#030712';
+      ctx.fillRect(cx - 12, 58, 9, 20);
+      ctx.fillRect(cx + 3, 58, 9, 20);
+      ctx.fillStyle = '#b91c1c';
+      ctx.fillRect(cx - 11, 62, 3, 14);
+      ctx.fillRect(cx + 4, 62, 3, 14);
+
+      // 드래곤 본 흉갑
+      ctx.fillStyle = '#030712';
+      ctx.beginPath();
+      ctx.moveTo(cx - 15, 34); ctx.lineTo(cx + 15, 34);
+      ctx.lineTo(cx + 11, 60); ctx.lineTo(cx - 11, 60);
+      ctx.closePath();
+      ctx.fill();
+      // 용의 갈비뼈 골격 양각
+      ctx.strokeStyle = '#dc2626';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(cx - 12, 40); ctx.lineTo(cx, 44); ctx.lineTo(cx + 12, 40);
+      ctx.moveTo(cx - 10, 47); ctx.lineTo(cx, 51); ctx.lineTo(cx + 10, 47);
+      ctx.stroke();
+
+      // 거대 악마 뿔 투구
+      ctx.fillStyle = '#030712';
+      ctx.beginPath();
+      ctx.arc(cx, 22, 13, 0, Math.PI * 2);
+      ctx.fill();
+      // 진홍빛 거대 악마 뿔
+      ctx.fillStyle = '#b91c1c';
+      ctx.beginPath();
+      ctx.moveTo(cx - 10, 18);
+      ctx.quadraticCurveTo(cx - 24, 10, cx - 22, -2);
+      ctx.quadraticCurveTo(cx - 14, 6, cx - 6, 14);
+      ctx.moveTo(cx + 10, 18);
+      ctx.quadraticCurveTo(cx + 24, 10, cx + 22, -2);
+      ctx.quadraticCurveTo(cx + 14, 6, cx + 6, 14);
+      ctx.fill();
+      // 안광
+      ctx.shadowColor = '#ff0033';
+      ctx.shadowBlur = 8;
+      ctx.fillStyle = '#ff0055';
+      ctx.fillRect(cx - 9, 21, 18, 4);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx - 7, 22, 5, 2);
+      ctx.fillRect(cx + 2, 22, 5, 2);
+      ctx.shadowBlur = 0;
     });
 
-    // -----------------------------------------------------------------------
-    // [2] 검사: 성기사 (Paladin) 32비트 3단계
-    // -----------------------------------------------------------------------
-    // T1: 견습 수호기사 (백은 경갑, 금빛 벨트, 강철 롱소드, 스몰 버클러)
-    this.heroSprites.warrior_paladin_t1 = this.render32BitSprite(32, 38, [
-      "............PPPP................",
-      "..........PPPPPPPP..............",
-      ".........PPPPPPPPPP.............",
-      "........SSSSSSSSSSSS............",
-      ".......SSssssssssssSS...........",
-      "......SSSSSSSSSSSSSSSS..........",
-      ".....SSFFFFFFFFFFFFFFSS.........",
-      ".....SSFsEFFFFFFFsEFsSS.........",
-      ".....SSFFFFFFFFFFFFFFSS.........",
-      ".....SSFFFFFDDDDFFFFFSS..ssss...",
-      "......SFFFFFDDDDFFFFFS..ssssss..",
-      ".....BSSSSSSDDDDSSSSSSB.sWWWWs..",
-      "....BBSSSSSSDDDDSSSSSSBBsWWWWs..",
-      "...BBBSSSSSSDDDDSSSSSSBBsWWWWs..",
-      "...BB.SSSSSSSSSSSSSS.BB.sWWWWs..",
-      "...BB.SSSSSSSSSSSSSS.BB.sWWWWs..",
-      "...BB.SSSSSSSSSSSSSS.BB.sWWWWs..",
-      "......SSSSSSGGGGSSSS....sWWWWs..",
-      "......SSSSSSGGGGSSSS....sWWWWs..",
-      ".......SSSSSSSSSSSS.....sWWWWs..",
-      ".......SSSS....SSSS....GGGGGGGG.",
-      ".......SSSS....SSSS.......GG....",
-      ".......SSSS....SSSS.......SS....",
-      ".......KKKK....KKKK.......SS....",
-      "......KKKKKK..KKKKKK......SS....",
-      "......KKKKKK..KKKKKK......SS....",
-      "......KKKKKK..KKKKKK......SS....",
-      "......SSSSSS..SSSSSS......SS....",
-      "......SSSSSS..SSSSSS............",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'P': '#2563eb', 'S': '#64748b', 's': '#94a3b8',
-      'F': '#fed7aa', 'E': '#0284c7', 'D': '#cbd5e1',
-      'B': '#1e3a8a', 'W': '#f8fafc', 'G': '#f59e0b',
-      'K': '#334155'
-    }, {
-      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 14, w: 1, h: 6, c: '#ffffff' }]
+    // =======================================================================
+    // [2] 검사: 성기사 3단계 (Warrior - Paladin)
+    // =======================================================================
+
+    // 1차: 견습 수호기사 (백은 경갑, 푸른 튜닉, 강철 롱소드, 스몰 버클러)
+    this.heroSprites.warrior_paladin_t1 = createHdCanvas(64, 80, (ctx, w, h) => {
+      const cx = 32;
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.beginPath(); ctx.ellipse(cx, 74, 16, 5, 0, 0, Math.PI*2); ctx.fill();
+
+      // 왼손: 강철 버클러 (원형 방패)
+      ctx.fillStyle = '#475569';
+      ctx.beginPath(); ctx.arc(14, 46, 10, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath(); ctx.arc(14, 46, 7, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#f59e0b'; // 금빛 십자가 엠블럼
+      ctx.fillRect(13, 40, 2, 12); ctx.fillRect(8, 45, 12, 2);
+
+      // 오른손: 강철 롱소드
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(46, 20, 4, 38);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(47, 20, 2, 36);
+      ctx.fillStyle = '#d97706';
+      ctx.fillRect(41, 56, 14, 4);
+      ctx.fillStyle = '#451a03';
+      ctx.fillRect(47, 60, 2, 8);
+
+      // 다리 & 백은 경갑
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(cx - 9, 56, 7, 16); ctx.fillRect(cx + 2, 56, 7, 16);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(cx - 8, 58, 5, 12); ctx.fillRect(cx + 3, 58, 5, 12);
+
+      // 상체: 백은 흉갑 & 푸른 서코트
+      ctx.fillStyle = '#1e3a8a';
+      ctx.fillRect(cx - 10, 36, 20, 22);
+      ctx.fillStyle = '#64748b';
+      ctx.fillRect(cx - 7, 36, 14, 16);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(cx - 5, 38, 4, 12);
+      ctx.fillStyle = '#d97706'; // 골드 벨트
+      ctx.fillRect(cx - 10, 54, 20, 4);
+
+      // 머리 & 투구 (기사 헬름)
+      ctx.fillStyle = '#fed7aa';
+      ctx.beginPath(); ctx.arc(cx, 24, 10, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#475569';
+      ctx.beginPath(); ctx.arc(cx, 20, 11, Math.PI, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(cx - 10, 20, 20, 3);
+      // 푸른 눈동자
+      ctx.fillStyle = '#0284c7';
+      ctx.fillRect(cx - 5, 24, 3, 3); ctx.fillRect(cx + 2, 24, 3, 3);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx - 4, 24, 1, 1); ctx.fillRect(cx + 3, 24, 1, 1);
+      // 투구 깃털 장식
+      ctx.fillStyle = '#2563eb';
+      ctx.beginPath();
+      ctx.moveTo(cx, 10); ctx.lineTo(cx - 4, 3); ctx.lineTo(cx + 3, 5); ctx.closePath(); ctx.fill();
     });
 
-    // T2: 홀리 팔라딘 (백은 풀플레이트, 푸른 깃털 투구, 황금 십자가 카이트 실드, 백은 나이트소드)
-    this.heroSprites.warrior_paladin_t2 = this.render32BitSprite(32, 38, [
-      "............FFFF................",
-      "..........FFFFFFFF..............",
-      ".........FFFFFFFFFF.............",
-      "........SSSSSSSSSSSS............",
-      ".......SSwwwwwwwwwwSS...........",
-      "......SSSSSSSSSSSSSSSS..........",
-      ".....SSwwwwwwwwwwwwwwSS.........",
-      ".....SSwwBBBBwwBBBBwwSS.........",
-      ".....SSwwBBBBwwBBBBwwSS.........",
-      ".....SSwwwwwwwwwwwwwwSS..wwww...",
-      "......SSSSSSSSSSSSSSSS..wwwwww..",
-      "....SSWWWWWWGGGGWWWWWWSSwSSSWw..",
-      "...SSSSWWWWWGGGGWWWWWSSSwSSSWw..",
-      "...DDDSSWWWWGGGGWWWWSSDDwSSSWw..",
-      "...DD.SSWWWWWWWWWWWW.SS.wSSSWw..",
-      "...DD.SSWWWWWWWWWWWW.SS.wSSSWw..",
-      "...DD.SSWWWWWWWWWWWW.SS.wSSSWw..",
-      "......SSWWWWWWWWWWWW....wSSSWw..",
-      "......SSWWWWWWWWWWWW....wSSSWw..",
-      ".......SSSSSSSSSSSS.....wSSSWw..",
-      ".......SSSS....SSSS....GGGGGGGG.",
-      ".......SSSS....SSSS.......GG....",
-      ".......SSSS....SSSS.......SS....",
-      ".......KKKK....KKKK.......SS....",
-      "......KKKKKK..KKKKKK......SS....",
-      "......KKKKKK..KKKKKK......SS....",
-      "......KKKKKK..KKKKKK......SS....",
-      "......SSSSSS..SSSSSS......SS....",
-      "......SSSSSS..SSSSSS............",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'F': '#38bdf8', 'S': '#94a3b8', 'w': '#cbd5e1',
-      'W': '#ffffff', 'B': '#0284c7', 'G': '#facc15',
-      'D': '#1d4ed8', 'K': '#475569'
-    }, {
-      auraColor: 'rgba(56, 189, 248, 0.25)',
-      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 13, w: 1, h: 7, c: '#ffffff' }],
-      weaponGlow: { color: '#38bdf8', blur: 6, pixels: [[25, 12, 3, 8]] }
+    // 2차: 홀리 팔라딘 (백은 풀플레이트, 푸른 깃털 투구, 황금 십자가 카이트 실드, 백은 나이트소드)
+    this.heroSprites.warrior_paladin_t2 = createHdCanvas(64, 80, (ctx, w, h) => {
+      const cx = 32;
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.beginPath(); ctx.ellipse(cx, 74, 18, 6, 0, 0, Math.PI*2); ctx.fill();
+
+      // 왼손: 대형 카이트 실드 (눈물방울형 방패)
+      ctx.fillStyle = '#1e3a8a';
+      ctx.beginPath();
+      ctx.moveTo(8, 32); ctx.lineTo(24, 32);
+      ctx.lineTo(22, 54); ctx.lineTo(16, 68); ctx.lineTo(10, 54);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.stroke();
+      // 방패 황금 십자가
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(14, 36, 4, 24); ctx.fillRect(9, 44, 14, 4);
+
+      // 오른손: 백은 나이트소드 (미세 성광)
+      ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 6;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(48, 16, 4, 42);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(42, 56, 16, 4);
+      ctx.fillStyle = '#1e3a8a';
+      ctx.fillRect(49, 60, 2, 8);
+
+      // 백은 다리 풀플레이트
+      ctx.fillStyle = '#475569';
+      ctx.fillRect(cx - 10, 54, 8, 18); ctx.fillRect(cx + 2, 54, 8, 18);
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(cx - 8, 56, 4, 14); ctx.fillRect(cx + 4, 56, 4, 14);
+
+      // 백은 풀플레이트 흉갑
+      ctx.fillStyle = '#cbd5e1';
+      ctx.beginPath();
+      ctx.moveTo(cx - 12, 32); ctx.lineTo(cx + 12, 32);
+      ctx.lineTo(cx + 10, 56); ctx.lineTo(cx - 10, 56);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx - 8, 34, 6, 18);
+      // 황금 십자가 문양
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(cx - 1, 36, 3, 14); ctx.fillRect(cx - 6, 40, 13, 3);
+
+      // 백은 나이트 투구 & 푸른 플룸 깃털
+      ctx.fillStyle = '#94a3b8';
+      ctx.beginPath(); ctx.arc(cx, 22, 11, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx - 8, 16, 5, 5);
+      // T자형 바이저 & 푸른 안광
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(cx - 8, 21, 16, 3.5);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(cx - 6, 22, 4, 1.5); ctx.fillRect(cx + 2, 22, 4, 1.5);
+      // 푸른 깃털
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath();
+      ctx.moveTo(cx, 11); ctx.quadraticCurveTo(cx - 12, 0, cx - 18, -4);
+      ctx.quadraticCurveTo(cx - 6, 4, cx, 11); ctx.fill();
     });
 
-    // T3: 👑 디바인 가디언 (황금 날개 투구, 순백&황금 디바인 아머, 천사 날개 망토, 엑스칼리버 & 대형 십자성 타워실드)
-    this.heroSprites.warrior_paladin_t3 = this.render32BitSprite(36, 42, [
-      "WW............................WW",
-      "WWWW........................WWWW",
-      "WWWWW......GGGGGGGGGG......WWWWW",
-      ".WWWWW...GGGGGGGGGGGGGG...WWWWW.",
-      "..WWWW..GGwwwwwwwwwwwwGG..WWWW..",
-      "...WW..GGGGGGGGGGGGGGGGGG..WW...",
-      "......WWwwwwwwwwwwwwwwwwWW......",
-      ".....WWwwBBBBBBwwBBBBBBwwWW.YYYY",
-      ".....WWwwBBBBBBwwBBBBBBwwWW.YYYY",
-      ".....WWwwwwwwwwwwwwwwwwwwWW.YYYY",
-      "......WWWWWWWWWWWWWWWWWW...YYYYY",
-      ".....MWWWWWWGGGGGGWWWWWWM..ySSSy",
-      "....MMWWWWWWGGGGGGWWWWWWMM.ySSSy",
-      "...MMMWWWWWWGGGGGGWWWWWWMMM.ySSSy",
-      "...MM.WWWWWWGGGGGGWWWWWW.MM.ySSSy",
-      "..MMM.WWWWWWGGGGGGWWWWWW.MMM.ySSSy",
-      "..MMM.WWWWWWWWWWWWWWWWWW.MMM.ySSSy",
-      "..MMM.WWWWWWWWWWWWWWWWWW.MMM.ySSSy",
-      "..MMM.WWWWWWWWWWWWWWWWWW.MMM.ySSSy",
-      "......WWWWWWWWWWWWWWWWWW...ySSSy",
-      "......WWWWWWWWWWWWWWWWWW...ySSSy",
-      ".......WWWWWWWWWWWWWWWW....ySSSy",
-      ".......WWWWW....WWWWW.....GGGGGG",
-      ".......WWWWW....WWWWW.....GGGGGG",
-      ".......WWWWW....WWWWW........GG.",
-      ".......KKKKK....KKKKK........WW.",
-      "......KKKKKKK..KKKKKKK.......WW.",
-      "......KKKKKKK..KKKKKKK.......WW.",
-      "......KKKKKKK..KKKKKKK.......WW.",
-      "......WWWWWWW..WWWWWWW.......WW.",
-      "......WWWWWWW..WWWWWWW..........",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'W': '#ffffff', 'G': '#facc15', 'w': '#fef08a',
-      'B': '#38bdf8', 'M': '#0284c7', 'Y': '#fde047',
-      'y': '#d97706', 'S': '#ffffff', 'K': '#64748b'
-    }, {
-      auraColor: 'rgba(250, 204, 21, 0.45)',
-      highlights: [{ x: 10, y: 7, w: 3, h: 2, c: '#ffffff' }, { x: 21, y: 7, w: 3, h: 2, c: '#ffffff' }, { x: 28, y: 12, w: 2, h: 9, c: '#ffffff' }],
-      weaponGlow: { color: '#facc15', blur: 12, pixels: [[27, 10, 4, 12]] }
+    // 3차: 👑 디바인 가디언 (황금 날개 투구, 순백&황금 디바인 아머, 천사 날개 망토, 엑스칼리버 & 대형 십자성 타워실드)
+    this.heroSprites.warrior_paladin_t3 = createHdCanvas(72, 88, (ctx, w, h) => {
+      const cx = 36;
+      // 신성 성광 아우라
+      const aura = ctx.createRadialGradient(cx, 44, 10, cx, 44, 36);
+      aura.addColorStop(0, 'rgba(250, 204, 21, 0.45)');
+      aura.addColorStop(0.7, 'rgba(56, 189, 248, 0.2)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
+
+      // 그림자
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.beginPath(); ctx.ellipse(cx, 80, 22, 7, 0, 0, Math.PI*2); ctx.fill();
+
+      // 천사 날개 형상 순백 망토
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(cx - 16, 32); ctx.lineTo(cx - 32, 60); ctx.lineTo(cx - 24, 76);
+      ctx.lineTo(cx + 8, 50); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = 1.5; ctx.stroke();
+
+      // 거대 신성 타워실드 (왼손)
+      ctx.fillStyle = '#0284c7';
+      ctx.fillRect(6, 28, 20, 48);
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = 3; ctx.strokeRect(6, 28, 20, 48);
+      // 태양의 십자가
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath(); ctx.arc(16, 48, 7, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(14, 32, 4, 38); ctx.fillRect(8, 46, 16, 4);
+
+      // 눈부신 황금빛 엑스칼리버 (오른손)
+      ctx.save();
+      ctx.translate(56, 36);
+      ctx.shadowColor = '#facc15'; ctx.shadowBlur = 14;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-3, -36, 6, 62);
+      ctx.fillStyle = '#fef08a';
+      ctx.fillRect(-1, -36, 2, 62);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#d97706';
+      ctx.fillRect(-10, 26, 20, 6);
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath(); ctx.arc(0, 38, 4, 0, Math.PI*2); ctx.fill();
+      ctx.restore();
+
+      // 순백&황금 다리 갑주
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx - 11, 56, 9, 20); ctx.fillRect(cx + 3, 56, 9, 20);
+      ctx.fillStyle = '#facc15';
+      ctx.fillRect(cx - 10, 60, 3, 14); ctx.fillRect(cx + 4, 60, 3, 14);
+
+      // 디바인 아머 흉갑
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(cx - 14, 32); ctx.lineTo(cx + 14, 32);
+      ctx.lineTo(cx + 11, 58); ctx.lineTo(cx - 11, 58);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.fillStyle = '#38bdf8'; // 중심 보석 마나코어
+      ctx.beginPath(); ctx.arc(cx, 44, 4.5, 0, Math.PI*2); ctx.fill();
+
+      // 황금 날개 투구
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(cx, 22, 12, 0, Math.PI*2); ctx.fill();
+      // 황금 날개
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath();
+      ctx.moveTo(cx - 8, 20); ctx.lineTo(cx - 24, 6); ctx.lineTo(cx - 12, 14);
+      ctx.moveTo(cx + 8, 20); ctx.lineTo(cx + 24, 6); ctx.lineTo(cx + 12, 14);
+      ctx.fill();
+      // 신성 바이저 안광
+      ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 8;
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(cx - 8, 20, 16, 4);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx - 6, 21, 5, 2); ctx.fillRect(cx + 1, 21, 5, 2);
+      ctx.shadowBlur = 0;
     });
 
-    // -----------------------------------------------------------------------
-    // [3] 검사: 마검사 (Magic Knight) 32비트 3단계
-    // -----------------------------------------------------------------------
-    // T1: 견습 마검사 (네이비 가죽 코트, 룬 단검)
-    this.heroSprites.warrior_magic_knight_t1 = this.render32BitSprite(32, 38, [
-      "............SSSS................",
-      "..........SSSSSSSS..............",
-      ".........SSSSSSSSSS.............",
-      "........CCCCCCCCCCCC............",
-      ".......CCccccccccccCC...........",
-      "......CCCCCCCCCCCCCCCC..........",
-      ".....CCFFFFFFFFFFFFFFCC.........",
-      ".....CCFsPFFFFFFFsPFsCC.........",
-      ".....CCFFFFFFFFFFFFFFCC.........",
-      ".....CCFFFFFDDDDFFFFFCC..pppp...",
-      "......CFFFFFDDDDFFFFFC..pppppp..",
-      ".....MCCCDDDDDDDDDDCCCM.pLLLLp..",
-      "....MMCCCDDDDDDDDDDCCCMMpLLLLp..",
-      "...MMMCCCDDDDDDDDDDCCCMMpLLLLp..",
-      "...MM.CCCCCCCCCCCCCC.MM.pLLLLp..",
-      "...MM.CCCCCCCCCCCCCC.MM.pLLLLp..",
-      "...MM.CCCCCCCCCCCCCC.MM.pLLLLp..",
-      "......CCCCCCGGGGCCCC....pLLLLp..",
-      "......CCCCCCGGGGCCCC....pLLLLp..",
-      ".......CCCCCCCCCCCC.....pLLLLp..",
-      ".......CCCC....CCCC....GGGGGGGG.",
-      ".......CCCC....CCCC.......GG....",
-      ".......CCCC....CCCC.......CC....",
-      ".......KKKK....KKKK.......CC....",
-      "......KKKKKK..KKKKKK......CC....",
-      "......KKKKKK..KKKKKK......CC....",
-      "......KKKKKK..KKKKKK......CC....",
-      "......CCCCCC..CCCCCC......CC....",
-      "......CCCCCC..CCCCCC............",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'S': '#4c1d95', 'C': '#1e1b4b', 'c': '#312e81',
-      'F': '#fed7aa', 's': '#ea580c', 'P': '#a855f7',
-      'D': '#4338ca', 'M': '#6366f1', 'G': '#facc15',
-      'p': '#7c3aed', 'L': '#c084fc', 'K': '#0f172a'
-    }, {
-      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#c084fc' }, { x: 26, y: 14, w: 1, h: 6, c: '#ffffff' }]
+    // =======================================================================
+    // [3] 검사: 마검사 3단계 (Warrior - Magic Knight)
+    // =======================================================================
+
+    // 1차: 견습 마검사 (네이비 가죽 코트, 룬 단검)
+    this.heroSprites.warrior_magic_knight_t1 = createHdCanvas(64, 80, (ctx, w, h) => {
+      const cx = 32;
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(cx, 74, 16, 5, 0, 0, Math.PI*2); ctx.fill();
+
+      // 오른손: 룬 단검 (보랏빛 광채)
+      ctx.fillStyle = '#7c3aed'; ctx.fillRect(46, 32, 4, 24);
+      ctx.fillStyle = '#c084fc'; ctx.fillRect(47, 32, 2, 22);
+      ctx.fillStyle = '#facc15'; ctx.fillRect(42, 54, 12, 3);
+      ctx.fillStyle = '#1e1b4b'; ctx.fillRect(47, 57, 2, 6);
+
+      // 다리 & 가죽 바지
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(cx - 9, 56, 7, 16); ctx.fillRect(cx + 2, 56, 7, 16);
+
+      // 상체: 네이비 마도 가죽 롱코트
+      ctx.fillStyle = '#1e1b4b';
+      ctx.fillRect(cx - 12, 36, 24, 24);
+      ctx.fillStyle = '#312e81';
+      ctx.fillRect(cx - 8, 38, 16, 16);
+      ctx.fillStyle = '#a855f7'; // 룬 벨트
+      ctx.fillRect(cx - 10, 54, 20, 3);
+
+      // 머리 & 흑발
+      ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(cx, 24, 10, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath(); ctx.arc(cx, 20, 12, Math.PI*0.8, Math.PI*2.2); ctx.fill();
+      // 보랏빛 눈동자
+      ctx.fillStyle = '#a855f7';
+      ctx.fillRect(cx - 5, 24, 3, 3); ctx.fillRect(cx + 2, 24, 3, 3);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx - 4, 24, 1, 1); ctx.fillRect(cx + 3, 24, 1, 1);
     });
 
-    // T2: 룬 블레이더 (마도 룬 플레이트, 보랏빛 룬 블레이드 네온 발광, 부유 룬 오브)
-    this.heroSprites.warrior_magic_knight_t2 = this.render32BitSprite(32, 38, [
-      "............PPPP................",
-      "..........PPPPPPPP..............",
-      ".........PPPPPPPPPP.............",
-      "........MMMMMMMMMMMM............",
-      ".......MMmmmmmmmmmmMM...........",
-      "......MMMMMMMMMMMMMMMM..........",
-      ".....MMmmmmmmmmmmmmmmMM.........",
-      ".....MMmmVVVVmmVVVVmmMM.........",
-      ".....MMmmVVVVmmVVVVmmMM.........",
-      ".....MMmmmmmmmmmmmmmmMM..pppp...",
-      "......MMMMMMMMMMMMMMMM..pppppp..",
-      "....MMMMMMMMGGGGMMMMMMMMpRRRRp..",
-      "...MMMMMMMMMGGGGMMMMMMMMpRRRRp..",
-      "...LLLLMMMMMGGGGMMMMMLLLpRRRRp..",
-      "...LL.MMMMMMMMMMMMMM.LL.pRRRRp..",
-      "...LL.MMMMMMMMMMMMMM.LL.pRRRRp..",
-      "...LL.MMMMMMMMMMMMMM.LL.pRRRRp..",
-      "......MMMMMMMMMMMMMM....pRRRRp..",
-      "......MMMMMMMMMMMMMM....pRRRRp..",
-      ".......MMMMMMMMMMMM.....pRRRRp..",
-      ".......MMMM....MMMM....GGGGGGGG.",
-      ".......MMMM....MMMM.......GG....",
-      ".......MMMM....MMMM.......MM....",
-      ".......KKKK....KKKK.......MM....",
-      "......KKKKKK..KKKKKK......MM....",
-      "......KKKKKK..KKKKKK......MM....",
-      "......KKKKKK..KKKKKK......MM....",
-      "......MMMMMM..MMMMMM......MM....",
-      "......MMMMMM..MMMMMM............",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'P': '#7c3aed', 'M': '#1e1b4b', 'm': '#581c87',
-      'V': '#38bdf8', 'G': '#facc15', 'p': '#a855f7',
-      'R': '#e879f9', 'L': '#c084fc', 'K': '#0f172a'
-    }, {
-      auraColor: 'rgba(168, 85, 247, 0.25)',
-      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 13, w: 1, h: 7, c: '#ffffff' }],
-      weaponGlow: { color: '#c084fc', blur: 6, pixels: [[25, 12, 3, 8]] }
+    // 2차: 룬 블레이더 (마도 룬 플레이트, 보랏빛 룬 블레이드 네온 발광, 부유 룬 오브)
+    this.heroSprites.warrior_magic_knight_t2 = createHdCanvas(64, 80, (ctx, w, h) => {
+      const cx = 32;
+      ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(cx, 74, 18, 6, 0, 0, Math.PI*2); ctx.fill();
+
+      // 부유하는 마나 오브 (왼쪽 어깨 위)
+      ctx.shadowColor = '#c084fc'; ctx.shadowBlur = 8;
+      ctx.fillStyle = '#a855f7';
+      ctx.beginPath(); ctx.arc(12, 28, 5, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(11, 27, 2, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // 오른손: 룬 블레이드 (보라 네온 발광)
+      ctx.shadowColor = '#c084fc'; ctx.shadowBlur = 10;
+      ctx.fillStyle = '#581c87'; ctx.fillRect(48, 16, 5, 42);
+      ctx.fillStyle = '#c084fc'; ctx.fillRect(49, 16, 3, 40);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(50, 16, 1, 40);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#facc15'; ctx.fillRect(43, 56, 15, 4);
+      ctx.fillStyle = '#1e1b4b'; ctx.fillRect(49, 60, 3, 8);
+
+      // 마도 룬 플레이트 갑옷
+      ctx.fillStyle = '#1e1b4b';
+      ctx.fillRect(cx - 10, 54, 8, 18); ctx.fillRect(cx + 2, 54, 8, 18);
+      ctx.fillStyle = '#2e1065';
+      ctx.beginPath();
+      ctx.moveTo(cx - 12, 34); ctx.lineTo(cx + 12, 34);
+      ctx.lineTo(cx + 10, 56); ctx.lineTo(cx - 10, 56);
+      ctx.closePath(); ctx.fill();
+      // 발광 룬 문자
+      ctx.strokeStyle = '#c084fc'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cx, 36); ctx.lineTo(cx - 4, 44); ctx.lineTo(cx + 4, 48); ctx.lineTo(cx, 54);
+      ctx.stroke();
+
+      // 바이저 투구 & 보랏빛 안광
+      ctx.fillStyle = '#1e1b4b'; ctx.beginPath(); ctx.arc(cx, 22, 11, 0, Math.PI*2); ctx.fill();
+      ctx.shadowColor = '#c084fc'; ctx.shadowBlur = 6;
+      ctx.fillStyle = '#c084fc'; ctx.fillRect(cx - 7, 21, 14, 3.5);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(cx - 5, 22, 4, 1.5); ctx.fillRect(cx + 1, 22, 4, 1.5);
+      ctx.shadowBlur = 0;
     });
 
-    // T3: 👑 차원참의 스펠마스터 (공허의 차원 갑주, 시공간 왜곡 차원참 대검, 3개의 부유 환검)
-    this.heroSprites.warrior_magic_knight_t3 = this.render32BitSprite(36, 42, [
-      "CC............................CC",
-      "CCCC........................CCCC",
-      "CCCCC......AAAAAAAAAA......CCCCC",
-      ".CCCCC...AAAAAAAAAAAAAA...CCCCC.",
-      "..CCCC..AAaaaaaaaaaaaaAA..CCCC..",
-      "...CC..AAAAAAAAAAAAAAAAAA..CC...",
-      "......AAaaaaaaaaaaaaaaaaAA......",
-      ".....AAaaVVVVVVaaVVVVVVaaAA.CCCC",
-      ".....AAaaVVVVVVaaVVVVVVaaAA.CCCC",
-      ".....AAaaaaaaaaaaaaaaaaaaAA.CCCC",
-      "......AAAAAAAAAAAAAAAAAA...CCCCC",
-      ".....EAAAAAAGGGGGGAAAAAAE..cSSSc",
-      "....EEAAAAAAGGGGGGAAAAAAEE.cSSSc",
-      "...EEEAAAAAAGGGGGGAAAAAAEEEcSSSc",
-      "...EE.AAAAAAAAAAAAAAAAAA.EEcSSSc",
-      "..EEE.AAAAAAAAAAAAAAAAAA.EEcSSSc",
-      "..EEE.AAAAAAAAAAAAAAAAAA.EEcSSSc",
-      "..EEE.AAAAAAAAAAAAAAAAAA.EEcSSSc",
-      "..EEE.AAAAAAAAAAAAAAAAAA.EEcSSSc",
-      "......AAAAAAAAAAAAAAAAAA...cSSSc",
-      "......AAAAAAAAAAAAAAAAAA...cSSSc",
-      ".......AAAAAAAAAAAAAAAA....cSSSc",
-      ".......AAAAA....AAAAA.....GGGGGG",
-      ".......AAAAA....AAAAA.....GGGGGG",
-      ".......AAAAA....AAAAA........GG.",
-      ".......KKKKK....KKKKK........AA.",
-      "......KKKKKKK..KKKKKKK.......AA.",
-      "......KKKKKKK..KKKKKKK.......AA.",
-      "......KKKKKKK..KKKKKKK.......AA.",
-      "......AAAAAAA..AAAAAAA.......AA.",
-      "......AAAAAAA..AAAAAAA..........",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'C': '#38bdf8', 'A': '#090514', 'a': '#3b0764',
-      'V': '#22d3ee', 'E': '#9333ea', 'G': '#facc15',
-      'c': '#a855f7', 'S': '#e0f2fe', 'K': '#0f172a'
-    }, {
-      auraColor: 'rgba(168, 85, 247, 0.45)',
-      highlights: [{ x: 10, y: 7, w: 3, h: 2, c: '#67e8f9' }, { x: 21, y: 7, w: 3, h: 2, c: '#67e8f9' }, { x: 28, y: 12, w: 2, h: 9, c: '#ffffff' }],
-      weaponGlow: { color: '#38bdf8', blur: 12, pixels: [[27, 10, 4, 12]] }
+    // 3차: 👑 차원참의 스펠마스터 (공허의 차원 갑주, 시공간 왜곡 차원참 대검, 3개의 부유 환검)
+    this.heroSprites.warrior_magic_knight_t3 = createHdCanvas(72, 88, (ctx, w, h) => {
+      const cx = 36;
+      // 차원 균열 시공간 아우라
+      const aura = ctx.createRadialGradient(cx, 44, 10, cx, 44, 36);
+      aura.addColorStop(0, 'rgba(168, 85, 247, 0.45)');
+      aura.addColorStop(0.7, 'rgba(34, 211, 238, 0.25)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.beginPath(); ctx.ellipse(cx, 80, 22, 7, 0, 0, Math.PI*2); ctx.fill();
+
+      // 3개의 부유하는 에테르 환검 (좌/우/상단)
+      const drawFloatSword = (x, y, rot) => {
+        ctx.save();
+        ctx.translate(x, y); ctx.rotate(rot);
+        ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = 8;
+        ctx.fillStyle = '#a855f7'; ctx.fillRect(-2, -14, 4, 28);
+        ctx.fillStyle = '#67e8f9'; ctx.fillRect(-1, -14, 2, 26);
+        ctx.restore();
+      };
+      drawFloatSword(14, 26, -0.4);
+      drawFloatSword(20, 14, 0.1);
+      drawFloatSword(58, 22, 0.5);
+
+      // 오른손: 차원참 소드 (시공간 네온 균열)
+      ctx.save();
+      ctx.translate(56, 38); ctx.rotate(0.18);
+      ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = 14;
+      ctx.fillStyle = '#030712'; ctx.fillRect(-5, -38, 10, 68);
+      ctx.fillStyle = '#a855f7'; ctx.fillRect(-3, -36, 6, 64);
+      ctx.fillStyle = '#22d3ee'; ctx.fillRect(-1, -36, 2, 64);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#facc15'; ctx.fillRect(-9, 28, 18, 6);
+      ctx.restore();
+
+      // 공허의 차원 갑주
+      ctx.fillStyle = '#050510';
+      ctx.fillRect(cx - 11, 56, 9, 20); ctx.fillRect(cx + 3, 56, 9, 20);
+      ctx.fillStyle = '#1e1b4b';
+      ctx.beginPath();
+      ctx.moveTo(cx - 14, 34); ctx.lineTo(cx + 14, 34);
+      ctx.lineTo(cx + 11, 58); ctx.lineTo(cx - 11, 58);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#22d3ee'; ctx.lineWidth = 2; ctx.stroke();
+
+      // 공허 투구 & 사이언 네온 안광
+      ctx.fillStyle = '#050510'; ctx.beginPath(); ctx.arc(cx, 22, 12, 0, Math.PI*2); ctx.fill();
+      ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = 10;
+      ctx.fillStyle = '#22d3ee'; ctx.fillRect(cx - 8, 21, 16, 4);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(cx - 6, 22, 5, 2); ctx.fillRect(cx + 1, 22, 5, 2);
+      ctx.shadowBlur = 0;
     });
 
-    // -----------------------------------------------------------------------
-    // [4] 궁수: 스나이퍼 (Sniper) 32비트 3단계
-    // -----------------------------------------------------------------------
-    // T1: 견습 저격수 (숲의 가죽 튜닉, 사냥꾼 모자, 정밀 도르래 롱보우)
-    this.heroSprites.archer_sniper_t1 = this.render32BitSprite(32, 38, [
-      "............GGGG................",
-      "..........GGGGGGGG..............",
-      ".........GGGGGGGGGG.............",
-      "........TTTTTTTTTTTT............",
-      ".......TTttttttttttTT...........",
-      "......TTTTTTTTTTTTTTTT..........",
-      ".....TTFFFFFFFFFFFFFFTT.........",
-      ".....TTFsEFFFFFFFsEFsTT.........",
-      ".....TTFFFFFFFFFFFFFFTT.........",
-      ".....TTFFFFFDDDDFFFFFTT..bbbb...",
-      "......TFFFFFDDDDFFFFFT..bbbbbb..",
-      ".....MTTTTDDDDDDDDTTTTM.bssssb..",
-      "....MMTTTTDDDDDDDDTTTTMMbssssb..",
-      "...MMMTTTTDDDDDDDDTTTTMMbssssb..",
-      "...MM.TTTTTTTTTTTTTT.MM.bssssb..",
-      "...MM.TTTTTTTTTTTTTT.MM.bssssb..",
-      "...MM.TTTTTTTTTTTTTT.MM.bssssb..",
-      "......TTTTTTGGGGTTTT....bssssb..",
-      "......TTTTTTGGGGTTTT....bssssb..",
-      ".......TTTTTTTTTTTT.....bssssb..",
-      ".......TTTT....TTTT....GGGGGGGG.",
-      ".......TTTT....TTTT.......GG....",
-      ".......TTTT....TTTT.......TT....",
-      ".......KKKK....KKKK.......TT....",
-      "......KKKKKK..KKKKKK......TT....",
-      "......KKKKKK..KKKKKK......TT....",
-      "......KKKKKK..KKKKKK......TT....",
-      "......TTTTTT..TTTTTT......TT....",
-      "......TTTTTT..TTTTTT............",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'G': '#166534', 'T': '#14532d', 't': '#15803d',
-      'F': '#fed7aa', 's': '#ea580c', 'E': '#38bdf8',
-      'D': '#16a34a', 'M': '#854d0e', 'b': '#78350f',
-      'K': '#1c1917'
-    }, {
-      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 14, w: 1, h: 6, c: '#ffffff' }]
+    // =======================================================================
+    // [4] 궁수: 스나이퍼 3단계 (Archer - Sniper)
+    // =======================================================================
+
+    // 1차: 견습 저격수 (숲의 가죽 튜닉, 사냥꾼 모자, 정밀 도르래 롱보우)
+    this.heroSprites.archer_sniper_t1 = createHdCanvas(64, 80, (ctx, w, h) => {
+      const cx = 30;
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(cx, 74, 16, 5, 0, 0, Math.PI*2); ctx.fill();
+
+      // 왼손: 정밀 우든 롱보우
+      ctx.strokeStyle = '#78350f'; ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.arc(14, 44, 22, -Math.PI*0.4, Math.PI*0.4); ctx.stroke();
+      // 활시위
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(14 + Math.cos(-Math.PI*0.4)*22, 44 + Math.sin(-Math.PI*0.4)*22);
+      ctx.lineTo(14 + Math.cos(Math.PI*0.4)*22, 44 + Math.sin(Math.PI*0.4)*22);
+      ctx.stroke();
+
+      // 다리 & 가죽 바지
+      ctx.fillStyle = '#14532d'; ctx.fillRect(cx - 8, 56, 6, 16); ctx.fillRect(cx + 2, 56, 6, 16);
+
+      // 상체: 헌터 가죽 튜닉
+      ctx.fillStyle = '#166534'; ctx.fillRect(cx - 10, 36, 20, 22);
+      ctx.fillStyle = '#854d0e'; ctx.fillRect(cx - 9, 52, 18, 4); // 벨트
+
+      // 얼굴 & 머리
+      ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(cx, 24, 10, 0, Math.PI*2); ctx.fill();
+      // 푸른 눈
+      ctx.fillStyle = '#0284c7'; ctx.fillRect(cx - 5, 24, 3, 3); ctx.fillRect(cx + 2, 24, 3, 3);
+      // 사냥꾼 모자 & 깃털
+      ctx.fillStyle = '#14532d';
+      ctx.beginPath(); ctx.moveTo(cx - 14, 20); ctx.lineTo(cx + 14, 20); ctx.lineTo(cx, 8); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#22c55e'; // 깃털
+      ctx.beginPath(); ctx.moveTo(cx + 8, 14); ctx.lineTo(cx + 18, 4); ctx.lineTo(cx + 12, 16); ctx.fill();
     });
 
-    // T2: 호크아이 스나이퍼 (매의 눈 철제 가면, 카모 망토, 레이저 조준선 헤비 크로스보우)
-    this.heroSprites.archer_sniper_t2 = this.render32BitSprite(32, 38, [
-      "............FFFF................",
-      "..........FFFFFFFF..............",
-      ".........FFFFFFFFFF.............",
-      "........SSSSSSSSSSSS............",
-      ".......SSssssssssssSS...........",
-      "......SSSSSSSSSSSSSSSS..........",
-      ".....SSssssssssssssssSS.........",
-      ".....SSssEEEEssEEEEssSS.........",
-      ".....SSssEEEEssEEEEssSS.........",
-      ".....SSssssssssssssssSS..bbbb...",
-      "......SSSSSSSSSSSSSSSS..bbbbbb..",
-      "....SSSSSSSSGGGGSSSSSSSSbLLLLb..",
-      "...SSSSSSSSSGGGGSSSSSSSSbLLLLb..",
-      "...DDDSSSSSSGGGGSSSSSSDDbLLLLb..",
-      "...DD.SSSSSSSSSSSSSS.DD.bLLLLb..",
-      "...DD.SSSSSSSSSSSSSS.DD.bLLLLb..",
-      "...DD.SSSSSSSSSSSSSS.DD.bLLLLb..",
-      "......SSSSSSSSSSSSSS....bLLLLb..",
-      "......SSSSSSSSSSSSSS....bLLLLb..",
-      ".......SSSSSSSSSSSS.....bLLLLb..",
-      ".......SSSS....SSSS....GGGGGGGG.",
-      ".......SSSS....SSSS.......GG....",
-      ".......SSSS....SSSS.......SS....",
-      ".......KKKK....KKKK.......SS....",
-      "......KKKKKK..KKKKKK......SS....",
-      "......KKKKKK..KKKKKK......SS....",
-      "......KKKKKK..KKKKKK......SS....",
-      "......SSSSSS..SSSSSS......SS....",
-      "......SSSSSS..SSSSSS............",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'F': '#0284c7', 'S': '#0f172a', 's': '#334155',
-      'E': '#38bdf8', 'G': '#f59e0b', 'b': '#1e293b',
-      'L': '#38bdf8', 'D': '#0369a1', 'K': '#0f172a'
-    }, {
-      auraColor: 'rgba(56, 189, 248, 0.25)',
-      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 13, w: 1, h: 7, c: '#ffffff' }],
-      weaponGlow: { color: '#38bdf8', blur: 6, pixels: [[25, 12, 3, 8]] }
+    // 2차: 호크아이 스나이퍼 (매의 눈 철제 가면, 카모 망토, 레이저 조준경 헤비 크로스보우)
+    this.heroSprites.archer_sniper_t2 = createHdCanvas(64, 80, (ctx, w, h) => {
+      const cx = 30;
+      ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(cx, 74, 18, 6, 0, 0, Math.PI*2); ctx.fill();
+
+      // 헤비 크로스보우 (헤비 쇠뇌)
+      ctx.fillStyle = '#334155'; ctx.fillRect(10, 38, 28, 7);
+      ctx.fillStyle = '#94a3b8'; ctx.fillRect(8, 30, 4, 24);
+      // 레이저 스코프 조준선 (붉은 레이저)
+      ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 4;
+      ctx.strokeStyle = '#ff0033'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(38, 41); ctx.lineTo(60, 41); ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 카모 슈트 & 가죽 부츠
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(cx - 9, 54, 7, 18); ctx.fillRect(cx + 2, 54, 7, 18);
+      ctx.fillStyle = '#1e293b'; ctx.fillRect(cx - 11, 34, 22, 22);
+
+      // 매의 눈 철제 가면
+      ctx.fillStyle = '#334155'; ctx.beginPath(); ctx.arc(cx, 22, 11, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath(); ctx.moveTo(cx - 8, 18); ctx.lineTo(cx, 26); ctx.lineTo(cx + 8, 18); ctx.closePath(); ctx.fill();
+      // 매의 안광
+      ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 6;
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(cx - 6, 21, 4, 2); ctx.fillRect(cx + 2, 21, 4, 2);
+      ctx.shadowBlur = 0;
     });
 
-    // T3: 👑 멸절의 갓스나이퍼 (천상의 샤프슈터 아머, 천체 관측 고글, 신살의 거대 컴파운드 보우)
-    this.heroSprites.archer_sniper_t3 = this.render32BitSprite(36, 42, [
-      "CC............................CC",
-      "CCCC........................CCCC",
-      "CCCCC......GGGGGGGGGG......CCCCC",
-      ".CCCCC...GGGGGGGGGGGGGG...CCCCC.",
-      "..CCCC..GGwwwwwwwwwwwwGG..CCCC..",
-      "...CC..GGGGGGGGGGGGGGGGGG..CC...",
-      "......WWwwwwwwwwwwwwwwwwWW......",
-      ".....WWwwEEEEEEwwEEEEEEwwWW.BBBB",
-      ".....WWwwEEEEEEwwEEEEEEwwWW.BBBB",
-      ".....WWwwwwwwwwwwwwwwwwwwWW.BBBB",
-      "......WWWWWWWWWWWWWWWWWW...BBBBB",
-      ".....MWWWWWWGGGGGGWWWWWWM..bSSSb",
-      "....MMWWWWWWGGGGGGWWWWWWMM.bSSSb",
-      "...MMMWWWWWWGGGGGGWWWWWWMMMbSSSb",
-      "...MM.WWWWWWGGGGGGWWWWWW.MMbSSSb",
-      "..MMM.WWWWWWGGGGGGWWWWWW.MMbSSSb",
-      "..MMM.WWWWWWWWWWWWWWWWWW.MMbSSSb",
-      "..MMM.WWWWWWWWWWWWWWWWWW.MMbSSSb",
-      "..MMM.WWWWWWWWWWWWWWWWWW.MMbSSSb",
-      "......WWWWWWWWWWWWWWWWWW...bSSSb",
-      "......WWWWWWWWWWWWWWWWWW...bSSSb",
-      ".......WWWWWWWWWWWWWWWW....bSSSb",
-      ".......WWWWW....WWWWW.....GGGGGG",
-      ".......WWWWW....WWWWW.....GGGGGG",
-      ".......WWWWW....WWWWW........GG.",
-      ".......KKKKK....KKKKK........WW.",
-      "......KKKKKKK..KKKKKKK.......WW.",
-      "......KKKKKKK..KKKKKKK.......WW.",
-      "......KKKKKKK..KKKKKKK.......WW.",
-      "......WWWWWWW..WWWWWWW.......WW.",
-      "......WWWWWWW..WWWWWWW..........",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'C': '#38bdf8', 'G': '#0284c7', 'w': '#7dd3fc',
-      'W': '#0c4a6e', 'E': '#facc15', 'M': '#38bdf8',
-      'B': '#0284c7', 'b': '#0369a1', 'S': '#ffffff',
-      'K': '#082f49'
-    }, {
-      auraColor: 'rgba(56, 189, 248, 0.45)',
-      highlights: [{ x: 10, y: 7, w: 3, h: 2, c: '#fef08a' }, { x: 21, y: 7, w: 3, h: 2, c: '#fef08a' }, { x: 28, y: 12, w: 2, h: 9, c: '#ffffff' }],
-      weaponGlow: { color: '#38bdf8', blur: 12, pixels: [[27, 10, 4, 12]] }
+    // 3차: 👑 멸절의 갓스나이퍼 (천상의 샤프슈터 아머, 천체 관측 고글, 신살의 거대 컴파운드 보우)
+    this.heroSprites.archer_sniper_t3 = createHdCanvas(72, 88, (ctx, w, h) => {
+      const cx = 34;
+      // 천상 에테르 아우라
+      const aura = ctx.createRadialGradient(cx, 44, 10, cx, 44, 36);
+      aura.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.beginPath(); ctx.ellipse(cx, 80, 20, 7, 0, 0, Math.PI*2); ctx.fill();
+
+      // 거대 신살의 컴파운드 보우 (도르래 + 에테르 화살 발광)
+      ctx.save();
+      ctx.translate(14, 44);
+      ctx.strokeStyle = '#0284c7'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(0, 0, 28, -Math.PI*0.42, Math.PI*0.42); ctx.stroke();
+      // 도르래 캠
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath(); ctx.arc(Math.cos(-Math.PI*0.42)*28, Math.sin(-Math.PI*0.42)*28, 4, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(Math.cos(Math.PI*0.42)*28, Math.sin(Math.PI*0.42)*28, 4, 0, Math.PI*2); ctx.fill();
+      // 빛의 에테르 화살
+      ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 10;
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(-2, -2, 34, 4);
+      ctx.fillStyle = '#facc15';
+      ctx.beginPath(); ctx.moveTo(32, -5); ctx.lineTo(40, 0); ctx.lineTo(32, 5); ctx.closePath(); ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.restore();
+
+      // 천상 슈트
+      ctx.fillStyle = '#0c4a6e'; ctx.fillRect(cx - 10, 56, 8, 20); ctx.fillRect(cx + 2, 56, 8, 20);
+      ctx.fillStyle = '#0284c7'; ctx.fillRect(cx - 12, 34, 24, 24);
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.strokeRect(cx - 12, 34, 24, 24);
+
+      // 천체 관측 고글 & 황금 깃털
+      ctx.fillStyle = '#0c4a6e'; ctx.beginPath(); ctx.arc(cx, 22, 12, 0, Math.PI*2); ctx.fill();
+      ctx.shadowColor = '#facc15'; ctx.shadowBlur = 8;
+      ctx.fillStyle = '#facc15'; ctx.beginPath(); ctx.arc(cx - 4, 22, 4, 0, Math.PI*2); ctx.arc(cx + 4, 22, 4, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
     });
 
-    // -----------------------------------------------------------------------
-    // [5] 궁수: 윈드러너 (Windrunner) 32비트 3단계
-    // -----------------------------------------------------------------------
-    // T1: 견습 쾌속궁수 (에메랄드 그린 판초, 단궁)
-    this.heroSprites.archer_windrunner_t1 = this.render32BitSprite(32, 38, [
-      "............EEEE................",
-      "..........EEEEEEEE..............",
-      ".........EEEEEEEEEE.............",
-      "........WWWWWWWWWWWW............",
-      ".......WWwwwwwwwwwwWW...........",
-      "......WWWWWWWWWWWWWWWW..........",
-      ".....WWFFFFFFFFFFFFFFWW.........",
-      ".....WWFsGFFFFFFFsGFsWW.........",
-      ".....WWFFFFFFFFFFFFFFWW.........",
-      ".....WWFFFFFDDDDFFFFFWW..bbbb...",
-      "......WFFFFFDDDDFFFFFW..bbbbbb..",
-      ".....MWWWWDDDDDDDDWWWWw.bssssb..",
-      "....MMWWWWDDDDDDDDWWWWw.bssssb..",
-      "...MMMWWWWDDDDDDDDWWWWw.bssssb..",
-      "...MM.WWWWWWWWWWWWWW.ww.bssssb..",
-      "...MM.WWWWWWWWWWWWWW.ww.bssssb..",
-      "...MM.WWWWWWWWWWWWWW.ww.bssssb..",
-      "......WWWWWWGGGGWWWW....bssssb..",
-      "......WWWWWWGGGGWWWW....bssssb..",
-      ".......WWWWWWWWWWWW.....bssssb..",
-      ".......WWWW....WWWW....GGGGGGGG.",
-      ".......WWWW....WWWW.......GG....",
-      ".......WWWW....WWWW.......WW....",
-      ".......KKKK....KKKK.......WW....",
-      "......KKKKKK..KKKKKK......WW....",
-      "......KKKKKK..KKKKKK......WW....",
-      "......KKKKKK..KKKKKK......WW....",
-      "......WWWWWW..WWWWWW......WW....",
-      "......WWWWWW..WWWWWW............",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'E': '#047857', 'W': '#064e3b', 'w': '#10b981',
-      'F': '#fed7aa', 's': '#ea580c', 'G': '#4ade80',
-      'D': '#059669', 'M': '#d97706', 'b': '#15803d',
-      'K': '#14532d'
-    }, {
-      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 14, w: 1, h: 6, c: '#ffffff' }]
+    // =======================================================================
+    // [5] 궁수: 윈드러너 3단계 (Archer - Windrunner)
+    // =======================================================================
+
+    // 1차: 견습 쾌속궁수 (에메랄드 그린 판초, 단궁)
+    this.heroSprites.archer_windrunner_t1 = createHdCanvas(64, 80, (ctx, w, h) => {
+      const cx = 32;
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(cx, 74, 16, 5, 0, 0, Math.PI*2); ctx.fill();
+
+      // 왼손: 날렵한 단궁
+      ctx.strokeStyle = '#059669'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(16, 44, 16, -Math.PI*0.4, Math.PI*0.4); ctx.stroke();
+
+      // 에메랄드 판초 망토
+      ctx.fillStyle = '#064e3b'; ctx.fillRect(cx - 8, 56, 6, 16); ctx.fillRect(cx + 2, 56, 6, 16);
+      ctx.fillStyle = '#047857';
+      ctx.beginPath(); ctx.moveTo(cx - 14, 34); ctx.lineTo(cx + 14, 34); ctx.lineTo(cx + 10, 56); ctx.lineTo(cx - 10, 56); ctx.closePath(); ctx.fill();
+
+      // 포니테일 & 녹색 머리띠
+      ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(cx, 24, 10, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#10b981'; ctx.fillRect(cx - 10, 18, 20, 3);
+      // 에메랄드 눈동자
+      ctx.fillStyle = '#10b981'; ctx.fillRect(cx - 5, 24, 3, 3); ctx.fillRect(cx + 2, 24, 3, 3);
     });
 
-    // T2: 질풍의 윈드러너 (롱 에메랄드 스카프 휘날림, 풍령의 날개 활)
-    this.heroSprites.archer_windrunner_t2 = this.render32BitSprite(32, 38, [
-      "............FFFF................",
-      "..........FFFFFFFF..............",
-      ".........FFFFFFFFFF.............",
-      "........WWWWWWWWWWWW............",
-      ".......WWwwwwwwwwwwWW...........",
-      "......WWWWWWWWWWWWWWWW..........",
-      ".....WWwwwwwwwwwwwwwwWW.........",
-      ".....WWwwGGGGwwGGGGwwWW.........",
-      ".....WWwwGGGGwwGGGGwwWW.........",
-      ".....WWwwwwwwwwwwwwwwWW..bbbb...",
-      "......WWWWWWWWWWWWWWWW..bbbbbb..",
-      "....WWWWWWWWGGGGWWWWWWWWbLLLLb..",
-      "...WWWWWWWWWGGGGWWWWWWWWbLLLLb..",
-      "...DDDWWWWWWGGGGWWWWWWDDbLLLLb..",
-      "...DD.WWWWWWWWWWWWWW.DD.bLLLLb..",
-      "...DD.WWWWWWWWWWWWWW.DD.bLLLLb..",
-      "...DD.WWWWWWWWWWWWWW.DD.bLLLLb..",
-      "......WWWWWWWWWWWWWW....bLLLLb..",
-      "......WWWWWWWWWWWWWW....bLLLLb..",
-      ".......WWWWWWWWWWWW.....bLLLLb..",
-      ".......WWWW....WWWW....GGGGGGGG.",
-      ".......WWWW....WWWW.......GG....",
-      ".......WWWW....WWWW.......WW....",
-      ".......KKKK....KKKK.......WW....",
-      "......KKKKKK..KKKKKK......WW....",
-      "......KKKKKK..KKKKKK......WW....",
-      "......KKKKKK..KKKKKK......WW....",
-      "......WWWWWW..WWWWWW......WW....",
-      "......WWWWWW..WWWWWW............",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'F': '#10b981', 'W': '#064e3b', 'w': '#059669',
-      'G': '#4ade80', 'D': '#10b981', 'b': '#047857',
-      'L': '#a7f3d0', 'K': '#022c22'
-    }, {
-      auraColor: 'rgba(74, 222, 128, 0.25)',
-      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 13, w: 1, h: 7, c: '#ffffff' }],
-      weaponGlow: { color: '#4ade80', blur: 6, pixels: [[25, 12, 3, 8]] }
+    // 2차: 질풍의 윈드러너 (롱 에메랄드 스카프 휘날림, 풍령의 날개 활)
+    this.heroSprites.archer_windrunner_t2 = createHdCanvas(64, 80, (ctx, w, h) => {
+      const cx = 32;
+      ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(cx, 74, 18, 6, 0, 0, Math.PI*2); ctx.fill();
+
+      // 휘날리는 긴 에메랄드 스카프
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.moveTo(cx - 10, 32);
+      ctx.quadraticCurveTo(cx - 24, 38, cx - 28, 56);
+      ctx.quadraticCurveTo(cx - 18, 48, cx - 6, 36);
+      ctx.fill();
+
+      // 풍령의 날개 활 (녹색 바람 파티클)
+      ctx.shadowColor = '#4ade80'; ctx.shadowBlur = 8;
+      ctx.strokeStyle = '#10b981'; ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.arc(14, 44, 22, -Math.PI*0.4, Math.PI*0.4); ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 질풍 슈트
+      ctx.fillStyle = '#064e3b'; ctx.fillRect(cx - 9, 54, 7, 18); ctx.fillRect(cx + 2, 54, 7, 18);
+      ctx.fillStyle = '#047857'; ctx.fillRect(cx - 11, 34, 22, 22);
+
+      ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(cx, 22, 10, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#4ade80'; ctx.fillRect(cx - 5, 22, 3, 3); ctx.fillRect(cx + 2, 22, 3, 3);
     });
 
-    // T3: 👑 환영폭풍의 템페스트 (바람의 날개 망토, 바람의 정령관, 폭풍의 쌍곡궁 네온 소용돌이)
-    this.heroSprites.archer_windrunner_t3 = this.render32BitSprite(36, 42, [
-      "GG............................GG",
-      "GGGG........................GGGG",
-      "GGGGG......EEEEEEEEEE......GGGGG",
-      ".GGGGG...EEEEEEEEEEEEEE...GGGGG.",
-      "..GGGG..EEwwwwwwwwwwwwEE..GGGG..",
-      "...GG..EEEEEEEEEEEEEEEEEE..GG...",
-      "......WWwwwwwwwwwwwwwwwwWW......",
-      ".....WWwwGGGGGGwwGGGGGGwwWW.BBBB",
-      ".....WWwwGGGGGGwwGGGGGGwwWW.BBBB",
-      ".....WWwwwwwwwwwwwwwwwwwwWW.BBBB",
-      "......WWWWWWWWWWWWWWWWWW...BBBBB",
-      ".....MWWWWWWGGGGGGWWWWWWM..bSSSb",
-      "....MMWWWWWWGGGGGGWWWWWWMM.bSSSb",
-      "...MMMWWWWWWGGGGGGWWWWWWMMMbSSSb",
-      "...MM.WWWWWWGGGGGGWWWWWW.MMbSSSb",
-      "..MMM.WWWWWWGGGGGGWWWWWW.MMbSSSb",
-      "..MMM.WWWWWWWWWWWWWWWWWW.MMbSSSb",
-      "..MMM.WWWWWWWWWWWWWWWWWW.MMbSSSb",
-      "..MMM.WWWWWWWWWWWWWWWWWW.MMbSSSb",
-      "......WWWWWWWWWWWWWWWWWW...bSSSb",
-      "......WWWWWWWWWWWWWWWWWW...bSSSb",
-      ".......WWWWWWWWWWWWWWWW....bSSSb",
-      ".......WWWWW....WWWWW.....GGGGGG",
-      ".......WWWWW....WWWWW.....GGGGGG",
-      ".......WWWWW....WWWWW........GG.",
-      ".......KKKKK....KKKKK........WW.",
-      "......KKKKKKK..KKKKKKK.......WW.",
-      "......KKKKKKK..KKKKKKK.......WW.",
-      "......KKKKKKK..KKKKKKK.......WW.",
-      "......WWWWWWW..WWWWWWW.......WW.",
-      "......WWWWWWW..WWWWWWW..........",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'G': '#4ade80', 'E': '#047857', 'w': '#6ee7b7',
-      'W': '#064e3b', 'B': '#10b981', 'M': '#34d399',
-      'b': '#059669', 'S': '#ecfdf5', 'K': '#022c22'
-    }, {
-      auraColor: 'rgba(74, 222, 128, 0.45)',
-      highlights: [{ x: 10, y: 7, w: 3, h: 2, c: '#ffffff' }, { x: 21, y: 7, w: 3, h: 2, c: '#ffffff' }, { x: 28, y: 12, w: 2, h: 9, c: '#ffffff' }],
-      weaponGlow: { color: '#4ade80', blur: 12, pixels: [[27, 10, 4, 12]] }
+    // 3차: 👑 환영폭풍의 템페스트 (바람의 날개 망토, 바람의 정령관, 폭풍의 쌍곡궁 소용돌이)
+    this.heroSprites.archer_windrunner_t3 = createHdCanvas(72, 88, (ctx, w, h) => {
+      const cx = 36;
+      // 질풍의 소용돌이 아우라
+      const aura = ctx.createRadialGradient(cx, 44, 10, cx, 44, 36);
+      aura.addColorStop(0, 'rgba(74, 222, 128, 0.45)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.beginPath(); ctx.ellipse(cx, 80, 22, 7, 0, 0, Math.PI*2); ctx.fill();
+
+      // 바람의 날개 망토
+      ctx.fillStyle = '#059669';
+      ctx.beginPath();
+      ctx.moveTo(cx - 14, 32); ctx.lineTo(cx - 30, 54); ctx.lineTo(cx - 20, 72);
+      ctx.lineTo(cx + 10, 48); ctx.closePath(); ctx.fill();
+
+      // 폭풍의 쌍곡궁 (그린 번개 소용돌이)
+      ctx.shadowColor = '#4ade80'; ctx.shadowBlur = 12;
+      ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(14, 44, 28, -Math.PI*0.4, Math.PI*0.4); ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 템페스트 슈트
+      ctx.fillStyle = '#064e3b'; ctx.fillRect(cx - 10, 56, 8, 20); ctx.fillRect(cx + 2, 56, 8, 20);
+      ctx.fillStyle = '#047857'; ctx.fillRect(cx - 12, 34, 24, 24);
+
+      // 바람의 정령관 (에메랄드 티아라)
+      ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(cx, 22, 11, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#4ade80';
+      ctx.beginPath(); ctx.moveTo(cx - 10, 16); ctx.lineTo(cx, 8); ctx.lineTo(cx + 10, 16); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(cx - 5, 22, 3, 3); ctx.fillRect(cx + 2, 22, 3, 3);
     });
 
-    // -----------------------------------------------------------------------
-    // [6] 궁수: 트래퍼 (Trapper) 32비트 3단계
-    // -----------------------------------------------------------------------
-    // T1: 견습 덫사냥꾼 (가죽 방호 자켓, 탄띠, 핸드 쇠뇌)
-    this.heroSprites.archer_trapper_t1 = this.render32BitSprite(32, 38, [
-      "............OOOO................",
-      "..........OOOOOOOO..............",
-      ".........OOOOOOOOOO.............",
-      "........JJJJJJJJJJJJ............",
-      ".......JJjjjjjjjjjjJJ...........",
-      "......JJJJJJJJJJJJJJJJ..........",
-      ".....JJFFFFFFFFFFFFFFJJ.........",
-      ".....JJFsGFFFFFFFsGFsJJ.........",
-      ".....JJFFFFFFFFFFFFFFJJ.........",
-      ".....JJFFFFFDDDDFFFFFJJ..bbbb...",
-      "......JFFFFFDDDDFFFFFJ..bbbbbb..",
-      ".....MJJJJDDDDDDDDJJJJM.bssssb..",
-      "....MMJJJJDDDDDDDDJJJJMMbssssb..",
-      "...MMMJJJJDDDDDDDDJJJJMMbssssb..",
-      "...MM.JJJJJJJJJJJJJJ.MM.bssssb..",
-      "...MM.JJJJJJJJJJJJJJ.MM.bssssb..",
-      "...MM.JJJJJJJJJJJJJJ.MM.bssssb..",
-      "......JJJJJJGGGGJJJJ....bssssb..",
-      "......JJJJJJGGGGJJJJ....bssssb..",
-      ".......JJJJJJJJJJJJ.....bssssb..",
-      ".......JJJJ....JJJJ....GGGGGGGG.",
-      ".......JJJJ....JJJJ.......GG....",
-      ".......JJJJ....JJJJ.......JJ....",
-      ".......KKKK....KKKK.......JJ....",
-      "......KKKKKK..KKKKKK......JJ....",
-      "......KKKKKK..KKKKKK......JJ....",
-      "......KKKKKK..KKKKKK......JJ....",
-      "......JJJJJJ..JJJJJJ......JJ....",
-      "......JJJJJJ..JJJJJJ............",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'O': '#d97706', 'J': '#78350f', 'j': '#b45309',
-      'F': '#fed7aa', 's': '#ea580c', 'G': '#f59e0b',
-      'D': '#92400e', 'M': '#475569', 'b': '#1c1917',
-      'K': '#1e293b'
-    }, {
-      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 14, w: 1, h: 6, c: '#ffffff' }]
+    // =======================================================================
+    // [6] 궁수: 트래퍼 3단계 (Archer - Trapper)
+    // =======================================================================
+
+    // 1차: 견습 덫사냥꾼 (가죽 방호 자켓, 탄띠, 핸드 쇠뇌)
+    this.heroSprites.archer_trapper_t1 = createHdCanvas(64, 80, (ctx, w, h) => {
+      const cx = 32;
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(cx, 74, 16, 5, 0, 0, Math.PI*2); ctx.fill();
+
+      // 핸드 쇠뇌
+      ctx.fillStyle = '#78350f'; ctx.fillRect(14, 40, 18, 5);
+      ctx.fillStyle = '#94a3b8'; ctx.fillRect(12, 34, 3, 17);
+
+      // 가죽 방호 자켓 & 사선 탄띠
+      ctx.fillStyle = '#1c1917'; ctx.fillRect(cx - 8, 56, 6, 16); ctx.fillRect(cx + 2, 56, 6, 16);
+      ctx.fillStyle = '#78350f'; ctx.fillRect(cx - 10, 36, 20, 22);
+      ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(cx - 10, 36); ctx.lineTo(cx + 10, 56); ctx.stroke();
+
+      ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(cx, 24, 10, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#d97706'; ctx.fillRect(cx - 10, 16, 20, 4); // 가죽 헤드기어
     });
 
-    // T2: 마공 트랩마스터 (스팀펑크 황동 고글 렌즈 반사, 화약 탄띠 & 대형 폭발 쇠뇌)
-    this.heroSprites.archer_trapper_t2 = this.render32BitSprite(32, 38, [
-      "............FFFF................",
-      "..........FFFFFFFF..............",
-      ".........FFFFFFFFFF.............",
-      "........JJJJJJJJJJJJ............",
-      ".......JJjjjjjjjjjjJJ...........",
-      "......JJJJJJJJJJJJJJJJ..........",
-      ".....JJjjjjjjjjjjjjjjJJ.........",
-      ".....JJjjGGGGjjGGGGjjJJ.........",
-      ".....JJjjGGGGjjGGGGjjJJ.........",
-      ".....JJjjjjjjjjjjjjjjJJ..bbbb...",
-      "......JJJJJJJJJJJJJJJJ..bbbbbb..",
-      "....JJJJJJJJGGGGJJJJJJJJbLLLLb..",
-      "...JJJJJJJJJGGGGJJJJJJJJbLLLLb..",
-      "...DDDJJJJJJGGGGJJJJJJDDbLLLLb..",
-      "...DD.JJJJJJJJJJJJJJ.DD.bLLLLb..",
-      "...DD.JJJJJJJJJJJJJJ.DD.bLLLLb..",
-      "...DD.JJJJJJJJJJJJJJ.DD.bLLLLb..",
-      "......JJJJJJJJJJJJJJ....bLLLLb..",
-      "......JJJJJJJJJJJJJJ....bLLLLb..",
-      ".......JJJJJJJJJJJJ.....bLLLLb..",
-      ".......JJJJ....JJJJ....GGGGGGGG.",
-      ".......JJJJ....JJJJ.......GG....",
-      ".......JJJJ....JJJJ.......JJ....",
-      ".......KKKK....KKKK.......JJ....",
-      "......KKKKKK..KKKKKK......JJ....",
-      "......KKKKKK..KKKKKK......JJ....",
-      "......KKKKKK..KKKKKK......JJ....",
-      "......JJJJJJ..JJJJJJ......JJ....",
-      "......JJJJJJ..JJJJJJ............",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'F': '#ea580c', 'J': '#451a03', 'j': '#78350f',
-      'G': '#38bdf8', 'D': '#d97706', 'b': '#18181b',
-      'L': '#fb923c', 'K': '#09090b'
-    }, {
-      auraColor: 'rgba(251, 146, 60, 0.25)',
-      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 13, w: 1, h: 7, c: '#ffffff' }],
-      weaponGlow: { color: '#fb923c', blur: 6, pixels: [[25, 12, 3, 8]] }
+    // 2차: 마공 트랩마스터 (스팀펑크 황동 고글 렌즈 반사, 화약 탄띠 & 대형 폭발 쇠뇌)
+    this.heroSprites.archer_trapper_t2 = createHdCanvas(64, 80, (ctx, w, h) => {
+      const cx = 32;
+      ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(cx, 74, 18, 6, 0, 0, Math.PI*2); ctx.fill();
+
+      // 대형 폭발 쇠뇌
+      ctx.fillStyle = '#451a03'; ctx.fillRect(10, 38, 24, 8);
+      ctx.fillStyle = '#d97706'; ctx.fillRect(8, 28, 4, 28);
+
+      ctx.fillStyle = '#09090b'; ctx.fillRect(cx - 9, 54, 7, 18); ctx.fillRect(cx + 2, 54, 7, 18);
+      ctx.fillStyle = '#451a03'; ctx.fillRect(cx - 11, 34, 22, 22);
+
+      // 스팀펑크 황동 고글 (푸른 렌즈 반사광)
+      ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(cx, 22, 10, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#d97706'; ctx.fillRect(cx - 9, 19, 18, 6);
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath(); ctx.arc(cx - 4, 22, 3.5, 0, Math.PI*2); ctx.arc(cx + 4, 22, 3.5, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx - 5, 20, 1.5, 1.5); ctx.fillRect(cx + 3, 20, 1.5, 1.5);
     });
 
-    // T3: 👑 공성파괴의 아틸러리 (기계식 티타늄 외골격 아머, 어깨 미사일 포드 & 대구경 마도 거포)
-    this.heroSprites.archer_trapper_t3 = this.render32BitSprite(36, 42, [
-      "MM............................MM",
-      "MMMM........................MMMM",
-      "MMMMM......OOOOOOOOOO......MMMMM",
-      ".MMMMM...OOOOOOOOOOOOOO...MMMMM.",
-      "..MMMM..OOooooooooooooOO..MMMM..",
-      "...MM..OOOOOOOOOOOOOOOOOO..MM...",
-      "......AAaaaaaaaaaaaaaaaaAA......",
-      ".....AAaaGGGGGGaaGGGGGGaaAA.FFFF",
-      ".....AAaaGGGGGGaaGGGGGGaaAA.FFFF",
-      ".....AAaaaaaaaaaaaaaaaaaaAA.FFFF",
-      "......AAAAAAAAAAAAAAAAAA...FFFFF",
-      ".....HAAAAAAGGGGGGAAAAAAH..fSSSm",
-      "....HHAAAAAAGGGGGGAAAAAAHH.fSSSm",
-      "...HHHAAAAAAGGGGGGAAAAAAHHHfSSSm",
-      "...HH.AAAAAAAAAAAAAAAAAA.HHfSSSm",
-      "..HHH.AAAAAAAAAAAAAAAAAA.HHfSSSm",
-      "..HHH.AAAAAAAAAAAAAAAAAA.HHfSSSm",
-      "..HHH.AAAAAAAAAAAAAAAAAA.HHfSSSm",
-      "..HHH.AAAAAAAAAAAAAAAAAA.HHfSSSm",
-      "......AAAAAAAAAAAAAAAAAA...fSSSm",
-      "......AAAAAAAAAAAAAAAAAA...fSSSm",
-      ".......AAAAAAAAAAAAAAAA....fSSSm",
-      ".......AAAAA....AAAAA.....GGGGGG",
-      ".......AAAAA....AAAAA.....GGGGGG",
-      ".......AAAAA....AAAAA........GG.",
-      ".......KKKKK....KKKKK........AA.",
-      "......KKKKKKK..KKKKKKK.......AA.",
-      "......KKKKKKK..KKKKKKK.......AA.",
-      "......KKKKKKK..KKKKKKK.......AA.",
-      "......AAAAAAA..AAAAAAA.......AA.",
-      "......AAAAAAA..AAAAAAA..........",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................",
-      "................................"
-    ], {
-      '.': 'transparent',
-      'M': '#f97316', 'O': '#27272a', 'o': '#52525b',
-      'A': '#18181b', 'a': '#3f3f46', 'G': '#fb923c',
-      'F': '#ea580c', 'H': '#f97316', 'f': '#c2410c',
-      'S': '#ffedd5', 'm': '#71717a', 'K': '#09090b'
-    }, {
-      auraColor: 'rgba(249, 115, 22, 0.45)',
-      highlights: [{ x: 10, y: 7, w: 3, h: 2, c: '#ffffff' }, { x: 21, y: 7, w: 3, h: 2, c: '#ffffff' }, { x: 28, y: 12, w: 2, h: 9, c: '#ffffff' }],
-      weaponGlow: { color: '#f97316', blur: 12, pixels: [[27, 10, 4, 12]] }
+    // 3차: 👑 공성파괴의 아틸러리 (기계식 티타늄 외골격 아머, 어깨 미사일 포드 & 대구경 마도 거포)
+    this.heroSprites.archer_trapper_t3 = createHdCanvas(72, 88, (ctx, w, h) => {
+      const cx = 34;
+      // 화염/폭발 기계 아우라
+      const aura = ctx.createRadialGradient(cx, 44, 10, cx, 44, 36);
+      aura.addColorStop(0, 'rgba(249, 115, 22, 0.45)');
+      aura.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.beginPath(); ctx.ellipse(cx, 80, 22, 7, 0, 0, Math.PI*2); ctx.fill();
+
+      // 어깨 장착 다연장 미사일 포드
+      ctx.fillStyle = '#27272a'; ctx.fillRect(cx - 24, 24, 12, 16);
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath(); ctx.arc(cx - 20, 28, 2, 0, Math.PI*2); ctx.arc(cx - 16, 28, 2, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx - 20, 34, 2, 0, Math.PI*2); ctx.arc(cx - 16, 34, 2, 0, Math.PI*2); ctx.fill();
+
+      // 대구경 마도 거포 (핸드 캐논 - 총구 화염 발광)
+      ctx.fillStyle = '#18181b'; ctx.fillRect(8, 38, 36, 14);
+      ctx.fillStyle = '#f97316'; ctx.fillRect(6, 36, 6, 18);
+      ctx.shadowColor = '#f97316'; ctx.shadowBlur = 12;
+      ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(6, 45, 5, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // 티타늄 외골격 아머
+      ctx.fillStyle = '#18181b'; ctx.fillRect(cx - 11, 56, 9, 20); ctx.fillRect(cx + 3, 56, 9, 20);
+      ctx.fillStyle = '#27272a'; ctx.fillRect(cx - 13, 34, 26, 24);
+      ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2; ctx.strokeRect(cx - 13, 34, 26, 24);
+
+      // 바이저 헬름
+      ctx.fillStyle = '#18181b'; ctx.beginPath(); ctx.arc(cx, 22, 12, 0, Math.PI*2); ctx.fill();
+      ctx.shadowColor = '#f97316'; ctx.shadowBlur = 8;
+      ctx.fillStyle = '#f97316'; ctx.fillRect(cx - 8, 21, 16, 4);
+      ctx.shadowBlur = 0;
     });
   }
 

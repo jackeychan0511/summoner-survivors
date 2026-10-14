@@ -1302,11 +1302,11 @@
 
   <!-- Load Modules -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="js/data.js?v=20261014_1556"></script>
-  <script src="js/sprites.js?v=20261014_1556"></script>
-  <script src="js/render.js?v=20261014_1556"></script>
-  <script src="js/engine.js?v=20261014_1556"></script>
-  <script src="js/network.js?v=20261014_1556"></script>
+  <script src="js/data.js?v=20261014_1602"></script>
+  <script src="js/sprites.js?v=20261014_1602"></script>
+  <script src="js/render.js?v=20261014_1602"></script>
+  <script src="js/engine.js?v=20261014_1602"></script>
+  <script src="js/network.js?v=20261014_1602"></script>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -1415,7 +1415,7 @@
     function drawSpriteToCanvas(targetCanvas, srcCanvas) {
       if (!targetCanvas || !srcCanvas) return;
       const ctx = targetCanvas.getContext('2d');
-      ctx.imageSmoothingEnabled = false;
+      ctx.imageSmoothingEnabled = true;
       ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
       const scale = Math.min((targetCanvas.width - 4) / srcCanvas.width, (targetCanvas.height - 4) / srcCanvas.height);
       const dw = Math.floor(srcCanvas.width * scale);
@@ -1692,7 +1692,7 @@
           const c = document.getElementById(canvasId);
           if (!c || !srcCanvas) return;
           const ctx = c.getContext('2d');
-          ctx.imageSmoothingEnabled = false;
+          ctx.imageSmoothingEnabled = true;
           ctx.clearRect(0, 0, c.width, c.height);
           const scale = Math.min((c.width - 4) / srcCanvas.width, (c.height - 4) / srcCanvas.height);
           const dw = Math.floor(srcCanvas.width * scale);
