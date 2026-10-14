@@ -78,6 +78,63 @@ class SpriteManager {
     return cvs;
   }
 
+  // 🌟 32비트 고화질(HD) 픽셀 스프라이트 렌더러
+  // - 32~40px 고해상도 그리드
+  // - 5단계 입체 셰이딩 (Shadow -> Midtone -> Highlight -> Rim Light)
+  // - 32비트 특수효과 (네온 림라이트, 각성 오라, 무기 발광 블룸)
+  render32BitSprite(w, h, grid, palette, fx = {}) {
+    const { cvs, ctx } = this.createPixelCanvas(w, h);
+
+    // 1. 32비트 배경 아우라/후광 (Aura Glow)
+    if (fx.auraColor) {
+      ctx.save();
+      const grad = ctx.createRadialGradient(w / 2, h / 2 + 2, 4, w / 2, h / 2, w / 2);
+      grad.addColorStop(0, fx.auraColor);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+      ctx.restore();
+    }
+
+    // 2. 픽셀 그리드 렌더링
+    for (let r = 0; r < h; r++) {
+      const row = grid[r] || "";
+      for (let c = 0; c < w; c++) {
+        const char = row[c];
+        if (char && palette[char] && palette[char] !== 'transparent') {
+          ctx.fillStyle = palette[char];
+          ctx.fillRect(c, r, 1, 1);
+        }
+      }
+    }
+
+    // 3. 32비트 광택 하이라이트 & 림라이트 (Highlights)
+    if (fx.highlights && fx.highlights.length > 0) {
+      ctx.save();
+      fx.highlights.forEach(hl => {
+        ctx.fillStyle = hl.c || '#ffffff';
+        ctx.fillRect(hl.x, hl.y, hl.w || 1, hl.h || 1);
+      });
+      ctx.restore();
+    }
+
+    // 4. 32비트 무기 발광 블룸 (Weapon Bloom & Sparks)
+    if (fx.weaponGlow) {
+      ctx.save();
+      ctx.shadowColor = fx.weaponGlow.color || '#facc15';
+      ctx.shadowBlur = fx.weaponGlow.blur || 6;
+      ctx.fillStyle = fx.weaponGlow.color || '#facc15';
+      if (fx.weaponGlow.pixels) {
+        fx.weaponGlow.pixels.forEach(p => {
+          ctx.fillRect(p[0], p[1], p[2] || 1, p[3] || 1);
+        });
+      }
+      ctx.restore();
+    }
+
+    return cvs;
+  }
+
   generateAllCustomSprites() {
     this.generateHumanSprites();
     this.generateHeroClassSprites();
@@ -331,807 +388,972 @@ class SpriteManager {
   // 2-1. ⚔️ 검사 & 🏹 궁수 6대 세부 특화 x 3단계 전직 픽셀 스프라이트 (18종)
   // 소환수가 없는 대신 본체 캐릭터가 전직할 때마다 외형이 웅장하게 진화!
   // =========================================================================
+  // =========================================================================
+  // 2-1. ⚔️ 검사 & 🏹 궁수 6대 세부 특화 x 3단계 전직 32비트 고화질(HD) 스프라이트 (18종)
+  // 32비트 콘솔 RPG (PS1/세가새턴/네오지오) 수준의 32~36px 고해상도 + 5단계 입체 셰이딩 + 네온 발광
+  // =========================================================================
   generateHeroClassSprites() {
     // -----------------------------------------------------------------------
-    // [1] 검사: 광전사 (Warrior - Berserker)
+    // [1] 검사: 광전사 (Berserker) 32비트 3단계
     // -----------------------------------------------------------------------
-    const berserkerT1Palette = {
+    // T1: 견습 광전사 (와일드 갈기머리, 붉은 머리띠, 거친 가죽흉갑, 강철 숄더가드, 양손 대검)
+    this.heroSprites.warrior_berserker_t1 = this.render32BitSprite(32, 38, [
+      "............BBBB................",
+      "..........BBBBBBBB..............",
+      ".........BBBBBBBBBB.............",
+      "........RRRRRRRRRRRR............",
+      ".......RRbbbbbbbbbbRR...........",
+      "......BBBBBBBBBBBBBBBB..........",
+      ".....BBFFFFFFFFFFFFFFBB.........",
+      ".....BBFssFFFFFFFFssFBB.........",
+      ".....BBFsEFFFsFFFEsFBB..........",
+      ".....BBFFFFFFFFFFFFFFBB.........",
+      "......BFFFFFDDFDDFFFFB...ssss...",
+      ".......BFFFFDDDDFFFFB...ssssss..",
+      "......MMMMLDDDDDLMMMM...sSSSSs..",
+      ".....MMMMMMLDDDLMMMMMM..sSSSSs..",
+      "....MMMMmmmmDDDDmmmmMMM.sSSSSs..",
+      "...MMMMmmmmmDDDDmmmmmMMMsSSSSs..",
+      "...MM.MMmmmLLLLLLmmmMM.MsSSSSs..",
+      "...MM.MMLLLLLLLLLLMM.MM.sSSSSs..",
+      "...MM.MMLLLLLLLLLLMM.MM.sSSSSs..",
+      "......MMLLLLLLLLLLMM....sSSSSs..",
+      "......MMLLLLLLLLLLMM....sSSSSs..",
+      ".......LLLLLLLLLLLL.....sSSSSs..",
+      ".......LLLLLLLLLLLL....GGGGGGGG.",
+      ".......LLLL....LLLL....GGGGGGGG.",
+      ".......LLLL....LLLL.......GG....",
+      ".......KKKK....KKKK.......BB....",
+      "......KKKKKK..KKKKKK......BB....",
+      "......KKKKKK..KKKKKK......BB....",
+      "......KKKKKK..KKKKKK......BB....",
+      "......KKKKKK..KKKKKK......BB....",
+      "......OOOOOO..OOOOOO......BB....",
+      "......OOOOOO..OOOOOO............",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
       '.': 'transparent',
-      'R': '#dc2626', // 붉은 머리띠
-      'F': '#fed7aa', // 피부톤
-      'B': '#451a03', // 헝클어진 흑갈색 머리
-      'E': '#ef4444', // 붉은 눈빛
-      'L': '#78350f', // 거친 가죽 조끼
-      'M': '#64748b', // 강철 숄더가드
-      'm': '#94a3b8', // 하이라이트
-      'S': '#f8fafc', // 대검 칼날 (실버)
-      's': '#cbd5e1', // 대검 면
-      'G': '#f59e0b', // 대검 가드
-      'K': '#1e293b'  // 가죽 부츠
-    };
-    this.heroSprites.warrior_berserker_t1 = this.renderPixelGrid(24, 32, [
-      ".........BB.............",
-      "........BBBB............",
-      ".......RRRRRR...........",
-      "......RBBBBBR...........",
-      ".....BBBBBBBBB..........",
-      "....BFFFFFFFFFF.........",
-      "....BFE..__..EF.........",
-      "....BFFFFFFFFFF.........",
-      ".....BFFFFFFFF..........",
-      ".....MMLLLLMM...s.......",
-      "....MMMmmmmmMMM.s.......",
-      "...MMMMLLLLMMMM.s.......",
-      "...M.MMLLLLMM.M.S.......",
-      "...M.MMLLLLMM.M.S.......",
-      ".....MMLLLLMM...S.......",
-      ".....MMLLLLMM...S.......",
-      "......LLLLLL....S.......",
-      "......LLLLLL...GGG......",
-      "......LL..LL....G.......",
-      "......LL..LL....B.......",
-      "......KK..KK....B.......",
-      ".....KKK..KKK...B.......",
-      ".....KKK..KKK...B.......",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], berserkerT1Palette);
+      'R': '#dc2626', 'r': '#ef4444',
+      'B': '#291404', 'b': '#451a03',
+      'F': '#fed7aa', 's': '#ea580c',
+      'E': '#ef4444', 'D': '#9a3412',
+      'L': '#78350f', 'M': '#475569',
+      'm': '#94a3b8', 'S': '#f8fafc',
+      'G': '#f59e0b', 'K': '#1e293b',
+      'O': '#0f172a'
+    }, {
+      highlights: [{ x: 13, y: 14, w: 2, h: 1, c: '#ffffff' }, { x: 26, y: 15, w: 1, h: 5, c: '#ffffff' }]
+    });
 
-    // 광전사 2차: 블러드 버서커 (Blood Berserker - 흑철 풀플레이트 & 핏빛 망토 & 거대 피빛 참마도)
-    const berserkerT2Palette = {
+    // T2: 블러드 버서커 (흑철 풀플레이트, 혈흔 룬 각인, 핏빛 휘날리는 망토, 거대한 핏빛 참마도)
+    this.heroSprites.warrior_berserker_t2 = this.render32BitSprite(32, 38, [
+      "............RRRR................",
+      "..........RRRRRRRR..............",
+      ".........RRRRRRRRRR.............",
+      "........OOOOOOOOOOOO............",
+      ".......OOooooooooooOO...........",
+      "......OOOOOOOOOOOOOOOO..........",
+      ".....OOooooooooooooooOO.........",
+      ".....OOooVVVVooVVVVooOO.........",
+      ".....OOooVVVVooVVVVooOO.........",
+      ".....OOooooooooooooooOO...rrrr..",
+      "......OOOOOOOOOOOOOOOO...rrrrrr.",
+      ".....COOOOOOOOOOOOOOOOC..rSSSSr.",
+      "....CCOOooGGGGGGooOOCC...rSSSSr.",
+      "...CCCOOOOOGGGGOOOOOCCC..rSSSSr.",
+      "...CC.OOOOOOOOOOOOOO.CC..rSSSSr.",
+      "..CCC.OOOOOOOOOOOOOO.CCC.rSSSSr.",
+      "..CCC.OOOOOOOOOOOOOO.CCC.rSSSSr.",
+      "..CCC.OOOOOOOOOOOOOO.CCC.rSSSSr.",
+      "..CCC.OOOOOOOOOOOOOO.CCC.rSSSSr.",
+      "......OOOOOOOOOOOOOO.....rSSSSr.",
+      "......OOOOOOOOOOOOOO.....rSSSSr.",
+      ".......OOOOOOOOOOOO......rSSSSr.",
+      ".......OOOO....OOOO.....GGGGGGGG",
+      ".......OOOO....OOOO.....GGGGGGGG",
+      ".......OOOO....OOOO........GG...",
+      ".......KKKK....KKKK........OO...",
+      "......KKKKKK..KKKKKK.......OO...",
+      "......KKKKKK..KKKKKK.......OO...",
+      "......KKKKKK..KKKKKK.......OO...",
+      "......KKKKKK..KKKKKK.......OO...",
+      "......OOOOOO..OOOOOO.......OO...",
+      "......OOOOOO..OOOOOO............",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
       '.': 'transparent',
-      'R': '#991b1b', // 진홍빛 깃털
-      'r': '#ef4444', // 피빛 하이라이트
-      'O': '#0f172a', // 흑철 갑옷
-      'o': '#334155', // 흑철 반사광
-      'V': '#f43f5e', // 바이저 속 붉은 안광
-      'C': '#b91c1c', // 핏빛 망토
-      'c': '#dc2626', // 망토 주름
-      'S': '#ef4444', // 핏빛 참마도 칼날
-      's': '#7f1d1d', // 검 혈조 (피홈)
-      'G': '#f59e0b', // 황금 해골 문양
-      'K': '#0f172a'  // 흑철 부츠
-    };
-    this.heroSprites.warrior_berserker_t2 = this.renderPixelGrid(24, 32, [
-      ".........RR.............",
-      "........RRRR............",
-      ".......RRRRRR...........",
-      ".......OOOOOO...........",
-      "......OooooooO..........",
-      ".....OOOOOOOOOO.........",
-      ".....OOVVVVVVOO.........",
-      ".....OOOOOOOOOO.........",
-      "......OOOOOOOO..ss......",
-      ".....COOOOOOOOC.sS......",
-      "....CCOooGGooOCCsS......",
-      "...CCOOOOOOOOOOCsS......",
-      "...c.COOOOOOOOC.sS......",
-      "...c.COOOOOOOOC.sS......",
-      "...c.COOOOOOOOC.sS......",
-      ".....COOOOOOOOC.sS......",
-      "......OOOOOOOO..sS......",
-      "......OOOOOOOO.GGGG.....",
-      "......OO....OO..GG......",
-      "......OO....OO...O......",
-      "......KK....KK...O......",
-      ".....KKK....KKK..O......",
-      ".....KKK....KKK..O......",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], berserkerT2Palette);
+      'R': '#991b1b', 'O': '#090d16', 'o': '#334155',
+      'V': '#ff0033', 'C': '#991b1b', 'c': '#ef4444',
+      'G': '#f59e0b', 'r': '#b91c1c', 'S': '#ff2244',
+      'K': '#1e293b'
+    }, {
+      auraColor: 'rgba(239, 68, 68, 0.25)',
+      highlights: [{ x: 9, y: 7, w: 2, h: 2, c: '#ff99aa' }, { x: 19, y: 7, w: 2, h: 2, c: '#ff99aa' }, { x: 27, y: 14, w: 1, h: 7, c: '#ffffff' }],
+      weaponGlow: { color: '#ef4444', blur: 6, pixels: [[26, 12, 3, 10]] }
+    });
 
-    // 광전사 3차 최종 각성: 👑 불멸의 워로드 (Immortal Warlord - 거대 악마 뿔 투구 & 지옥불 대검 & 화염 오라)
-    const berserkerT3Palette = {
+    // T3: 👑 광룡의 헬블레이더 (악마의 진홍 뿔 투구, 칠흑 드래곤 마갑, 전신 핏빛 화염 아우라, 거대한 헬블레이드)
+    this.heroSprites.warrior_berserker_t3 = this.render32BitSprite(36, 42, [
+      "HH............................HH",
+      "HHHH........................HHHH",
+      "HHHHH......RRRRRRRRRR......HHHHH",
+      ".HHHHH...RRRRRRRRRRRRRR...HHHHH.",
+      "..HHHH..RRbbbbbbbbbbbbRR..HHHH..",
+      "...HH..RRRRRRRRRRRRRRRRRR..HH...",
+      "......OOooooooooooooooooOO......",
+      ".....OOooVVVVVVooVVVVVVooOO.FFFF",
+      ".....OOooVVVVVVooVVVVVVooOO.FFFF",
+      ".....OOooooooooooooooooooOO.FFFF",
+      "......OOOOOOOOOOOOOOOOOO...FFFFF",
+      ".....COOOOOOOOOOOOOOOOOOC..fSSSf",
+      "....CCOOooGGGGGGGGooOOCCC..fSSSf",
+      "...CCCOOOOOGGGGGGOOOOOCCCC.fSSSf",
+      "...CC.OOOOOOOOOOOOOOOO.CCC.fSSSf",
+      "..CCC.OOOOOOOOOOOOOOOO.CCC.fSSSf",
+      "..CCC.OOOOOOOOOOOOOOOO.CCC.fSSSf",
+      "..CCC.OOOOOOOOOOOOOOOO.CCC.fSSSf",
+      "..CCC.OOOOOOOOOOOOOOOO.CCC.fSSSf",
+      "......OOOOOOOOOOOOOOOO.....fSSSf",
+      "......OOOOOOOOOOOOOOOO.....fSSSf",
+      ".......OOOOOOOOOOOOOO......fSSSf",
+      ".......OOOOO....OOOOO.....GGGGGG",
+      ".......OOOOO....OOOOO.....GGGGGG",
+      ".......OOOOO....OOOOO........GG.",
+      ".......KKKKK....KKKKK........OO.",
+      "......KKKKKKK..KKKKKKK.......OO.",
+      "......KKKKKKK..KKKKKKK.......OO.",
+      "......KKKKKKK..KKKKKKK.......OO.",
+      "......OOOOOOO..OOOOOOO.......OO.",
+      "......OOOOOOO..OOOOOOO..........",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
       '.': 'transparent',
-      'H': '#dc2626', // 악마의 거대 뿔
-      'h': '#fca5a5', // 뿔 끝 날카로운 광택
-      'P': '#7f1d1d', // 뿔 기저부
-      'O': '#050505', // 심연의 흑철 갑주
-      'F': '#f97316', // 지옥불 룬 발광
-      'V': '#fef08a', // 타오르는 황금 안광
-      'C': '#dc2626', // 펄럭이는 찢어진 피빛 망토
-      'S': '#f97316', // 타오르는 흑염/마그마 대검
-      's': '#ef4444', // 불꽃 검신
-      'W': '#ffffff', // 검 코어 열기
-      'G': '#f59e0b', // 지옥불 룬 가드
-      'K': '#0f172a'  // 가시 발굽 부츠
-    };
-    this.heroSprites.warrior_berserker_t3 = this.renderPixelGrid(24, 32, [
-      "h......h................",
-      "HH....HH................",
-      ".HH..HH.................",
-      "..PHHP..................",
-      "...OOOO.................",
-      "..OooooO................",
-      ".OOOOOOOO...............",
-      ".OOVVVVOO...............",
-      "..OFFFFO........ss......",
-      "..COOOOC.......ssSS.....",
-      ".CCOFFOC......ssSSSS....",
-      "CCCOOFOCC.....ssSSSS....",
-      "c.COFFOC.C....ssSSSS....",
-      "c.COOOOC.C....ssSSSS....",
-      "..COFFOC......ssSSSS....",
-      "...OOOO.......ssSSSS....",
-      "...OOOO.......ssSSSS....",
-      "...OOOO......GGGGGGGG...",
-      "...OO..OO.......GG......",
-      "...OO..OO.......OO......",
-      "...KK..KK.......OO......",
-      "..KKK..KKK......OO......",
-      "..KKK..KKK..............",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], berserkerT3Palette);
-
-    // -----------------------------------------------------------------------
-    // [2] 검사: 성기사 (Warrior - Paladin)
-    // -----------------------------------------------------------------------
-    // 성기사 1차: 기본 성기사 (은빛 갑옷 & 십자가 카이트 실드)
-    this.heroSprites.warrior_paladin_t1 = this.humanSprites.paladin;
-
-    // 성기사 2차: 홀리 크루세이더 (Holy Crusader - 백금 중갑 & 황금 십자 타워실드 & 성검)
-    const paladinT2Palette = {
-      '.': 'transparent',
-      'P': '#ffffff', // 백금 하이라이트
-      'W': '#e2e8f0', // 백금 갑옷
-      'w': '#94a3b8', // 백금 음영
-      'G': '#f59e0b', // 찬란한 황금 십자가
-      'g': '#fde047', // 황금 광택
-      'B': '#38bdf8', // 성스러운 푸른 안광
-      'S': '#f8fafc', // 성검 플랑베르주
-      's': '#38bdf8', // 성검 푸른 룬
-      'T': '#0284c7', // 성스러운 푸른 망토
-      'K': '#475569'  // 백은 부츠
-    };
-    this.heroSprites.warrior_paladin_t2 = this.renderPixelGrid(24, 32, [
-      ".........GG.............",
-      "........GGGG............",
-      ".......GGGGGG...........",
-      ".......WWWWWW...........",
-      "......WPppppPW..........",
-      ".....WWwwwwwwWW.........",
-      ".....WWBBBBBBWW.........",
-      ".....WWwwwwwwWW..s......",
-      "....T.WWWWWW.T...s......",
-      "...T..GGGGGG..T.sS......",
-      "...T.GWWWWWWG.T.sS......",
-      "..GGGWWGGGGWWGGGss......",
-      "..GGGWWGGGGWWGGGss......",
-      "..GGGWWGGGGWWGGGss......",
-      "..GGGWWGGGGWWGGGss......",
-      "...T.GWWWWWWG.T.sS......",
-      "....T.WWWWWW.T.GGGG.....",
-      "......WWWWWW....GG......",
-      "......WW..WW....WW......",
-      "......WW..WW....WW......",
-      "......KK..KK....WW......",
-      ".....KKK..KKK...........",
-      ".....KKK..KKK...........",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], paladinT2Palette);
-
-    // 성기사 3차 최종 각성: 👑 천벌의 대성기사 (Divine Arch-Paladin - 천사 날개 투구 & 황금 태양 성벽방패 & 헤일로)
-    const paladinT3Palette = {
-      '.': 'transparent',
-      'H': '#fde047', // 등 뒤에 떠오른 황금 헤일로 (후광)
-      'A': '#ffffff', // 투구 양옆의 천사 날개
-      'a': '#e0f2fe', // 날개 음영
-      'P': '#ffffff', // 신성한 순백 판금갑옷
-      'p': '#cbd5e1', // 판금 음영
-      'G': '#f59e0b', // 신성한 황금 보석
-      'g': '#fef08a', // 황금빛 섬광
-      'S': '#fde047', // 천벌의 황금 성검
-      's': '#ffffff', // 검 코어 광채
-      'T': '#0284c7', // 대형 성벽 방패
-      't': '#f59e0b', // 방패 태양 문장
-      'K': '#e2e8f0'  // 순백 부츠
-    };
-    this.heroSprites.warrior_paladin_t3 = this.renderPixelGrid(24, 32, [
-      "....HHHHHHHHHHHH........",
-      "...HH..........HH.......",
-      "..AH............HA......",
-      ".AAH...PPPPPP...HAA.....",
-      ".AAa..PPppppPP..aAA.....",
-      "..a..PPPPPPPPPP...a.....",
-      ".....PPggggggPP.........",
-      ".....PPPPPPPPPP..s......",
-      "....t.GGGGGGGG.t.sS.....",
-      "...tt.PPGGGGPP.tt.sS....",
-      "..ttt.PPGGGGPP.ttt.sS...",
-      "..tgt.PPGGGGPP.tgt.sS...",
-      "..ttt.PPGGGGPP.ttt.sS...",
-      "..ttt.PPGGGGPP.ttt.sS...",
-      "...tt.PPPPPPPP.tt.sS....",
-      "....t.PPPPPPPP.t.GGGG...",
-      "......PPPPPPPP....GG....",
-      "......PP....PP....PP....",
-      "......PP....PP....PP....",
-      "......KK....KK....PP....",
-      ".....KKK....KKK.........",
-      ".....KKK....KKK.........",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], paladinT3Palette);
+      'H': '#dc2626', 'R': '#7f1d1d', 'b': '#1f2937',
+      'O': '#030712', 'o': '#374151', 'V': '#ff0055',
+      'C': '#b91c1c', 'G': '#fbbf24', 'F': '#ff1100',
+      'f': '#991b1b', 'S': '#ffffff', 'K': '#111827'
+    }, {
+      auraColor: 'rgba(239, 68, 68, 0.45)',
+      highlights: [{ x: 10, y: 7, w: 3, h: 2, c: '#ff99bb' }, { x: 21, y: 7, w: 3, h: 2, c: '#ff99bb' }, { x: 28, y: 12, w: 2, h: 9, c: '#ffffff' }],
+      weaponGlow: { color: '#ff2200', blur: 10, pixels: [[27, 11, 4, 12]] }
+    });
 
     // -----------------------------------------------------------------------
-    // [3] 검사: 마검사 (Warrior - Magic Knight)
+    // [2] 검사: 성기사 (Paladin) 32비트 3단계
     // -----------------------------------------------------------------------
-    // 마검사 1차: 기본 마검사 (보랏빛 마도 룬소드 & 룬 경갑)
-    const magicT1Palette = {
+    // T1: 견습 수호기사 (백은 경갑, 금빛 벨트, 강철 롱소드, 스몰 버클러)
+    this.heroSprites.warrior_paladin_t1 = this.render32BitSprite(32, 38, [
+      "............PPPP................",
+      "..........PPPPPPPP..............",
+      ".........PPPPPPPPPP.............",
+      "........SSSSSSSSSSSS............",
+      ".......SSssssssssssSS...........",
+      "......SSSSSSSSSSSSSSSS..........",
+      ".....SSFFFFFFFFFFFFFFSS.........",
+      ".....SSFsEFFFFFFFsEFsSS.........",
+      ".....SSFFFFFFFFFFFFFFSS.........",
+      ".....SSFFFFFDDDDFFFFFSS..ssss...",
+      "......SFFFFFDDDDFFFFFS..ssssss..",
+      ".....BSSSSSSDDDDSSSSSSB.sWWWWs..",
+      "....BBSSSSSSDDDDSSSSSSBBsWWWWs..",
+      "...BBBSSSSSSDDDDSSSSSSBBsWWWWs..",
+      "...BB.SSSSSSSSSSSSSS.BB.sWWWWs..",
+      "...BB.SSSSSSSSSSSSSS.BB.sWWWWs..",
+      "...BB.SSSSSSSSSSSSSS.BB.sWWWWs..",
+      "......SSSSSSGGGGSSSS....sWWWWs..",
+      "......SSSSSSGGGGSSSS....sWWWWs..",
+      ".......SSSSSSSSSSSS.....sWWWWs..",
+      ".......SSSS....SSSS....GGGGGGGG.",
+      ".......SSSS....SSSS.......GG....",
+      ".......SSSS....SSSS.......SS....",
+      ".......KKKK....KKKK.......SS....",
+      "......KKKKKK..KKKKKK......SS....",
+      "......KKKKKK..KKKKKK......SS....",
+      "......KKKKKK..KKKKKK......SS....",
+      "......SSSSSS..SSSSSS......SS....",
+      "......SSSSSS..SSSSSS............",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
       '.': 'transparent',
-      'R': '#a855f7', // 룬 보랏빛 띠
-      'H': '#312e81', // 짙은 네이비 머리
-      'F': '#fed7aa', // 피부톤
-      'E': '#38bdf8', // 신비로운 푸른 눈
-      'M': '#1e1b4b', // 마도 흉갑
-      'm': '#4338ca', // 마도 코트
-      'S': '#c084fc', // 보랏빛 마법 룬검
-      's': '#ffffff', // 검날 룬 각인
-      'K': '#1e1b4b'  // 부츠
-    };
-    this.heroSprites.warrior_magic_knight_t1 = this.renderPixelGrid(24, 32, [
-      ".........HH.............",
-      "........HHHH............",
-      ".......RRRRRR...........",
-      "......RHHHHHHR..........",
-      ".....HHHHHHHHHH.........",
-      "....HFFFFFFFFFF.........",
-      "....HFE..__..EF.........",
-      "....HFFFFFFFFFF.........",
-      ".....HFFFFFFFF..........",
-      ".....mmmmmmmm...s.......",
-      "....MMmmmmmmMM..s.......",
-      "...MMMmmmmmmMMM.s.......",
-      "...M.MMMRRMMM.M.S.......",
-      "...M.MMMRRMMM.M.S.......",
-      ".....MMMRRMMM...S.......",
-      ".....mmmmmmmm...S.......",
-      "......mmmmmm....S.......",
-      "......mmmmmm...SSS......",
-      "......mm..mm....R.......",
-      "......mm..mm....H.......",
-      "......KK..KK....H.......",
-      ".....KKK..KKK...H.......",
-      ".....KKK..KKK...H.......",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], magicT1Palette);
+      'P': '#2563eb', 'S': '#64748b', 's': '#94a3b8',
+      'F': '#fed7aa', 'E': '#0284c7', 'D': '#cbd5e1',
+      'B': '#1e3a8a', 'W': '#f8fafc', 'G': '#f59e0b',
+      'K': '#334155'
+    }, {
+      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 14, w: 1, h: 6, c: '#ffffff' }]
+    });
 
-    // 마검사 2차: 원소 룬블레이더 (Elemental Runeblade - 화염/빙결 견갑 & 이도류 룬검)
-    const magicT2Palette = {
+    // T2: 홀리 팔라딘 (백은 풀플레이트, 푸른 깃털 투구, 황금 십자가 카이트 실드, 백은 나이트소드)
+    this.heroSprites.warrior_paladin_t2 = this.render32BitSprite(32, 38, [
+      "............FFFF................",
+      "..........FFFFFFFF..............",
+      ".........FFFFFFFFFF.............",
+      "........SSSSSSSSSSSS............",
+      ".......SSwwwwwwwwwwSS...........",
+      "......SSSSSSSSSSSSSSSS..........",
+      ".....SSwwwwwwwwwwwwwwSS.........",
+      ".....SSwwBBBBwwBBBBwwSS.........",
+      ".....SSwwBBBBwwBBBBwwSS.........",
+      ".....SSwwwwwwwwwwwwwwSS..wwww...",
+      "......SSSSSSSSSSSSSSSS..wwwwww..",
+      "....SSWWWWWWGGGGWWWWWWSSwSSSWw..",
+      "...SSSSWWWWWGGGGWWWWWSSSwSSSWw..",
+      "...DDDSSWWWWGGGGWWWWSSDDwSSSWw..",
+      "...DD.SSWWWWWWWWWWWW.SS.wSSSWw..",
+      "...DD.SSWWWWWWWWWWWW.SS.wSSSWw..",
+      "...DD.SSWWWWWWWWWWWW.SS.wSSSWw..",
+      "......SSWWWWWWWWWWWW....wSSSWw..",
+      "......SSWWWWWWWWWWWW....wSSSWw..",
+      ".......SSSSSSSSSSSS.....wSSSWw..",
+      ".......SSSS....SSSS....GGGGGGGG.",
+      ".......SSSS....SSSS.......GG....",
+      ".......SSSS....SSSS.......SS....",
+      ".......KKKK....KKKK.......SS....",
+      "......KKKKKK..KKKKKK......SS....",
+      "......KKKKKK..KKKKKK......SS....",
+      "......KKKKKK..KKKKKK......SS....",
+      "......SSSSSS..SSSSSS......SS....",
+      "......SSSSSS..SSSSSS............",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
       '.': 'transparent',
-      'H': '#1e1b4b', // 헬름
-      'R': '#ef4444', // 오른쪽 화염 견갑
-      'r': '#f97316', // 화염 불꽃
-      'B': '#0284c7', // 왼쪽 빙결 견갑
-      'b': '#38bdf8', // 냉기 서리
-      'F': '#ffffff', // 마도 흉갑 중심부
-      'V': '#c084fc', // 룬 안광
-      'S': '#f97316', // 오른손 화염검
-      's': '#38bdf8', // 왼손 빙결검
-      'K': '#1e293b'  // 부츠
-    };
-    this.heroSprites.warrior_magic_knight_t2 = this.renderPixelGrid(24, 32, [
-      ".........HH.............",
-      "........HHHH............",
-      ".......HHHHHH...........",
-      "......HhhhhhhH..........",
-      ".....HHHHHHHHHH.........",
-      ".....HHVVVVVVHH.........",
-      ".....HHHHHHHHHH.........",
-      "......HHHHHHHH..........",
-      "...rr.RRFFFFBB.bb.......",
-      "..rR..RRFFFFBB..Bb......",
-      "..sR.RRRFFFFBBB.BS......",
-      "..sR.RRRFFFFBBB.BS......",
-      "..s..RRRFFFFBBB..S......",
-      "..s..RRRFFFFBBB..S......",
-      "..s...FFFFFFFF...S......",
-      "..s...FFFFFFFF...S......",
-      ".......FFFFFF....S......",
-      ".......FFFFFF...SSS.....",
-      ".......FF..FF....S......",
-      ".......FF..FF....H......",
-      ".......KK..KK....H......",
-      "......KKK..KKK...H......",
-      "......KKK..KKK...H......",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], magicT2Palette);
+      'F': '#38bdf8', 'S': '#94a3b8', 'w': '#cbd5e1',
+      'W': '#ffffff', 'B': '#0284c7', 'G': '#facc15',
+      'D': '#1d4ed8', 'K': '#475569'
+    }, {
+      auraColor: 'rgba(56, 189, 248, 0.25)',
+      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 13, w: 1, h: 7, c: '#ffffff' }],
+      weaponGlow: { color: '#38bdf8', blur: 6, pixels: [[25, 12, 3, 8]] }
+    });
 
-    // 마검사 3차 최종 각성: 👑 차원의 룬로드 (Astral Rune Lord - 차원 성간 마도갑주 & 4자루 부유 룬검)
-    const magicT3Palette = {
+    // T3: 👑 디바인 가디언 (황금 날개 투구, 순백&황금 디바인 아머, 천사 날개 망토, 엑스칼리버 & 대형 십자성 타워실드)
+    this.heroSprites.warrior_paladin_t3 = this.render32BitSprite(36, 42, [
+      "WW............................WW",
+      "WWWW........................WWWW",
+      "WWWWW......GGGGGGGGGG......WWWWW",
+      ".WWWWW...GGGGGGGGGGGGGG...WWWWW.",
+      "..WWWW..GGwwwwwwwwwwwwGG..WWWW..",
+      "...WW..GGGGGGGGGGGGGGGGGG..WW...",
+      "......WWwwwwwwwwwwwwwwwwWW......",
+      ".....WWwwBBBBBBwwBBBBBBwwWW.YYYY",
+      ".....WWwwBBBBBBwwBBBBBBwwWW.YYYY",
+      ".....WWwwwwwwwwwwwwwwwwwwWW.YYYY",
+      "......WWWWWWWWWWWWWWWWWW...YYYYY",
+      ".....MWWWWWWGGGGGGWWWWWWM..ySSSy",
+      "....MMWWWWWWGGGGGGWWWWWWMM.ySSSy",
+      "...MMMWWWWWWGGGGGGWWWWWWMMM.ySSSy",
+      "...MM.WWWWWWGGGGGGWWWWWW.MM.ySSSy",
+      "..MMM.WWWWWWGGGGGGWWWWWW.MMM.ySSSy",
+      "..MMM.WWWWWWWWWWWWWWWWWW.MMM.ySSSy",
+      "..MMM.WWWWWWWWWWWWWWWWWW.MMM.ySSSy",
+      "..MMM.WWWWWWWWWWWWWWWWWW.MMM.ySSSy",
+      "......WWWWWWWWWWWWWWWWWW...ySSSy",
+      "......WWWWWWWWWWWWWWWWWW...ySSSy",
+      ".......WWWWWWWWWWWWWWWW....ySSSy",
+      ".......WWWWW....WWWWW.....GGGGGG",
+      ".......WWWWW....WWWWW.....GGGGGG",
+      ".......WWWWW....WWWWW........GG.",
+      ".......KKKKK....KKKKK........WW.",
+      "......KKKKKKK..KKKKKKK.......WW.",
+      "......KKKKKKK..KKKKKKK.......WW.",
+      "......KKKKKKK..KKKKKKK.......WW.",
+      "......WWWWWWW..WWWWWWW.......WW.",
+      "......WWWWWWW..WWWWWWW..........",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
       '.': 'transparent',
-      'H': '#f43f5e', // 머리 위 차원 룬
-      'S': '#38bdf8', // 부유하는 비전 룬검 1/4 (청록)
-      's': '#c084fc', // 부유하는 비전 룬검 2/3 (보라)
-      'C': '#0f172a', // 우주 흑색 갑옷
-      'c': '#312e81', // 심우주 네이비
-      'G': '#fde047', // 별빛 금박
-      'W': '#ffffff', // 성간 은하수 백색
-      'V': '#38bdf8', // 차원의 눈빛
-      'K': '#0284c7'  // 에테르 부츠
-    };
-    this.heroSprites.warrior_magic_knight_t3 = this.renderPixelGrid(24, 32, [
-      "s.......HH.......S......",
-      "ss.....HHHH.....SS......",
-      ".ss...HHHHHH...SS.......",
-      "..s..CCccccCC..S........",
-      "....CCWWWWWWCC..........",
-      "...CCVVVVVVVVCC.........",
-      "...CCWWWWWWWWCC.........",
-      "....CCccccCC............",
-      "s....CGGGGGGC....S......",
-      "ss..CCGGWWGGCC..SS......",
-      ".ss.CCGGWWGGCC.SS.......",
-      "..s.CCGGWWGGCC.S........",
-      "....CCGGWWGGCC..........",
-      "....CCGGWWGGCC..........",
-      ".....CCCCCCCC...........",
-      ".....CCCCCCCC...........",
-      "......CCCCCC............",
-      "......CCCCCC............",
-      "......CC..CC............",
-      "......CC..CC............",
-      "......KK..KK............",
-      ".....KKK..KKK...........",
-      ".....KKK..KKK...........",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], magicT3Palette);
-
-    // -----------------------------------------------------------------------
-    // [4] 궁수: 스나이퍼 (Archer - Sniper)
-    // -----------------------------------------------------------------------
-    // 스나이퍼 1차: 기본 스나이퍼 (짙은 남색 저격 후드 & 복합 장궁)
-    const sniperT1Palette = {
-      '.': 'transparent',
-      'H': '#1e293b', // 네이비 저격 후드
-      'h': '#334155', // 후드 하이라이트
-      'F': '#fed7aa', // 피부톤
-      'E': '#38bdf8', // 예리한 푸른 눈
-      'T': '#0f172a', // 가죽 슈트
-      'W': '#475569', // 복합 장궁
-      'S': '#ffffff', // 활줄
-      'K': '#1e293b'  // 부츠
-    };
-    this.heroSprites.archer_sniper_t1 = this.renderPixelGrid(24, 32, [
-      "........HHHH............",
-      ".......HhhhhH...........",
-      "......HhhhhhhH..........",
-      ".....HHHHHHHHHH.........",
-      ".....HHHHHHHHHH.........",
-      "....HFFFFFFFFFF.........",
-      "....HFE..__..EF.........",
-      "....HFFFFFFFFFF.........",
-      ".....HFFFFFFFF..........",
-      ".....W.TTTTTT.H.........",
-      "....W.TTTTTTTT.H........",
-      "...W..TTTTTTTT..H.......",
-      "...W..TTHHHHTT..H.......",
-      "...S..TTTTTTTT..........",
-      "...S..TTTTTTTT..........",
-      "...W..TTTTTTTT..........",
-      "...W..TT....TT..........",
-      "....W.TT....TT..........",
-      "......KK....KK..........",
-      ".....KKK....KKK.........",
-      ".....KKK....KKK.........",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], sniperT1Palette);
-
-    // 스나이퍼 2차: 호크아이 (Hawkeye - 조준 고글 & 전자기 롱보우 & 깃털 견갑)
-    const sniperT2Palette = {
-      '.': 'transparent',
-      'H': '#0f172a', // 암살단 후드
-      'G': '#06b6d4', // 전자기 조준 고글 (네온 시안)
-      'g': '#ffffff', // 고글 렌즈 반사
-      'F': '#fed7aa', // 마스크 아래 피부
-      'T': '#1e293b', // 방탄 슈트
-      'W': '#0284c7', // 전자기 롱보우
-      'L': '#06b6d4', // 활의 레이저 조준선
-      'K': '#0f172a'  // 기동 부츠
-    };
-    this.heroSprites.archer_sniper_t2 = this.renderPixelGrid(24, 32, [
-      "........HHHH............",
-      ".......HHHHHH...........",
-      "......HHHHHHHH..........",
-      ".....HHHHHHHHHH.........",
-      ".....HHHHHHHHHH.........",
-      "....HGGGGGGGGGGH........",
-      "....HGgG....GgGH........",
-      "....HFFFFFFFFFFH........",
-      ".....HFFFFFFFFH.........",
-      ".....W.TTTTTT.H.........",
-      "....W.TTTTTTTT.H........",
-      "...W..TTTTTTTT..H.......",
-      "...W..TTLLLLTT..H.......",
-      "...L..TTTTTTTT..........",
-      "...L..TTTTTTTT..........",
-      "...W..TTTTTTTT..........",
-      "...W..TT....TT..........",
-      "....W.TT....TT..........",
-      "......KK....KK..........",
-      ".....KKK....KKK.........",
-      ".....KKK....KKK.........",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], sniperT2Palette);
-
-    // 스나이퍼 3차 최종 각성: 👑 신살의 발리스타 (God Slayer Ballista - 황금 매 가면 & 기계식 헤비 발리스타 & 에너지 날개)
-    const sniperT3Palette = {
-      '.': 'transparent',
-      'M': '#f59e0b', // 황금 매 마스크
-      'm': '#fde047', // 매 부리 광택
-      'E': '#38bdf8', // 레이저 안광
-      'A': '#ffffff', // 등 뒤의 전개형 에너지 유도 날개
-      'a': '#06b6d4', // 날개 에너지 라인
-      'T': '#0f172a', // 하이퍼 슈트
-      'B': '#f59e0b', // 거대 기계식 헤비 발리스타
-      'b': '#ffffff', // 레일건 코어 빔
-      'K': '#1e293b'  // 부츠
-    };
-    this.heroSprites.archer_sniper_t3 = this.renderPixelGrid(24, 32, [
-      "A......................A",
-      "AA......MMMM..........AA",
-      "aAA....MMmmmm........AAa",
-      ".aAA..MMMMMMMM......AAa.",
-      "..aA.MMMEEEEMMM.....Aa..",
-      "...A.MMMMmmMMMM.....A...",
-      ".....MMMMmmMMMM.........",
-      "......MMMMMMMM..........",
-      "....BB.TTTTTT.A.........",
-      "...BBb.TTTTTTTT.A.......",
-      "..BBbb.TTTTTTTT..A......",
-      "..BBbb.TTaTaTTT.........",
-      "...BBb.TTTTTTTT.........",
-      "....BB.TTTTTTTT.........",
-      "....B..TTTTTTTT.........",
-      ".......TT....TT.........",
-      ".......TT....TT.........",
-      ".......KK....KK.........",
-      "......KKK....KKK........",
-      "......KKK....KKK........",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], sniperT3Palette);
+      'W': '#ffffff', 'G': '#facc15', 'w': '#fef08a',
+      'B': '#38bdf8', 'M': '#0284c7', 'Y': '#fde047',
+      'y': '#d97706', 'S': '#ffffff', 'K': '#64748b'
+    }, {
+      auraColor: 'rgba(250, 204, 21, 0.45)',
+      highlights: [{ x: 10, y: 7, w: 3, h: 2, c: '#ffffff' }, { x: 21, y: 7, w: 3, h: 2, c: '#ffffff' }, { x: 28, y: 12, w: 2, h: 9, c: '#ffffff' }],
+      weaponGlow: { color: '#facc15', blur: 12, pixels: [[27, 10, 4, 12]] }
+    });
 
     // -----------------------------------------------------------------------
-    // [5] 궁수: 윈드러너 (Archer - Windrunner)
+    // [3] 검사: 마검사 (Magic Knight) 32비트 3단계
     // -----------------------------------------------------------------------
-    // 윈드러너 1차: 기본 윈드러너 (에메랄드 튜닉 & 바람의 속사궁)
-    this.heroSprites.archer_windrunner_t1 = this.humanSprites.ranger;
-
-    // 윈드러너 2차: 질풍의 템페스트 (Gale Tempest - 깃털 날개 망토 & 2발 연사궁)
-    const windT2Palette = {
+    // T1: 견습 마검사 (네이비 가죽 코트, 룬 단검)
+    this.heroSprites.warrior_magic_knight_t1 = this.render32BitSprite(32, 38, [
+      "............SSSS................",
+      "..........SSSSSSSS..............",
+      ".........SSSSSSSSSS.............",
+      "........CCCCCCCCCCCC............",
+      ".......CCccccccccccCC...........",
+      "......CCCCCCCCCCCCCCCC..........",
+      ".....CCFFFFFFFFFFFFFFCC.........",
+      ".....CCFsPFFFFFFFsPFsCC.........",
+      ".....CCFFFFFFFFFFFFFFCC.........",
+      ".....CCFFFFFDDDDFFFFFCC..pppp...",
+      "......CFFFFFDDDDFFFFFC..pppppp..",
+      ".....MCCCDDDDDDDDDDCCCM.pLLLLp..",
+      "....MMCCCDDDDDDDDDDCCCMMpLLLLp..",
+      "...MMMCCCDDDDDDDDDDCCCMMpLLLLp..",
+      "...MM.CCCCCCCCCCCCCC.MM.pLLLLp..",
+      "...MM.CCCCCCCCCCCCCC.MM.pLLLLp..",
+      "...MM.CCCCCCCCCCCCCC.MM.pLLLLp..",
+      "......CCCCCCGGGGCCCC....pLLLLp..",
+      "......CCCCCCGGGGCCCC....pLLLLp..",
+      ".......CCCCCCCCCCCC.....pLLLLp..",
+      ".......CCCC....CCCC....GGGGGGGG.",
+      ".......CCCC....CCCC.......GG....",
+      ".......CCCC....CCCC.......CC....",
+      ".......KKKK....KKKK.......CC....",
+      "......KKKKKK..KKKKKK......CC....",
+      "......KKKKKK..KKKKKK......CC....",
+      "......KKKKKK..KKKKKK......CC....",
+      "......CCCCCC..CCCCCC......CC....",
+      "......CCCCCC..CCCCCC............",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
       '.': 'transparent',
-      'H': '#16a34a', // 질풍 모자
-      'h': '#4ade80', // 밝은 녹색
-      'P': '#ffffff', // 백색 질풍 깃털
-      'F': '#fed7aa', // 피부톤
-      'B': '#92400e', // 갈색 머리
-      'E': '#22c55e', // 바람의 녹색 눈
-      'T': '#15803d', // 튜닉
-      'W': '#10b981', // 질풍궁
-      'w': '#a7f3d0', // 바람 잔상
-      'K': '#14532d'  // 가죽 부츠
-    };
-    this.heroSprites.archer_windrunner_t2 = this.renderPixelGrid(24, 32, [
-      ".........PP.............",
-      "........PPPP............",
-      ".......HhhhhH...........",
-      "......HhhhhhhH..........",
-      ".....HHHHHHHHHH.........",
-      ".....BBBBBBBBBB.........",
-      "....BFFFFFFFFFFB........",
-      "....BFE..__..EFB........",
-      "....BFFFFFFFFFFB........",
-      ".....BFFFFFFFFB.........",
-      "....wW.TTTTTT.H.........",
-      "...wW.TTTTTTTT.H........",
-      "..wW..TTTTTTTT..H.......",
-      "..wW..TTGGGGTT..H.......",
-      "..ww..TTTTTTTT..........",
-      "..ww..TTTTTTTT..........",
-      "..wW..TTTTTTTT..........",
-      "..wW..TT....TT..........",
-      "...wW.TT....TT..........",
-      "......KK....KK..........",
-      ".....KKK....KKK.........",
-      ".....KKK....KKK.........",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], windT2Palette);
+      'S': '#4c1d95', 'C': '#1e1b4b', 'c': '#312e81',
+      'F': '#fed7aa', 's': '#ea580c', 'P': '#a855f7',
+      'D': '#4338ca', 'M': '#6366f1', 'G': '#facc15',
+      'p': '#7c3aed', 'L': '#c084fc', 'K': '#0f172a'
+    }, {
+      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#c084fc' }, { x: 26, y: 14, w: 1, h: 6, c: '#ffffff' }]
+    });
 
-    // 윈드러너 3차 최종 각성: 👑 폭풍신 제피로스 (Storm God Zephyr - 하늘빛 신성 깃털 날개 & 에테르 바람궁)
-    const windT3Palette = {
+    // T2: 룬 블레이더 (마도 룬 플레이트, 보랏빛 룬 블레이드 네온 발광, 부유 룬 오브)
+    this.heroSprites.warrior_magic_knight_t2 = this.render32BitSprite(32, 38, [
+      "............PPPP................",
+      "..........PPPPPPPP..............",
+      ".........PPPPPPPPPP.............",
+      "........MMMMMMMMMMMM............",
+      ".......MMmmmmmmmmmmMM...........",
+      "......MMMMMMMMMMMMMMMM..........",
+      ".....MMmmmmmmmmmmmmmmMM.........",
+      ".....MMmmVVVVmmVVVVmmMM.........",
+      ".....MMmmVVVVmmVVVVmmMM.........",
+      ".....MMmmmmmmmmmmmmmmMM..pppp...",
+      "......MMMMMMMMMMMMMMMM..pppppp..",
+      "....MMMMMMMMGGGGMMMMMMMMpRRRRp..",
+      "...MMMMMMMMMGGGGMMMMMMMMpRRRRp..",
+      "...LLLLMMMMMGGGGMMMMMLLLpRRRRp..",
+      "...LL.MMMMMMMMMMMMMM.LL.pRRRRp..",
+      "...LL.MMMMMMMMMMMMMM.LL.pRRRRp..",
+      "...LL.MMMMMMMMMMMMMM.LL.pRRRRp..",
+      "......MMMMMMMMMMMMMM....pRRRRp..",
+      "......MMMMMMMMMMMMMM....pRRRRp..",
+      ".......MMMMMMMMMMMM.....pRRRRp..",
+      ".......MMMM....MMMM....GGGGGGGG.",
+      ".......MMMM....MMMM.......GG....",
+      ".......MMMM....MMMM.......MM....",
+      ".......KKKK....KKKK.......MM....",
+      "......KKKKKK..KKKKKK......MM....",
+      "......KKKKKK..KKKKKK......MM....",
+      "......KKKKKK..KKKKKK......MM....",
+      "......MMMMMM..MMMMMM......MM....",
+      "......MMMMMM..MMMMMM............",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
       '.': 'transparent',
-      'A': '#38bdf8', // 신성한 하늘빛 날개
-      'a': '#e0f2fe', // 날개 백색 깃털
-      'H': '#10b981', // 바람의 화관
-      'F': '#fed7aa', // 피부톤
-      'B': '#fef08a', // 황금빛 휘날리는 머리칼
-      'E': '#38bdf8', // 신성한 폭풍의 안광
-      'T': '#047857', // 에테르 의복
-      'W': '#38bdf8', // 투명한 에테르 바람궁
-      'w': '#ffffff', // 신성한 활줄
-      'K': '#065f46'  // 부츠
-    };
-    this.heroSprites.archer_windrunner_t3 = this.renderPixelGrid(24, 32, [
-      "a.......HHHH.......a....",
-      "aa.....HhhhhH.....aa....",
-      ".aa...HhhhhhhH...aa.....",
-      "..A..HHHHHHHHHH..A......",
-      "..A..BBBBBBBBBB..A......",
-      "....BFFFFFFFFFFB........",
-      "....BFE..__..EFB........",
-      "....BFFFFFFFFFFB........",
-      ".....BFFFFFFFFB.........",
-      "....wW.TTTTTT.H.........",
-      "...wW.TTTTTTTT.H........",
-      "..wW..TTTTTTTT..H.......",
-      "..wW..TTAAAATT..H.......",
-      "..ww..TTTTTTTT..........",
-      "..ww..TTTTTTTT..........",
-      "..wW..TTTTTTTT..........",
-      "..wW..TT....TT..........",
-      "...wW.TT....TT..........",
-      "......KK....KK..........",
-      ".....KKK....KKK.........",
-      ".....KKK....KKK.........",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], windT3Palette);
+      'P': '#7c3aed', 'M': '#1e1b4b', 'm': '#581c87',
+      'V': '#38bdf8', 'G': '#facc15', 'p': '#a855f7',
+      'R': '#e879f9', 'L': '#c084fc', 'K': '#0f172a'
+    }, {
+      auraColor: 'rgba(168, 85, 247, 0.25)',
+      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 13, w: 1, h: 7, c: '#ffffff' }],
+      weaponGlow: { color: '#c084fc', blur: 6, pixels: [[25, 12, 3, 8]] }
+    });
+
+    // T3: 👑 차원참의 스펠마스터 (공허의 차원 갑주, 시공간 왜곡 차원참 대검, 3개의 부유 환검)
+    this.heroSprites.warrior_magic_knight_t3 = this.render32BitSprite(36, 42, [
+      "CC............................CC",
+      "CCCC........................CCCC",
+      "CCCCC......AAAAAAAAAA......CCCCC",
+      ".CCCCC...AAAAAAAAAAAAAA...CCCCC.",
+      "..CCCC..AAaaaaaaaaaaaaAA..CCCC..",
+      "...CC..AAAAAAAAAAAAAAAAAA..CC...",
+      "......AAaaaaaaaaaaaaaaaaAA......",
+      ".....AAaaVVVVVVaaVVVVVVaaAA.CCCC",
+      ".....AAaaVVVVVVaaVVVVVVaaAA.CCCC",
+      ".....AAaaaaaaaaaaaaaaaaaaAA.CCCC",
+      "......AAAAAAAAAAAAAAAAAA...CCCCC",
+      ".....EAAAAAAGGGGGGAAAAAAE..cSSSc",
+      "....EEAAAAAAGGGGGGAAAAAAEE.cSSSc",
+      "...EEEAAAAAAGGGGGGAAAAAAEEEcSSSc",
+      "...EE.AAAAAAAAAAAAAAAAAA.EEcSSSc",
+      "..EEE.AAAAAAAAAAAAAAAAAA.EEcSSSc",
+      "..EEE.AAAAAAAAAAAAAAAAAA.EEcSSSc",
+      "..EEE.AAAAAAAAAAAAAAAAAA.EEcSSSc",
+      "..EEE.AAAAAAAAAAAAAAAAAA.EEcSSSc",
+      "......AAAAAAAAAAAAAAAAAA...cSSSc",
+      "......AAAAAAAAAAAAAAAAAA...cSSSc",
+      ".......AAAAAAAAAAAAAAAA....cSSSc",
+      ".......AAAAA....AAAAA.....GGGGGG",
+      ".......AAAAA....AAAAA.....GGGGGG",
+      ".......AAAAA....AAAAA........GG.",
+      ".......KKKKK....KKKKK........AA.",
+      "......KKKKKKK..KKKKKKK.......AA.",
+      "......KKKKKKK..KKKKKKK.......AA.",
+      "......KKKKKKK..KKKKKKK.......AA.",
+      "......AAAAAAA..AAAAAAA.......AA.",
+      "......AAAAAAA..AAAAAAA..........",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
+      '.': 'transparent',
+      'C': '#38bdf8', 'A': '#090514', 'a': '#3b0764',
+      'V': '#22d3ee', 'E': '#9333ea', 'G': '#facc15',
+      'c': '#a855f7', 'S': '#e0f2fe', 'K': '#0f172a'
+    }, {
+      auraColor: 'rgba(168, 85, 247, 0.45)',
+      highlights: [{ x: 10, y: 7, w: 3, h: 2, c: '#67e8f9' }, { x: 21, y: 7, w: 3, h: 2, c: '#67e8f9' }, { x: 28, y: 12, w: 2, h: 9, c: '#ffffff' }],
+      weaponGlow: { color: '#38bdf8', blur: 12, pixels: [[27, 10, 4, 12]] }
+    });
 
     // -----------------------------------------------------------------------
-    // [6] 궁수: 트래퍼 (Archer - Trapper)
+    // [4] 궁수: 스나이퍼 (Sniper) 32비트 3단계
     // -----------------------------------------------------------------------
-    // 트래퍼 1차: 기본 트래퍼 (사냥꾼 곰가죽 코트 & 핸드 크로스보우)
-    const trapperT1Palette = {
+    // T1: 견습 저격수 (숲의 가죽 튜닉, 사냥꾼 모자, 정밀 도르래 롱보우)
+    this.heroSprites.archer_sniper_t1 = this.render32BitSprite(32, 38, [
+      "............GGGG................",
+      "..........GGGGGGGG..............",
+      ".........GGGGGGGGGG.............",
+      "........TTTTTTTTTTTT............",
+      ".......TTttttttttttTT...........",
+      "......TTTTTTTTTTTTTTTT..........",
+      ".....TTFFFFFFFFFFFFFFTT.........",
+      ".....TTFsEFFFFFFFsEFsTT.........",
+      ".....TTFFFFFFFFFFFFFFTT.........",
+      ".....TTFFFFFDDDDFFFFFTT..bbbb...",
+      "......TFFFFFDDDDFFFFFT..bbbbbb..",
+      ".....MTTTTDDDDDDDDTTTTM.bssssb..",
+      "....MMTTTTDDDDDDDDTTTTMMbssssb..",
+      "...MMMTTTTDDDDDDDDTTTTMMbssssb..",
+      "...MM.TTTTTTTTTTTTTT.MM.bssssb..",
+      "...MM.TTTTTTTTTTTTTT.MM.bssssb..",
+      "...MM.TTTTTTTTTTTTTT.MM.bssssb..",
+      "......TTTTTTGGGGTTTT....bssssb..",
+      "......TTTTTTGGGGTTTT....bssssb..",
+      ".......TTTTTTTTTTTT.....bssssb..",
+      ".......TTTT....TTTT....GGGGGGGG.",
+      ".......TTTT....TTTT.......GG....",
+      ".......TTTT....TTTT.......TT....",
+      ".......KKKK....KKKK.......TT....",
+      "......KKKKKK..KKKKKK......TT....",
+      "......KKKKKK..KKKKKK......TT....",
+      "......KKKKKK..KKKKKK......TT....",
+      "......TTTTTT..TTTTTT......TT....",
+      "......TTTTTT..TTTTTT............",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
       '.': 'transparent',
-      'B': '#78350f', // 곰가죽 털후드
-      'b': '#92400e', // 밝은 털
-      'F': '#fed7aa', // 피부톤
-      'E': '#0f172a', // 눈
-      'T': '#451a03', // 거친 사냥꾼 옷
-      'C': '#b45309', // 소형 크로스보우
-      'c': '#f8fafc', // 화살
-      'K': '#292524'  // 털부츠
-    };
-    this.heroSprites.archer_trapper_t1 = this.renderPixelGrid(24, 32, [
-      "........BBBB............",
-      ".......BbbbbB...........",
-      "......BbbbbbbB..........",
-      ".....BBBBBBBBBB.........",
-      ".....BBBBBBBBBB.........",
-      "....BFFFFFFFFFFB........",
-      "....BFE..__..EFB........",
-      "....BFFFFFFFFFFB........",
-      ".....BFFFFFFFFB.........",
-      ".....C.TTTTTT.B.........",
-      "....CC.TTTTTTTT.B.......",
-      "...CCC.TTTTTTTT..B......",
-      "...cCc.TTbbbbTT..B......",
-      "...cCc.TTTTTTTT.........",
-      "...CCC.TTTTTTTT.........",
-      "....C..TTTTTTTT.........",
-      ".......TT....TT.........",
-      ".......TT....TT.........",
-      ".......KK....KK.........",
-      "......KKK....KKK........",
-      "......KKK....KKK........",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], trapperT1Palette);
+      'G': '#166534', 'T': '#14532d', 't': '#15803d',
+      'F': '#fed7aa', 's': '#ea580c', 'E': '#38bdf8',
+      'D': '#16a34a', 'M': '#854d0e', 'b': '#78350f',
+      'K': '#1c1917'
+    }, {
+      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 14, w: 1, h: 6, c: '#ffffff' }]
+    });
 
-    // 트래퍼 2차: 섀도우 헌터 (Shadow Hunter - 늑대 해골 가면 & 지뢰 밴돌리어 & 헤비 석궁)
-    const trapperT2Palette = {
+    // T2: 호크아이 스나이퍼 (매의 눈 철제 가면, 카모 망토, 레이저 조준선 헤비 크로스보우)
+    this.heroSprites.archer_sniper_t2 = this.render32BitSprite(32, 38, [
+      "............FFFF................",
+      "..........FFFFFFFF..............",
+      ".........FFFFFFFFFF.............",
+      "........SSSSSSSSSSSS............",
+      ".......SSssssssssssSS...........",
+      "......SSSSSSSSSSSSSSSS..........",
+      ".....SSssssssssssssssSS.........",
+      ".....SSssEEEEssEEEEssSS.........",
+      ".....SSssEEEEssEEEEssSS.........",
+      ".....SSssssssssssssssSS..bbbb...",
+      "......SSSSSSSSSSSSSSSS..bbbbbb..",
+      "....SSSSSSSSGGGGSSSSSSSSbLLLLb..",
+      "...SSSSSSSSSGGGGSSSSSSSSbLLLLb..",
+      "...DDDSSSSSSGGGGSSSSSSDDbLLLLb..",
+      "...DD.SSSSSSSSSSSSSS.DD.bLLLLb..",
+      "...DD.SSSSSSSSSSSSSS.DD.bLLLLb..",
+      "...DD.SSSSSSSSSSSSSS.DD.bLLLLb..",
+      "......SSSSSSSSSSSSSS....bLLLLb..",
+      "......SSSSSSSSSSSSSS....bLLLLb..",
+      ".......SSSSSSSSSSSS.....bLLLLb..",
+      ".......SSSS....SSSS....GGGGGGGG.",
+      ".......SSSS....SSSS.......GG....",
+      ".......SSSS....SSSS.......SS....",
+      ".......KKKK....KKKK.......SS....",
+      "......KKKKKK..KKKKKK......SS....",
+      "......KKKKKK..KKKKKK......SS....",
+      "......KKKKKK..KKKKKK......SS....",
+      "......SSSSSS..SSSSSS......SS....",
+      "......SSSSSS..SSSSSS............",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
       '.': 'transparent',
-      'W': '#f8fafc', // 늑대 두개골 가면 (화이트)
-      'w': '#cbd5e1', // 뼈 음영
-      'E': '#ef4444', // 해골 안와 붉은 안광
-      'D': '#1e293b', // 어둠의 망토
-      'T': '#0f172a', // 사냥꾼 가죽
-      'M': '#f59e0b', // 허리 지뢰 폭탄
-      'C': '#475569', // 헤비 크로스보우
-      'c': '#22c55e', // 맹독 화살촉
-      'K': '#0f172a'  // 부츠
-    };
-    this.heroSprites.archer_trapper_t2 = this.renderPixelGrid(24, 32, [
-      "........WWWW............",
-      ".......WWwwww...........",
-      "......WWwwwwww..........",
-      ".....WWWWWWWWWW.........",
-      ".....WWE....EWW.........",
-      "....WWWE....EWWW........",
-      "....WWWW....WWWW........",
-      ".....WWWWWWWWWW.........",
-      "......WWWWWWWW..........",
-      ".....C.TTTTTT.D.........",
-      "....CC.TTTTTTTT.D.......",
-      "...CcC.TTTTTTTT..D......",
-      "...CcC.TTMMMMTT..D......",
-      "...CCC.TTTTTTTT.........",
-      "....C..TTTTTTTT.........",
-      ".......TTTTTTTT.........",
-      ".......TT....TT.........",
-      ".......TT....TT.........",
-      ".......KK....KK.........",
-      "......KKK....KKK........",
-      "......KKK....KKK........",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], trapperT2Palette);
+      'F': '#0284c7', 'S': '#0f172a', 's': '#334155',
+      'E': '#38bdf8', 'G': '#f59e0b', 'b': '#1e293b',
+      'L': '#38bdf8', 'D': '#0369a1', 'K': '#0f172a'
+    }, {
+      auraColor: 'rgba(56, 189, 248, 0.25)',
+      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 13, w: 1, h: 7, c: '#ffffff' }],
+      weaponGlow: { color: '#38bdf8', blur: 6, pixels: [[25, 12, 3, 8]] }
+    });
 
-    // 트래퍼 3차 최종 각성: 👑 맹수군주 아르테미스 (Beast Lord Artemis - 백호/신수 늑대 가죽 갑주 & 영혼 늑대 환영 석궁)
-    const trapperT3Palette = {
+    // T3: 👑 멸절의 갓스나이퍼 (천상의 샤프슈터 아머, 천체 관측 고글, 신살의 거대 컴파운드 보우)
+    this.heroSprites.archer_sniper_t3 = this.render32BitSprite(36, 42, [
+      "CC............................CC",
+      "CCCC........................CCCC",
+      "CCCCC......GGGGGGGGGG......CCCCC",
+      ".CCCCC...GGGGGGGGGGGGGG...CCCCC.",
+      "..CCCC..GGwwwwwwwwwwwwGG..CCCC..",
+      "...CC..GGGGGGGGGGGGGGGGGG..CC...",
+      "......WWwwwwwwwwwwwwwwwwWW......",
+      ".....WWwwEEEEEEwwEEEEEEwwWW.BBBB",
+      ".....WWwwEEEEEEwwEEEEEEwwWW.BBBB",
+      ".....WWwwwwwwwwwwwwwwwwwwWW.BBBB",
+      "......WWWWWWWWWWWWWWWWWW...BBBBB",
+      ".....MWWWWWWGGGGGGWWWWWWM..bSSSb",
+      "....MMWWWWWWGGGGGGWWWWWWMM.bSSSb",
+      "...MMMWWWWWWGGGGGGWWWWWWMMMbSSSb",
+      "...MM.WWWWWWGGGGGGWWWWWW.MMbSSSb",
+      "..MMM.WWWWWWGGGGGGWWWWWW.MMbSSSb",
+      "..MMM.WWWWWWWWWWWWWWWWWW.MMbSSSb",
+      "..MMM.WWWWWWWWWWWWWWWWWW.MMbSSSb",
+      "..MMM.WWWWWWWWWWWWWWWWWW.MMbSSSb",
+      "......WWWWWWWWWWWWWWWWWW...bSSSb",
+      "......WWWWWWWWWWWWWWWWWW...bSSSb",
+      ".......WWWWWWWWWWWWWWWW....bSSSb",
+      ".......WWWWW....WWWWW.....GGGGGG",
+      ".......WWWWW....WWWWW.....GGGGGG",
+      ".......WWWWW....WWWWW........GG.",
+      ".......KKKKK....KKKKK........WW.",
+      "......KKKKKKK..KKKKKKK.......WW.",
+      "......KKKKKKK..KKKKKKK.......WW.",
+      "......KKKKKKK..KKKKKKK.......WW.",
+      "......WWWWWWW..WWWWWWW.......WW.",
+      "......WWWWWWW..WWWWWWW..........",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
       '.': 'transparent',
-      'W': '#ffffff', // 신수 백호 털가죽
-      'w': '#93c5fd', // 영혼의 푸른 서기
-      'E': '#38bdf8', // 신수의 푸른 불꽃 안광
-      'S': '#1e1b4b', // 흑호 줄무늬
-      'T': '#1e293b', // 신수 갑주
-      'C': '#38bdf8', // 영혼 맹수 거대 발리스타
-      'c': '#ffffff', // 영혼 화살
-      'K': '#0f172a'  // 부츠
-    };
-    this.heroSprites.archer_trapper_t3 = this.renderPixelGrid(24, 32, [
-      "w.......WWWW.......w....",
-      "ww.....WWWWWW.....ww....",
-      ".ww...WWSSSSWW...ww.....",
-      "..w..WWWWWWWWWW..w......",
-      ".....WWEEEEEEWW.........",
-      "....WWWE....EWWW........",
-      "....WWWW....WWWW........",
-      ".....WWWWWWWWWW.........",
-      "......WWWWWWWW..........",
-      "....CC.TTTTTT.w.........",
-      "...CCc.TTTTTTTT.w.......",
-      "..CCcC.TTTTTTTT..w......",
-      "..CCcC.TTSWSWTT..w......",
-      "...CCC.TTTTTTTT.........",
-      "....C..TTTTTTTT.........",
-      ".......TTTTTTTT.........",
-      ".......TT....TT.........",
-      ".......TT....TT.........",
-      ".......KK....KK.........",
-      "......KKK....KKK........",
-      "......KKK....KKK........",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................",
-      "........................"
-    ], trapperT3Palette);
+      'C': '#38bdf8', 'G': '#0284c7', 'w': '#7dd3fc',
+      'W': '#0c4a6e', 'E': '#facc15', 'M': '#38bdf8',
+      'B': '#0284c7', 'b': '#0369a1', 'S': '#ffffff',
+      'K': '#082f49'
+    }, {
+      auraColor: 'rgba(56, 189, 248, 0.45)',
+      highlights: [{ x: 10, y: 7, w: 3, h: 2, c: '#fef08a' }, { x: 21, y: 7, w: 3, h: 2, c: '#fef08a' }, { x: 28, y: 12, w: 2, h: 9, c: '#ffffff' }],
+      weaponGlow: { color: '#38bdf8', blur: 12, pixels: [[27, 10, 4, 12]] }
+    });
+
+    // -----------------------------------------------------------------------
+    // [5] 궁수: 윈드러너 (Windrunner) 32비트 3단계
+    // -----------------------------------------------------------------------
+    // T1: 견습 쾌속궁수 (에메랄드 그린 판초, 단궁)
+    this.heroSprites.archer_windrunner_t1 = this.render32BitSprite(32, 38, [
+      "............EEEE................",
+      "..........EEEEEEEE..............",
+      ".........EEEEEEEEEE.............",
+      "........WWWWWWWWWWWW............",
+      ".......WWwwwwwwwwwwWW...........",
+      "......WWWWWWWWWWWWWWWW..........",
+      ".....WWFFFFFFFFFFFFFFWW.........",
+      ".....WWFsGFFFFFFFsGFsWW.........",
+      ".....WWFFFFFFFFFFFFFFWW.........",
+      ".....WWFFFFFDDDDFFFFFWW..bbbb...",
+      "......WFFFFFDDDDFFFFFW..bbbbbb..",
+      ".....MWWWWDDDDDDDDWWWWw.bssssb..",
+      "....MMWWWWDDDDDDDDWWWWw.bssssb..",
+      "...MMMWWWWDDDDDDDDWWWWw.bssssb..",
+      "...MM.WWWWWWWWWWWWWW.ww.bssssb..",
+      "...MM.WWWWWWWWWWWWWW.ww.bssssb..",
+      "...MM.WWWWWWWWWWWWWW.ww.bssssb..",
+      "......WWWWWWGGGGWWWW....bssssb..",
+      "......WWWWWWGGGGWWWW....bssssb..",
+      ".......WWWWWWWWWWWW.....bssssb..",
+      ".......WWWW....WWWW....GGGGGGGG.",
+      ".......WWWW....WWWW.......GG....",
+      ".......WWWW....WWWW.......WW....",
+      ".......KKKK....KKKK.......WW....",
+      "......KKKKKK..KKKKKK......WW....",
+      "......KKKKKK..KKKKKK......WW....",
+      "......KKKKKK..KKKKKK......WW....",
+      "......WWWWWW..WWWWWW......WW....",
+      "......WWWWWW..WWWWWW............",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
+      '.': 'transparent',
+      'E': '#047857', 'W': '#064e3b', 'w': '#10b981',
+      'F': '#fed7aa', 's': '#ea580c', 'G': '#4ade80',
+      'D': '#059669', 'M': '#d97706', 'b': '#15803d',
+      'K': '#14532d'
+    }, {
+      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 14, w: 1, h: 6, c: '#ffffff' }]
+    });
+
+    // T2: 질풍의 윈드러너 (롱 에메랄드 스카프 휘날림, 풍령의 날개 활)
+    this.heroSprites.archer_windrunner_t2 = this.render32BitSprite(32, 38, [
+      "............FFFF................",
+      "..........FFFFFFFF..............",
+      ".........FFFFFFFFFF.............",
+      "........WWWWWWWWWWWW............",
+      ".......WWwwwwwwwwwwWW...........",
+      "......WWWWWWWWWWWWWWWW..........",
+      ".....WWwwwwwwwwwwwwwwWW.........",
+      ".....WWwwGGGGwwGGGGwwWW.........",
+      ".....WWwwGGGGwwGGGGwwWW.........",
+      ".....WWwwwwwwwwwwwwwwWW..bbbb...",
+      "......WWWWWWWWWWWWWWWW..bbbbbb..",
+      "....WWWWWWWWGGGGWWWWWWWWbLLLLb..",
+      "...WWWWWWWWWGGGGWWWWWWWWbLLLLb..",
+      "...DDDWWWWWWGGGGWWWWWWDDbLLLLb..",
+      "...DD.WWWWWWWWWWWWWW.DD.bLLLLb..",
+      "...DD.WWWWWWWWWWWWWW.DD.bLLLLb..",
+      "...DD.WWWWWWWWWWWWWW.DD.bLLLLb..",
+      "......WWWWWWWWWWWWWW....bLLLLb..",
+      "......WWWWWWWWWWWWWW....bLLLLb..",
+      ".......WWWWWWWWWWWW.....bLLLLb..",
+      ".......WWWW....WWWW....GGGGGGGG.",
+      ".......WWWW....WWWW.......GG....",
+      ".......WWWW....WWWW.......WW....",
+      ".......KKKK....KKKK.......WW....",
+      "......KKKKKK..KKKKKK......WW....",
+      "......KKKKKK..KKKKKK......WW....",
+      "......KKKKKK..KKKKKK......WW....",
+      "......WWWWWW..WWWWWW......WW....",
+      "......WWWWWW..WWWWWW............",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
+      '.': 'transparent',
+      'F': '#10b981', 'W': '#064e3b', 'w': '#059669',
+      'G': '#4ade80', 'D': '#10b981', 'b': '#047857',
+      'L': '#a7f3d0', 'K': '#022c22'
+    }, {
+      auraColor: 'rgba(74, 222, 128, 0.25)',
+      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 13, w: 1, h: 7, c: '#ffffff' }],
+      weaponGlow: { color: '#4ade80', blur: 6, pixels: [[25, 12, 3, 8]] }
+    });
+
+    // T3: 👑 환영폭풍의 템페스트 (바람의 날개 망토, 바람의 정령관, 폭풍의 쌍곡궁 네온 소용돌이)
+    this.heroSprites.archer_windrunner_t3 = this.render32BitSprite(36, 42, [
+      "GG............................GG",
+      "GGGG........................GGGG",
+      "GGGGG......EEEEEEEEEE......GGGGG",
+      ".GGGGG...EEEEEEEEEEEEEE...GGGGG.",
+      "..GGGG..EEwwwwwwwwwwwwEE..GGGG..",
+      "...GG..EEEEEEEEEEEEEEEEEE..GG...",
+      "......WWwwwwwwwwwwwwwwwwWW......",
+      ".....WWwwGGGGGGwwGGGGGGwwWW.BBBB",
+      ".....WWwwGGGGGGwwGGGGGGwwWW.BBBB",
+      ".....WWwwwwwwwwwwwwwwwwwwWW.BBBB",
+      "......WWWWWWWWWWWWWWWWWW...BBBBB",
+      ".....MWWWWWWGGGGGGWWWWWWM..bSSSb",
+      "....MMWWWWWWGGGGGGWWWWWWMM.bSSSb",
+      "...MMMWWWWWWGGGGGGWWWWWWMMMbSSSb",
+      "...MM.WWWWWWGGGGGGWWWWWW.MMbSSSb",
+      "..MMM.WWWWWWGGGGGGWWWWWW.MMbSSSb",
+      "..MMM.WWWWWWWWWWWWWWWWWW.MMbSSSb",
+      "..MMM.WWWWWWWWWWWWWWWWWW.MMbSSSb",
+      "..MMM.WWWWWWWWWWWWWWWWWW.MMbSSSb",
+      "......WWWWWWWWWWWWWWWWWW...bSSSb",
+      "......WWWWWWWWWWWWWWWWWW...bSSSb",
+      ".......WWWWWWWWWWWWWWWW....bSSSb",
+      ".......WWWWW....WWWWW.....GGGGGG",
+      ".......WWWWW....WWWWW.....GGGGGG",
+      ".......WWWWW....WWWWW........GG.",
+      ".......KKKKK....KKKKK........WW.",
+      "......KKKKKKK..KKKKKKK.......WW.",
+      "......KKKKKKK..KKKKKKK.......WW.",
+      "......KKKKKKK..KKKKKKK.......WW.",
+      "......WWWWWWW..WWWWWWW.......WW.",
+      "......WWWWWWW..WWWWWWW..........",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
+      '.': 'transparent',
+      'G': '#4ade80', 'E': '#047857', 'w': '#6ee7b7',
+      'W': '#064e3b', 'B': '#10b981', 'M': '#34d399',
+      'b': '#059669', 'S': '#ecfdf5', 'K': '#022c22'
+    }, {
+      auraColor: 'rgba(74, 222, 128, 0.45)',
+      highlights: [{ x: 10, y: 7, w: 3, h: 2, c: '#ffffff' }, { x: 21, y: 7, w: 3, h: 2, c: '#ffffff' }, { x: 28, y: 12, w: 2, h: 9, c: '#ffffff' }],
+      weaponGlow: { color: '#4ade80', blur: 12, pixels: [[27, 10, 4, 12]] }
+    });
+
+    // -----------------------------------------------------------------------
+    // [6] 궁수: 트래퍼 (Trapper) 32비트 3단계
+    // -----------------------------------------------------------------------
+    // T1: 견습 덫사냥꾼 (가죽 방호 자켓, 탄띠, 핸드 쇠뇌)
+    this.heroSprites.archer_trapper_t1 = this.render32BitSprite(32, 38, [
+      "............OOOO................",
+      "..........OOOOOOOO..............",
+      ".........OOOOOOOOOO.............",
+      "........JJJJJJJJJJJJ............",
+      ".......JJjjjjjjjjjjJJ...........",
+      "......JJJJJJJJJJJJJJJJ..........",
+      ".....JJFFFFFFFFFFFFFFJJ.........",
+      ".....JJFsGFFFFFFFsGFsJJ.........",
+      ".....JJFFFFFFFFFFFFFFJJ.........",
+      ".....JJFFFFFDDDDFFFFFJJ..bbbb...",
+      "......JFFFFFDDDDFFFFFJ..bbbbbb..",
+      ".....MJJJJDDDDDDDDJJJJM.bssssb..",
+      "....MMJJJJDDDDDDDDJJJJMMbssssb..",
+      "...MMMJJJJDDDDDDDDJJJJMMbssssb..",
+      "...MM.JJJJJJJJJJJJJJ.MM.bssssb..",
+      "...MM.JJJJJJJJJJJJJJ.MM.bssssb..",
+      "...MM.JJJJJJJJJJJJJJ.MM.bssssb..",
+      "......JJJJJJGGGGJJJJ....bssssb..",
+      "......JJJJJJGGGGJJJJ....bssssb..",
+      ".......JJJJJJJJJJJJ.....bssssb..",
+      ".......JJJJ....JJJJ....GGGGGGGG.",
+      ".......JJJJ....JJJJ.......GG....",
+      ".......JJJJ....JJJJ.......JJ....",
+      ".......KKKK....KKKK.......JJ....",
+      "......KKKKKK..KKKKKK......JJ....",
+      "......KKKKKK..KKKKKK......JJ....",
+      "......KKKKKK..KKKKKK......JJ....",
+      "......JJJJJJ..JJJJJJ......JJ....",
+      "......JJJJJJ..JJJJJJ............",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
+      '.': 'transparent',
+      'O': '#d97706', 'J': '#78350f', 'j': '#b45309',
+      'F': '#fed7aa', 's': '#ea580c', 'G': '#f59e0b',
+      'D': '#92400e', 'M': '#475569', 'b': '#1c1917',
+      'K': '#1e293b'
+    }, {
+      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 14, w: 1, h: 6, c: '#ffffff' }]
+    });
+
+    // T2: 마공 트랩마스터 (스팀펑크 황동 고글 렌즈 반사, 화약 탄띠 & 대형 폭발 쇠뇌)
+    this.heroSprites.archer_trapper_t2 = this.render32BitSprite(32, 38, [
+      "............FFFF................",
+      "..........FFFFFFFF..............",
+      ".........FFFFFFFFFF.............",
+      "........JJJJJJJJJJJJ............",
+      ".......JJjjjjjjjjjjJJ...........",
+      "......JJJJJJJJJJJJJJJJ..........",
+      ".....JJjjjjjjjjjjjjjjJJ.........",
+      ".....JJjjGGGGjjGGGGjjJJ.........",
+      ".....JJjjGGGGjjGGGGjjJJ.........",
+      ".....JJjjjjjjjjjjjjjjJJ..bbbb...",
+      "......JJJJJJJJJJJJJJJJ..bbbbbb..",
+      "....JJJJJJJJGGGGJJJJJJJJbLLLLb..",
+      "...JJJJJJJJJGGGGJJJJJJJJbLLLLb..",
+      "...DDDJJJJJJGGGGJJJJJJDDbLLLLb..",
+      "...DD.JJJJJJJJJJJJJJ.DD.bLLLLb..",
+      "...DD.JJJJJJJJJJJJJJ.DD.bLLLLb..",
+      "...DD.JJJJJJJJJJJJJJ.DD.bLLLLb..",
+      "......JJJJJJJJJJJJJJ....bLLLLb..",
+      "......JJJJJJJJJJJJJJ....bLLLLb..",
+      ".......JJJJJJJJJJJJ.....bLLLLb..",
+      ".......JJJJ....JJJJ....GGGGGGGG.",
+      ".......JJJJ....JJJJ.......GG....",
+      ".......JJJJ....JJJJ.......JJ....",
+      ".......KKKK....KKKK.......JJ....",
+      "......KKKKKK..KKKKKK......JJ....",
+      "......KKKKKK..KKKKKK......JJ....",
+      "......KKKKKK..KKKKKK......JJ....",
+      "......JJJJJJ..JJJJJJ......JJ....",
+      "......JJJJJJ..JJJJJJ............",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
+      '.': 'transparent',
+      'F': '#ea580c', 'J': '#451a03', 'j': '#78350f',
+      'G': '#38bdf8', 'D': '#d97706', 'b': '#18181b',
+      'L': '#fb923c', 'K': '#09090b'
+    }, {
+      auraColor: 'rgba(251, 146, 60, 0.25)',
+      highlights: [{ x: 12, y: 13, w: 2, h: 2, c: '#ffffff' }, { x: 26, y: 13, w: 1, h: 7, c: '#ffffff' }],
+      weaponGlow: { color: '#fb923c', blur: 6, pixels: [[25, 12, 3, 8]] }
+    });
+
+    // T3: 👑 공성파괴의 아틸러리 (기계식 티타늄 외골격 아머, 어깨 미사일 포드 & 대구경 마도 거포)
+    this.heroSprites.archer_trapper_t3 = this.render32BitSprite(36, 42, [
+      "MM............................MM",
+      "MMMM........................MMMM",
+      "MMMMM......OOOOOOOOOO......MMMMM",
+      ".MMMMM...OOOOOOOOOOOOOO...MMMMM.",
+      "..MMMM..OOooooooooooooOO..MMMM..",
+      "...MM..OOOOOOOOOOOOOOOOOO..MM...",
+      "......AAaaaaaaaaaaaaaaaaAA......",
+      ".....AAaaGGGGGGaaGGGGGGaaAA.FFFF",
+      ".....AAaaGGGGGGaaGGGGGGaaAA.FFFF",
+      ".....AAaaaaaaaaaaaaaaaaaaAA.FFFF",
+      "......AAAAAAAAAAAAAAAAAA...FFFFF",
+      ".....HAAAAAAGGGGGGAAAAAAH..fSSSm",
+      "....HHAAAAAAGGGGGGAAAAAAHH.fSSSm",
+      "...HHHAAAAAAGGGGGGAAAAAAHHHfSSSm",
+      "...HH.AAAAAAAAAAAAAAAAAA.HHfSSSm",
+      "..HHH.AAAAAAAAAAAAAAAAAA.HHfSSSm",
+      "..HHH.AAAAAAAAAAAAAAAAAA.HHfSSSm",
+      "..HHH.AAAAAAAAAAAAAAAAAA.HHfSSSm",
+      "..HHH.AAAAAAAAAAAAAAAAAA.HHfSSSm",
+      "......AAAAAAAAAAAAAAAAAA...fSSSm",
+      "......AAAAAAAAAAAAAAAAAA...fSSSm",
+      ".......AAAAAAAAAAAAAAAA....fSSSm",
+      ".......AAAAA....AAAAA.....GGGGGG",
+      ".......AAAAA....AAAAA.....GGGGGG",
+      ".......AAAAA....AAAAA........GG.",
+      ".......KKKKK....KKKKK........AA.",
+      "......KKKKKKK..KKKKKKK.......AA.",
+      "......KKKKKKK..KKKKKKK.......AA.",
+      "......KKKKKKK..KKKKKKK.......AA.",
+      "......AAAAAAA..AAAAAAA.......AA.",
+      "......AAAAAAA..AAAAAAA..........",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ], {
+      '.': 'transparent',
+      'M': '#f97316', 'O': '#27272a', 'o': '#52525b',
+      'A': '#18181b', 'a': '#3f3f46', 'G': '#fb923c',
+      'F': '#ea580c', 'H': '#f97316', 'f': '#c2410c',
+      'S': '#ffedd5', 'm': '#71717a', 'K': '#09090b'
+    }, {
+      auraColor: 'rgba(249, 115, 22, 0.45)',
+      highlights: [{ x: 10, y: 7, w: 3, h: 2, c: '#ffffff' }, { x: 21, y: 7, w: 3, h: 2, c: '#ffffff' }, { x: 28, y: 12, w: 2, h: 9, c: '#ffffff' }],
+      weaponGlow: { color: '#f97316', blur: 12, pixels: [[27, 10, 4, 12]] }
+    });
   }
 
   // =========================================================================
