@@ -1931,6 +1931,41 @@ class GameEngine {
     }
   }
 
+  isSkillAllowedForClass(sId, heroClass) {
+    // 🌐 모든 직업 공용 유틸/방어 스킬
+    const commonSkills = ['magic_satellite', 'holy_cross', 'wind_blade'];
+    if (commonSkills.includes(sId)) return true;
+
+    // ⚔️ 검사 (Warrior) 스킬군: 초근접 대검, 방패 강타, 마검 회전참, 불꽃 베기, 뇌격참, 십자참 등
+    const warriorSkills = [
+      'frenzy_slash', 'shield_bash', 'rune_wave',
+      'fire_slash', 'thunder_slash', 'lightning_cross'
+    ];
+    if (heroClass === 'warrior') {
+      return warriorSkills.includes(sId);
+    }
+
+    // 🏹 궁수 (Archer) 스킬군: 관통 저격 빔, 질풍 연사, 폭발 덫, 잎사귀 표창, 독포자 폭탄, 고드름창 등
+    const archerSkills = [
+      'pierce_snipe', 'rapid_gale', 'explosive_trap',
+      'leaf_cutter', 'poison_spore', 'icicle_spear'
+    ];
+    if (heroClass === 'archer') {
+      return archerSkills.includes(sId);
+    }
+
+    // 🧙 소환사 (Summoner) 스킬군: 화염구, 연쇄번개, 가시덩굴, 고드름창, 해골소환, 소환수 발톱 등
+    const summonerSkills = [
+      'fireball', 'chain_lightning', 'thorn_aura', 'icicle_spear',
+      'dark_minion', 'fire_slash', 'thunder_slash', 'leaf_cutter'
+    ];
+    if (heroClass === 'summoner') {
+      return summonerSkills.includes(sId);
+    }
+
+    return true;
+  }
+
   showLevelUpModal() {
     this.isPaused = true;
     const modal = document.getElementById('level-up-modal');
@@ -1955,20 +1990,26 @@ class GameEngine {
       }
     });
 
-    // [2] 일반 스킬 목록
+    // [2] 직업별 적합 일반 스킬 목록 (Class-specific Skills Filtering)
+    const heroClass = this.player ? (this.player.heroClass || 'summoner') : 'summoner';
+
     Object.keys(GAME_DATA.skills).forEach(sId => {
       const def = GAME_DATA.skills[sId];
       if (def.isEvolved || sId.includes('solar') || sId.includes('judgment') || sId.includes('rebirth')) return;
 
       const cur = this.pet.skills[sId];
       if (!cur) {
-        pool.push({ type: 'skill_new', id: sId, data: def });
+        // 신규 스킬 습득 시: 직업에 맞는 스킬만 선택지에 등장!
+        if (this.isSkillAllowedForClass(sId, heroClass)) {
+          pool.push({ type: 'skill_new', id: sId, data: def });
+        }
       } else if (cur.level < (def.maxLevel || 8)) {
+        // 이미 보유 중인 스킬은 정상적으로 레벨업 선택지에 등장
         pool.push({ type: 'skill_up', id: sId, data: def, lvl: cur.level + 1 });
       }
     });
 
-    // [3] 패시브 아이템 목록
+    // [3] 패시브 아이템 목록 (전 직업 공용)
     Object.keys(GAME_DATA.passives).forEach(pId => {
       const curLvl = this.pet.passives[pId] || 0;
       if (curLvl < 5) {
