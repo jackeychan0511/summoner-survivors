@@ -1576,7 +1576,11 @@ class GameEngine {
   showEvolutionModal(evo) {
     this.isPaused = true;
     const modal = document.getElementById('evolution-modal');
-    const titleTag = evo.tier === 2 ? '🌟 펫 2차 전직 (각성) 🌟' : '👑 펫 3차 최종 각성 (신수 강림) 👑';
+    const isSummoner = (this.player.heroClass || 'summoner') === 'summoner';
+    const heroName = isSummoner ? '펫' : (this.player.heroClass === 'warrior' ? '검사' : '궁수');
+    const titleTag = evo.tier === 2 
+      ? `🌟 ${heroName} 2차 전직 (각성) 🌟` 
+      : `👑 ${heroName} 3차 최종 각성 (신화 강림) 👑`;
     document.getElementById('evo-modal-title').textContent = titleTag;
     document.getElementById('evo-name').textContent = evo.name;
     document.getElementById('evo-desc').textContent = evo.desc;
@@ -1584,6 +1588,7 @@ class GameEngine {
 
     document.getElementById('btn-confirm-evo').onclick = () => {
       this.pet.tier = evo.tier;
+      this.player.tier = evo.tier; // ⭐️ 플레이어 캐릭터 티어 동기화 (외형 2차/3차 진화)
       this.pet.isEvolved = true;
       this.pet.config.name = evo.name;
       this.pet.config.icon = evo.icon;

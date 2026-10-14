@@ -873,9 +873,137 @@
 
       <div style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:14px; padding:4px; text-align:left;">
         
-        <!-- 1. 2.5~3등신 인간형 소환사 & 영웅들 -->
+        <!-- 1. ⚔️ 검사 (Warrior) 3대 전직 계열 외형 진화 도감 (1차 -> 2차 -> 3차) -->
+        <div style="background:#0f172a; border:1px solid #ef4444; border-radius:10px; padding:12px;">
+          <div style="color:#f87171; font-weight:bold; font-size:13px; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+            <span>⚔️</span> 검사 (Swordsman) 전직별 캐릭터 외형 도감 (소환수 없음 / 본체 진화)
+          </div>
+
+          <!-- 광전사 계열 -->
+          <div style="background:#1e293b; border-radius:8px; padding:8px; margin-bottom:8px;">
+            <div style="font-size:11px; font-weight:bold; color:#ef4444; margin-bottom:6px;">🩸 광전사 (Berserker): 견습 광전사 ➔ 블러드 버서커 ➔ 헬블레이더</div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; text-align:center;">
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #475569;">
+                <canvas id="prev-war-ber-1" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#f87171; margin-top:3px;">1차: 견습 광전사</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #b91c1c;">
+                <canvas id="prev-war-ber-2" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#ef4444; margin-top:3px;">2차: 블러드 버서커</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #facc15;">
+                <canvas id="prev-war-ber-3" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#fde047; margin-top:3px;">👑 3차: 헬블레이더</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 성기사 계열 -->
+          <div style="background:#1e293b; border-radius:8px; padding:8px; margin-bottom:8px;">
+            <div style="font-size:11px; font-weight:bold; color:#38bdf8; margin-bottom:6px;">🛡️ 성기사 (Paladin): 견습 수호기사 ➔ 홀리 팔라딘 ➔ 디바인 가디언</div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; text-align:center;">
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #475569;">
+                <canvas id="prev-war-pal-1" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#94a3b8; margin-top:3px;">1차: 견습 수호기사</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #38bdf8;">
+                <canvas id="prev-war-pal-2" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#38bdf8; margin-top:3px;">2차: 홀리 팔라딘</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #facc15;">
+                <canvas id="prev-war-pal-3" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#fde047; margin-top:3px;">👑 3차: 디바인 가디언</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 마검사 계열 -->
+          <div style="background:#1e293b; border-radius:8px; padding:8px;">
+            <div style="font-size:11px; font-weight:bold; color:#c084fc; margin-bottom:6px;">⚡ 마검사 (Magic Knight): 견습 마검사 ➔ 룬 블레이더 ➔ 스펠마스터</div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; text-align:center;">
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #475569;">
+                <canvas id="prev-war-mag-1" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#a78bfa; margin-top:3px;">1차: 견습 마검사</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #8b5cf6;">
+                <canvas id="prev-war-mag-2" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#c084fc; margin-top:3px;">2차: 룬 블레이더</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #facc15;">
+                <canvas id="prev-war-mag-3" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#fde047; margin-top:3px;">👑 3차: 스펠마스터</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 🏹 궁수 (Archer) 3대 전직 계열 외형 진화 도감 (1차 -> 2차 -> 3차) -->
+        <div style="background:#0f172a; border:1px solid #10b981; border-radius:10px; padding:12px;">
+          <div style="color:#34d399; font-weight:bold; font-size:13px; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+            <span>🏹</span> 궁수 (Archer) 전직별 캐릭터 외형 도감 (소환수 없음 / 본체 진화)
+          </div>
+
+          <!-- 스나이퍼 계열 -->
+          <div style="background:#1e293b; border-radius:8px; padding:8px; margin-bottom:8px;">
+            <div style="font-size:11px; font-weight:bold; color:#38bdf8; margin-bottom:6px;">🎯 스나이퍼 (Sniper): 견습 저격수 ➔ 호크아이 스나이퍼 ➔ 갓스나이퍼</div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; text-align:center;">
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #475569;">
+                <canvas id="prev-arc-snp-1" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#0284c7; margin-top:3px;">1차: 견습 저격수</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #0284c7;">
+                <canvas id="prev-arc-snp-2" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#38bdf8; margin-top:3px;">2차: 호크아이 스나이퍼</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #facc15;">
+                <canvas id="prev-arc-snp-3" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#fde047; margin-top:3px;">👑 3차: 갓스나이퍼</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 윈드러너 계열 -->
+          <div style="background:#1e293b; border-radius:8px; padding:8px; margin-bottom:8px;">
+            <div style="font-size:11px; font-weight:bold; color:#4ade80; margin-bottom:6px;">🍃 윈드러너 (Windrunner): 견습 쾌속궁수 ➔ 질풍의 윈드러너 ➔ 템페스트</div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; text-align:center;">
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #475569;">
+                <canvas id="prev-arc-wnd-1" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#16a34a; margin-top:3px;">1차: 견습 쾌속궁수</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #22c55e;">
+                <canvas id="prev-arc-wnd-2" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#4ade80; margin-top:3px;">2차: 질풍의 윈드러너</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #facc15;">
+                <canvas id="prev-arc-wnd-3" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#fde047; margin-top:3px;">👑 3차: 템페스트</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 트래퍼 계열 -->
+          <div style="background:#1e293b; border-radius:8px; padding:8px;">
+            <div style="font-size:11px; font-weight:bold; color:#fb923c; margin-bottom:6px;">💣 트래퍼 (Trapper): 견습 덫사냥꾼 ➔ 마공 트랩마스터 ➔ 아틸러리</div>
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; text-align:center;">
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #475569;">
+                <canvas id="prev-arc-trp-1" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#d97706; margin-top:3px;">1차: 견습 덫사냥꾼</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #f97316;">
+                <canvas id="prev-arc-trp-2" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#fb923c; margin-top:3px;">2차: 트랩마스터</div>
+              </div>
+              <div style="background:#0f172a; padding:6px; border-radius:6px; border:1px solid #facc15;">
+                <canvas id="prev-arc-trp-3" width="56" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
+                <div style="font-size:10px; font-weight:bold; color:#fde047; margin-top:3px;">👑 3차: 아틸러리</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 🧙 소환사 (Summoner) & 기본 파티원 -->
         <div style="background:#0f172a; border:1px solid #38bdf8; border-radius:10px; padding:12px;">
-          <div style="color:#38bdf8; font-weight:bold; font-size:13px; margin-bottom:8px;">🧙 2.5~3등신 인간형 소환사 (테이머) & 파티 영웅들</div>
+          <div style="color:#38bdf8; font-weight:bold; font-size:13px; margin-bottom:8px;">🧙 소환사 (Summoner) 본체 & 기본 파티원</div>
           <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; text-align:center;">
             <div style="background:#1e293b; padding:8px; border-radius:8px; border:1px solid #475569;">
               <canvas id="prev-tamer" width="48" height="64" style="margin:0 auto; display:block; image-rendering:pixelated;"></canvas>
@@ -1174,11 +1302,11 @@
 
   <!-- Load Modules -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="js/data.js?v=20261014_1525"></script>
-  <script src="js/sprites.js?v=20261014_1525"></script>
-  <script src="js/render.js?v=20261014_1525"></script>
-  <script src="js/engine.js?v=20261014_1525"></script>
-  <script src="js/network.js?v=20261014_1525"></script>
+  <script src="js/data.js?v=20261014_1545"></script>
+  <script src="js/sprites.js?v=20261014_1545"></script>
+  <script src="js/render.js?v=20261014_1545"></script>
+  <script src="js/engine.js?v=20261014_1545"></script>
+  <script src="js/network.js?v=20261014_1545"></script>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -1269,6 +1397,32 @@
       modal.style.display = 'flex';
     }
 
+    function getHeroOrPetSprite(classId, subId, tier = 1) {
+      if (typeof spriteManager === 'undefined') return null;
+      if (classId === 'warrior') {
+        const key = `warrior_${subId}_t${tier}`;
+        return (spriteManager.heroSprites && spriteManager.heroSprites[key]) || null;
+      } else if (classId === 'archer') {
+        const key = `archer_${subId}_t${tier}`;
+        return (spriteManager.heroSprites && spriteManager.heroSprites[key]) || null;
+      } else if (classId === 'summoner') {
+        const petKey = `${subId}_t${tier}`;
+        return (spriteManager.petSprites && spriteManager.petSprites[petKey]) || null;
+      }
+      return null;
+    }
+
+    function drawSpriteToCanvas(targetCanvas, srcCanvas) {
+      if (!targetCanvas || !srcCanvas) return;
+      const ctx = targetCanvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+      const scale = Math.min((targetCanvas.width - 4) / srcCanvas.width, (targetCanvas.height - 4) / srcCanvas.height);
+      const dw = Math.floor(srcCanvas.width * scale);
+      const dh = Math.floor(srcCanvas.height * scale);
+      ctx.drawImage(srcCanvas, Math.floor((targetCanvas.width - dw) / 2), Math.floor((targetCanvas.height - dh) / 2), dw, dh);
+    }
+
     function renderHeroSelectCards() {
       const container = document.getElementById('pet-cards-container');
       if (!container) return;
@@ -1287,7 +1441,9 @@
         card.className = 'card';
         card.style.borderColor = sub.color || classDef.color || '#38bdf8';
         card.innerHTML = `
-          <div class="card-icon" style="color:${sub.color}; border-color:${sub.color}; font-size:32px;">${sub.icon}</div>
+          <div class="card-icon" style="color:${sub.color}; border-color:${sub.color}; padding:2px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+            <canvas id="card-hero-canvas-${subId}" width="48" height="52" style="image-rendering:pixelated; display:block;"></canvas>
+          </div>
           <div class="card-info" style="flex:1;">
             <div style="display:flex; align-items:center; gap:8px;">
               <h4>${sub.name}</h4>
@@ -1302,7 +1458,7 @@
           </div>
           <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0;">
             <button class="btn" style="background:#0284c7; border-color:#38bdf8; padding:6px 10px; font-size:11px;" onclick="event.stopPropagation(); openHeroDetailModal('${classId}', '${subId}')">
-              🔍 전직/조합 정보
+              🔍 전직/외형 정보
             </button>
             <button class="btn" style="background:#16a34a; border-color:#4ade80; padding:6px 10px; font-size:11px; font-weight:bold;" onclick="event.stopPropagation(); selectHeroAndStart('${classId}', '${subId}')">
               ⚔️ 출격하기
@@ -1313,6 +1469,21 @@
           selectHeroAndStart(classId, subId);
         };
         container.appendChild(card);
+
+        // 카드 캔버스 렌더링
+        setTimeout(() => {
+          const cvs = document.getElementById(`card-hero-canvas-${subId}`);
+          const spr = getHeroOrPetSprite(classId, subId, 1);
+          if (cvs && spr) {
+            drawSpriteToCanvas(cvs, spr);
+          } else if (cvs) {
+            const ctx = cvs.getContext('2d');
+            ctx.font = '28px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(sub.icon, cvs.width / 2, cvs.height / 2);
+          }
+        }, 10);
       });
     }
 
@@ -1338,7 +1509,7 @@
       document.getElementById('dtl-pet-element').style.color = sub.color || '#38bdf8';
       document.getElementById('dtl-pet-desc').textContent = sub.desc;
 
-      // 1. 3단계 전직 계보도
+      // 1. 3단계 전직 계보도 (실물 도트 캔버스 포함)
       const treeContainer = document.getElementById('dtl-evo-tree');
       treeContainer.innerHTML = '';
 
@@ -1351,18 +1522,18 @@
       treeContainer.innerHTML = `
         <!-- 1차 기본 -->
         <div style="background:#1e293b; border:1px solid #475569; border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:10px;">
-          <div style="font-size:24px;">${sub.icon}</div>
+          <canvas id="dtl-hero-canvas-1" width="48" height="56" style="image-rendering:pixelated; background:#0f172a; border-radius:6px; border:1px solid #475569; flex-shrink:0;"></canvas>
           <div style="flex:1;">
             <div style="font-weight:bold; color:#f8fafc; font-size:12px;">1차: ${sub.name} <span style="color:#94a3b8; font-weight:normal;">(시작 단계)</span></div>
             <div style="font-size:11px; color:#38bdf8;">기본 스킬: [${evo1Skill.name || ''}] - ${evo1Skill.desc || ''}</div>
           </div>
         </div>
 
-        <div style="text-align:center; color:#facc15; font-size:12px; font-weight:bold;">⬇️ Lv.15 도달 시 2차 전직 (각성)</div>
+        <div style="text-align:center; color:#facc15; font-size:12px; font-weight:bold;">⬇️ Lv.15 도달 시 2차 전직 (각성 및 외형 진화)</div>
 
         <!-- 2차 전직 -->
         <div style="background:#1e293b; border:1px solid #f59e0b; border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:10px;">
-          <div style="font-size:24px;">${evo2Def.icon || '⚔️'}</div>
+          <canvas id="dtl-hero-canvas-2" width="48" height="56" style="image-rendering:pixelated; background:#0f172a; border-radius:6px; border:1px solid #f59e0b; flex-shrink:0;"></canvas>
           <div style="flex:1;">
             <div style="font-weight:bold; color:#facc15; font-size:12px;">2차: ${evo2Def.name || '2차 각성'}</div>
             <div style="font-size:11px; color:#cbd5e1; margin-bottom:2px;">${evo2Def.desc || ''}</div>
@@ -1370,11 +1541,11 @@
           </div>
         </div>
 
-        <div style="text-align:center; color:#facc15; font-size:12px; font-weight:bold;">⬇️ Lv.35 도달 시 3차 최종 각성 (신수/영웅 강림)</div>
+        <div style="text-align:center; color:#facc15; font-size:12px; font-weight:bold;">⬇️ Lv.35 도달 시 3차 최종 각성 (신수/신화 강림)</div>
 
         <!-- 3차 최종 각성 -->
         <div style="background:radial-gradient(circle, rgba(250, 204, 21, 0.15) 0%, #1e293b 80%); border:1.5px solid #facc15; border-radius:8px; padding:8px 12px; display:flex; align-items:center; gap:10px;">
-          <div style="font-size:26px;">${evo3Def.icon || '👑'}</div>
+          <canvas id="dtl-hero-canvas-3" width="56" height="64" style="image-rendering:pixelated; background:#0f172a; border-radius:6px; border:1.5px solid #facc15; flex-shrink:0;"></canvas>
           <div style="flex:1;">
             <div style="font-weight:bold; color:#facc15; font-size:13px;">3차 최종 각성: ${evo3Def.name || '최종 각성'}</div>
             <div style="font-size:11px; color:#cbd5e1; margin-bottom:2px;">${evo3Def.desc || ''}</div>
@@ -1382,6 +1553,16 @@
           </div>
         </div>
       `;
+
+      // 계보도 캔버스 실물 렌더링
+      setTimeout(() => {
+        const c1 = document.getElementById('dtl-hero-canvas-1');
+        const c2 = document.getElementById('dtl-hero-canvas-2');
+        const c3 = document.getElementById('dtl-hero-canvas-3');
+        if (c1) drawSpriteToCanvas(c1, getHeroOrPetSprite(classId, subId, 1));
+        if (c2) drawSpriteToCanvas(c2, getHeroOrPetSprite(classId, subId, 2));
+        if (c3) drawSpriteToCanvas(c3, getHeroOrPetSprite(classId, subId, 3));
+      }, 20);
 
       // 2. 궁극기 정보
       const ult = sub.ultimate || {};
@@ -1517,6 +1698,35 @@
         const dh = Math.floor(srcCanvas.height * scale);
         ctx.drawImage(srcCanvas, Math.floor((c.width - dw) / 2), Math.floor((c.height - dh) / 2), dw, dh);
       };
+
+      // 0. Hero Class Sprites (Warrior 9종, Archer 9종 전직 외형)
+      if (spriteManager.heroSprites) {
+        // 검사 3계열 3단계
+        drawTo('prev-war-ber-1', spriteManager.heroSprites.warrior_berserker_t1);
+        drawTo('prev-war-ber-2', spriteManager.heroSprites.warrior_berserker_t2);
+        drawTo('prev-war-ber-3', spriteManager.heroSprites.warrior_berserker_t3);
+
+        drawTo('prev-war-pal-1', spriteManager.heroSprites.warrior_paladin_t1);
+        drawTo('prev-war-pal-2', spriteManager.heroSprites.warrior_paladin_t2);
+        drawTo('prev-war-pal-3', spriteManager.heroSprites.warrior_paladin_t3);
+
+        drawTo('prev-war-mag-1', spriteManager.heroSprites.warrior_magic_knight_t1);
+        drawTo('prev-war-mag-2', spriteManager.heroSprites.warrior_magic_knight_t2);
+        drawTo('prev-war-mag-3', spriteManager.heroSprites.warrior_magic_knight_t3);
+
+        // 궁수 3계열 3단계
+        drawTo('prev-arc-snp-1', spriteManager.heroSprites.archer_sniper_t1);
+        drawTo('prev-arc-snp-2', spriteManager.heroSprites.archer_sniper_t2);
+        drawTo('prev-arc-snp-3', spriteManager.heroSprites.archer_sniper_t3);
+
+        drawTo('prev-arc-wnd-1', spriteManager.heroSprites.archer_windrunner_t1);
+        drawTo('prev-arc-wnd-2', spriteManager.heroSprites.archer_windrunner_t2);
+        drawTo('prev-arc-wnd-3', spriteManager.heroSprites.archer_windrunner_t3);
+
+        drawTo('prev-arc-trp-1', spriteManager.heroSprites.archer_trapper_t1);
+        drawTo('prev-arc-trp-2', spriteManager.heroSprites.archer_trapper_t2);
+        drawTo('prev-arc-trp-3', spriteManager.heroSprites.archer_trapper_t3);
+      }
 
       // 1. Humans (2.5~3 heads)
       if (spriteManager.humanSprites) {

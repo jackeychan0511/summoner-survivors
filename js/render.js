@@ -43,16 +43,23 @@ class GameRenderer {
     if (engine.peers) {
       for (const peerId in engine.peers) {
         const peer = engine.peers[peerId];
-        if (peer.player && peer.pet) {
-          this.renderTether(peer.player, peer.pet, engine.gameTime);
-          this.renderTamer(peer.player, peer.name || '동료 테이머', '#a855f7');
-          this.renderPet(peer.pet, engine.gameTime);
+        if (peer.player) {
+          const isPeerSummoner = (peer.player.heroClass || 'summoner') === 'summoner';
+          if (isPeerSummoner && peer.pet) {
+            this.renderTether(peer.player, peer.pet, engine.gameTime);
+          }
+          this.renderTamer(peer.player, peer.name || '동료', '#a855f7');
+          if (isPeerSummoner && peer.pet) {
+            this.renderPet(peer.pet, engine.gameTime);
+          }
         }
       }
     }
 
-    // 3. Local Tamer and Pet Mana Bond
-    this.renderTether(player, pet, engine.gameTime);
+    // 3. Local Tamer and Pet Mana Bond (소환사만 해당)
+    if (player.heroClass === 'summoner' && pet) {
+      this.renderTether(player, pet, engine.gameTime);
+    }
 
     // 4. Golden Equipment Chests (Dropped by Mini-bosses)
     if (engine.chests) {
@@ -84,8 +91,10 @@ class GameRenderer {
     const myName = (typeof networkManager !== 'undefined' && networkManager.isHost) ? '👑 아빠 (호스트)' : ((player.subclassDef && player.subclassDef.name) || '🧙 테이머');
     this.renderTamer(player, myName, '#818cf8');
 
-    // 11. Local Hero Pet
-    this.renderPet(pet, engine.gameTime);
+    // 11. Local Hero Pet (소환사만 해당)
+    if (player.heroClass === 'summoner' && pet) {
+      this.renderPet(pet, engine.gameTime);
+    }
 
     // 12. Floating Damage Numbers
     engine.damageNumbers.forEach(d => {
