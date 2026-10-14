@@ -1191,169 +1191,305 @@ class SpriteManager {
       ctx.shadowBlur = 0;
     });
 
-    // =======================================================================
-    // [5] 궁수: 윈드러너 3단계 (Archer - Windrunner)
+// =======================================================================
+    // [5] 궁수: 윈드러너 3단계 (Archer - Windrunner) - 온라인 신화/판타지 참조
+    // 공기역학적 실루엣, 휘날리는 롱 스카프/분리망토, 새 날개 풍령궁, 돌풍 소용돌이
     // =======================================================================
 
-    // 1차: 견습 쾌속궁수 (에메랄드 그린 판초, 단궁)
+    // 1차: 견습 쾌속궁수 (에메랄드 튜닉, 포니테일, 리커브 우든보우, 나뭇잎 화살통) - 64x80
     this.heroSprites.archer_windrunner_t1 = createHdCanvas(64, 80, (ctx, w, h) => {
       const cx = 32;
       ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(cx, 74, 16, 5, 0, 0, Math.PI*2); ctx.fill();
 
-      // 왼손: 날렵한 단궁
-      ctx.strokeStyle = '#059669'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(16, 44, 16, -Math.PI*0.4, Math.PI*0.4); ctx.stroke();
+      // 등 뒤 화살통 & 깃털 화살
+      ctx.fillStyle = '#78350f'; ctx.fillRect(cx - 14, 26, 6, 22);
+      ctx.fillStyle = '#34d399'; // 화살 깃털
+      ctx.fillRect(cx - 15, 20, 3, 6); ctx.fillRect(cx - 12, 18, 3, 8);
 
-      // 에메랄드 판초 망토
-      ctx.fillStyle = '#064e3b'; ctx.fillRect(cx - 8, 56, 6, 16); ctx.fillRect(cx + 2, 56, 6, 16);
+      // 왼손: 새 날개 곡선 리커브 보우 (Recurve Wing Bow)
+      ctx.strokeStyle = '#059669'; ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.arc(14, 44, 20, -Math.PI*0.42, Math.PI*0.42);
+      ctx.stroke();
+      // 백금빛 활시위
+      ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(14 + Math.cos(-Math.PI*0.42)*20, 44 + Math.sin(-Math.PI*0.42)*20);
+      ctx.lineTo(14 + Math.cos(Math.PI*0.42)*20, 44 + Math.sin(Math.PI*0.42)*20);
+      ctx.stroke();
+
+      // 다리 & 날렵한 스웨이드 부츠
+      ctx.fillStyle = '#064e3b';
+      ctx.fillRect(cx - 8, 56, 6, 16); ctx.fillRect(cx + 2, 56, 6, 16);
+      ctx.fillStyle = '#10b981'; // 부츠 턴업
+      ctx.fillRect(cx - 9, 64, 7, 3); ctx.fillRect(cx + 2, 64, 7, 3);
+
+      // 상체: 에메랄드 튜닉 & 바람결에 흩날리는 숏 스카프
       ctx.fillStyle = '#047857';
-      ctx.beginPath(); ctx.moveTo(cx - 14, 34); ctx.lineTo(cx + 14, 34); ctx.lineTo(cx + 10, 56); ctx.lineTo(cx - 10, 56); ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(cx - 10, 34); ctx.lineTo(cx + 10, 34);
+      ctx.lineTo(cx + 8, 56); ctx.lineTo(cx - 8, 56);
+      ctx.closePath(); ctx.fill();
+      // 가슴 가죽 벨트
+      ctx.strokeStyle = '#d97706'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(cx - 10, 36); ctx.lineTo(cx + 8, 52); ctx.stroke();
 
-      // 포니테일 & 녹색 머리띠
-      ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(cx, 24, 10, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#10b981'; ctx.fillRect(cx - 10, 18, 20, 3);
-      // 에메랄드 눈동자
-      ctx.fillStyle = '#10b981'; ctx.fillRect(cx - 5, 24, 3, 3); ctx.fillRect(cx + 2, 24, 3, 3);
+      // 휘날리는 바람 스카프
+      ctx.fillStyle = '#34d399';
+      ctx.beginPath();
+      ctx.moveTo(cx - 6, 34);
+      ctx.quadraticCurveTo(cx - 18, 38, cx - 22, 48);
+      ctx.quadraticCurveTo(cx - 14, 42, cx - 4, 38);
+      ctx.fill();
+
+      // 얼굴, 엘프 귀 & 포니테일
+      ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(cx, 24, 9.5, 0, Math.PI*2); ctx.fill();
+      // 엘프 귀
+      ctx.beginPath(); ctx.moveTo(cx + 8, 22); ctx.lineTo(cx + 14, 18); ctx.lineTo(cx + 9, 26); ctx.fill();
+      // 포니테일 흑갈색 머릿결 휘날림
+      ctx.fillStyle = '#1c1917';
+      ctx.beginPath();
+      ctx.arc(cx, 21, 10.5, Math.PI*0.8, Math.PI*2.2); ctx.fill();
+      ctx.quadraticCurveTo(cx - 16, 18, cx - 18, 32); ctx.lineTo(cx - 10, 24); ctx.fill();
+
+      // 에메랄드 헤어밴드 & 눈동자
+      ctx.fillStyle = '#10b981'; ctx.fillRect(cx - 9, 18, 18, 2.5);
+      ctx.fillStyle = '#059669';
+      ctx.beginPath(); ctx.arc(cx - 4, 24, 2.2, 0, Math.PI*2); ctx.arc(cx + 3, 24, 2.2, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(cx - 4.5, 23.5, 0.8, 0, Math.PI*2); ctx.arc(cx + 2.5, 23.5, 0.8, 0, Math.PI*2); ctx.fill();
     });
 
-    // 2차: 질풍의 윈드러너 (롱 에메랄드 스카프 휘날림, 풍령의 날개 활)
+    // 2차: 질풍의 윈드러너 (롱 에메랄드 스카프 휘날림, 풍령궁, 회오리 화살촉 잔상) - 64x80
     this.heroSprites.archer_windrunner_t2 = createHdCanvas(64, 80, (ctx, w, h) => {
       const cx = 32;
       ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(cx, 74, 18, 6, 0, 0, Math.PI*2); ctx.fill();
 
-      // 휘날리는 긴 에메랄드 스카프
+      // 바람에 휘감겨 길게 휘날리는 롱 실크 스카프 (스플릿 테일)
       ctx.fillStyle = '#10b981';
       ctx.beginPath();
-      ctx.moveTo(cx - 10, 32);
-      ctx.quadraticCurveTo(cx - 24, 38, cx - 28, 56);
-      ctx.quadraticCurveTo(cx - 18, 48, cx - 6, 36);
+      ctx.moveTo(cx - 8, 32);
+      ctx.quadraticCurveTo(cx - 26, 36, cx - 30, 56);
+      ctx.lineTo(cx - 24, 58);
+      ctx.quadraticCurveTo(cx - 18, 44, cx - 4, 36);
+      ctx.fill();
+      ctx.fillStyle = '#34d399';
+      ctx.beginPath();
+      ctx.moveTo(cx - 6, 34);
+      ctx.quadraticCurveTo(cx - 20, 42, cx - 22, 64);
+      ctx.lineTo(cx - 18, 62);
+      ctx.quadraticCurveTo(cx - 14, 46, cx - 4, 38);
       ctx.fill();
 
-      // 풍령의 날개 활 (녹색 바람 파티클)
+      // 은빛 백조 풍령궁 (Gale Force Bow) & 에테르 활시위
       ctx.shadowColor = '#4ade80'; ctx.shadowBlur = 8;
-      ctx.strokeStyle = '#10b981'; ctx.lineWidth = 3.5;
-      ctx.beginPath(); ctx.arc(14, 44, 22, -Math.PI*0.4, Math.PI*0.4); ctx.stroke();
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.arc(14, 44, 24, -Math.PI*0.42, Math.PI*0.42);
+      ctx.stroke();
+      ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1.5; ctx.stroke();
+      // 발광 에테르 시위
+      ctx.strokeStyle = '#a7f3d0'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(14 + Math.cos(-Math.PI*0.42)*24, 44 + Math.sin(-Math.PI*0.42)*24);
+      ctx.lineTo(14 + Math.cos(Math.PI*0.42)*24, 44 + Math.sin(Math.PI*0.42)*24);
+      ctx.stroke();
+      // 화살촉 회오리 돌풍 파티클 (Swirling vortex)
+      ctx.fillStyle = '#6ee7b7';
+      ctx.beginPath(); ctx.arc(18, 44, 4, 0, Math.PI*2); ctx.fill();
       ctx.shadowBlur = 0;
 
-      // 질풍 슈트
+      // 질풍 가죽 슈트 & 골드 트리밍
       ctx.fillStyle = '#064e3b'; ctx.fillRect(cx - 9, 54, 7, 18); ctx.fillRect(cx + 2, 54, 7, 18);
       ctx.fillStyle = '#047857'; ctx.fillRect(cx - 11, 34, 22, 22);
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = 1.5; ctx.strokeRect(cx - 11, 34, 22, 22);
 
+      // 머리, 깃털 서클릿 & 매서운 눈빛
       ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(cx, 22, 10, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#4ade80'; ctx.fillRect(cx - 5, 22, 3, 3); ctx.fillRect(cx + 2, 22, 3, 3);
+      ctx.fillStyle = '#facc15'; // 황금 깃털 서클릿
+      ctx.fillRect(cx - 9, 16, 18, 2.5);
+      ctx.fillStyle = '#34d399';
+      ctx.beginPath(); ctx.moveTo(cx + 7, 16); ctx.lineTo(cx + 16, 8); ctx.lineTo(cx + 10, 18); ctx.fill();
+      // 눈동자
+      ctx.fillStyle = '#10b981';
+      ctx.fillRect(cx - 6, 21, 4, 3); ctx.fillRect(cx + 2, 21, 4, 3);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx - 5, 21, 1.5, 1.5); ctx.fillRect(cx + 3, 21, 1.5, 1.5);
     });
 
-    // 3차: 👑 환영폭풍의 템페스트 (바람의 날개 망토, 바람의 정령관, 폭풍의 쌍곡궁 소용돌이)
+    // 3차: 👑 환영폭풍의 템페스트 (폭풍의 날개 망토, 바람의 정령관, 폭풍 쌍곡궁 네온 소용돌이) - 72x88
     this.heroSprites.archer_windrunner_t3 = createHdCanvas(72, 88, (ctx, w, h) => {
       const cx = 36;
-      // 질풍의 소용돌이 아우라
+      // 질풍과 번개의 에메랄드 아우라 폭풍
       const aura = ctx.createRadialGradient(cx, 44, 10, cx, 44, 36);
-      aura.addColorStop(0, 'rgba(74, 222, 128, 0.45)');
+      aura.addColorStop(0, 'rgba(74, 222, 128, 0.55)');
+      aura.addColorStop(0.7, 'rgba(34, 211, 238, 0.25)');
       aura.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
 
       ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.beginPath(); ctx.ellipse(cx, 80, 22, 7, 0, 0, Math.PI*2); ctx.fill();
 
-      // 바람의 날개 망토
-      ctx.fillStyle = '#059669';
+      // 양옆으로 펼쳐진 폭풍 날개 망토 (Stormwing Mantle)
+      ctx.fillStyle = '#065f46';
       ctx.beginPath();
-      ctx.moveTo(cx - 14, 32); ctx.lineTo(cx - 30, 54); ctx.lineTo(cx - 20, 72);
-      ctx.lineTo(cx + 10, 48); ctx.closePath(); ctx.fill();
+      ctx.moveTo(cx - 12, 32); ctx.lineTo(cx - 32, 54); ctx.lineTo(cx - 24, 74); ctx.lineTo(cx, 54);
+      ctx.moveTo(cx + 12, 32); ctx.lineTo(cx + 32, 54); ctx.lineTo(cx + 24, 74); ctx.lineTo(cx, 54);
+      ctx.fill();
+      ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2; ctx.stroke();
 
-      // 폭풍의 쌍곡궁 (그린 번개 소용돌이)
-      ctx.shadowColor = '#4ade80'; ctx.shadowBlur = 12;
-      ctx.strokeStyle = '#4ade80'; ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.arc(14, 44, 28, -Math.PI*0.4, Math.PI*0.4); ctx.stroke();
-      ctx.shadowBlur = 0;
+      // 폭풍의 쌍곡궁 (Twin-vortex Storm Bow)
+      ctx.save();
+      ctx.translate(14, 44);
+      ctx.shadowColor = '#34d399'; ctx.shadowBlur = 14;
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(0, 0, 28, -Math.PI*0.44, Math.PI*0.44); ctx.stroke();
+      ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2; ctx.stroke();
+      // 돌풍 소용돌이 에너지 화살
+      ctx.fillStyle = '#6ee7b7';
+      ctx.beginPath(); ctx.arc(4, 0, 6, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(34, 0); ctx.stroke();
+      ctx.restore();
 
-      // 템페스트 슈트
+      // 템페스트 정령 슈트
       ctx.fillStyle = '#064e3b'; ctx.fillRect(cx - 10, 56, 8, 20); ctx.fillRect(cx + 2, 56, 8, 20);
-      ctx.fillStyle = '#047857'; ctx.fillRect(cx - 12, 34, 24, 24);
+      ctx.fillStyle = '#047857'; ctx.fillRect(cx - 13, 34, 26, 24);
+      ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.strokeRect(cx - 13, 34, 26, 24);
 
-      // 바람의 정령관 (에메랄드 티아라)
-      ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(cx, 22, 11, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#4ade80';
-      ctx.beginPath(); ctx.moveTo(cx - 10, 16); ctx.lineTo(cx, 8); ctx.lineTo(cx + 10, 16); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#ffffff'; ctx.fillRect(cx - 5, 22, 3, 3); ctx.fillRect(cx + 2, 22, 3, 3);
+      // 바람의 정령관 (Sylph Crown) & 휘날리는 백금발
+      ctx.fillStyle = '#f8fafc'; // 백금발 머릿결
+      ctx.beginPath(); ctx.arc(cx, 22, 11, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#4ade80'; // 에메랄드 크라운
+      ctx.beginPath();
+      ctx.moveTo(cx - 11, 16); ctx.lineTo(cx, 6); ctx.lineTo(cx + 11, 16);
+      ctx.lineTo(cx + 6, 18); ctx.lineTo(cx, 12); ctx.lineTo(cx - 6, 18);
+      ctx.closePath(); ctx.fill();
+      // 눈빛
+      ctx.shadowColor = '#67e8f9'; ctx.shadowBlur = 6;
+      ctx.fillStyle = '#22d3ee'; ctx.fillRect(cx - 6, 21, 4, 3); ctx.fillRect(cx + 2, 21, 4, 3);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(cx - 5, 21, 1.5, 1.5); ctx.fillRect(cx + 3, 21, 1.5, 1.5);
+      ctx.shadowBlur = 0;
     });
 
     // =======================================================================
-    // [6] 궁수: 트래퍼 3단계 (Archer - Trapper)
+    // [6] 궁수: 트래퍼 3단계 (Archer - Trapper) - 온라인 스팀펑크/기계공학 참조
+    // 강철 턱 덫, 황동 리벳 고글, 앰플 탄띠, 레버 쇠뇌, 중화기 외골격 바주카
     // =======================================================================
 
-    // 1차: 견습 덫사냥꾼 (가죽 방호 자켓, 탄띠, 핸드 쇠뇌)
+    // 1차: 견습 덫사냥꾼 (가죽 방호 자켓, 기계식 턱 덫, 핸드 크로스보우) - 64x80
     this.heroSprites.archer_trapper_t1 = createHdCanvas(64, 80, (ctx, w, h) => {
       const cx = 32;
       ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(cx, 74, 16, 5, 0, 0, Math.PI*2); ctx.fill();
 
-      // 핸드 쇠뇌
-      ctx.fillStyle = '#78350f'; ctx.fillRect(14, 40, 18, 5);
-      ctx.fillStyle = '#94a3b8'; ctx.fillRect(12, 34, 3, 17);
+      // 허리에 매단 강철 턱 덫 (Mechanical Jaw Trap)
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(cx - 14, 52, 7, 0, Math.PI*2); ctx.stroke();
+      // 덫 이빨
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(cx - 17, 51, 6, 2); ctx.fillRect(cx - 11, 51, 6, 2);
 
-      // 가죽 방호 자켓 & 사선 탄띠
+      // 오른손: 핸드 쇠뇌 (Hand Crossbow)
+      ctx.fillStyle = '#78350f'; ctx.fillRect(44, 38, 18, 6);
+      ctx.fillStyle = '#94a3b8'; ctx.fillRect(42, 30, 4, 22);
+      ctx.fillStyle = '#451a03'; ctx.fillRect(48, 44, 4, 8); // 손잡이
+
+      // 캔버스 방호 자켓 & 사선 가죽 탄띠
       ctx.fillStyle = '#1c1917'; ctx.fillRect(cx - 8, 56, 6, 16); ctx.fillRect(cx + 2, 56, 6, 16);
       ctx.fillStyle = '#78350f'; ctx.fillRect(cx - 10, 36, 20, 22);
-      ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 3;
+      // 사선 탄띠 & 황동 버클
+      ctx.strokeStyle = '#b45309'; ctx.lineWidth = 4;
       ctx.beginPath(); ctx.moveTo(cx - 10, 36); ctx.lineTo(cx + 10, 56); ctx.stroke();
+      ctx.fillStyle = '#f59e0b'; ctx.fillRect(cx - 2, 44, 4, 4); // 버클
 
+      // 얼굴, 사냥꾼 모자 & 단안경 (Monocle)
       ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(cx, 24, 10, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#d97706'; ctx.fillRect(cx - 10, 16, 20, 4); // 가죽 헤드기어
+      ctx.fillStyle = '#451a03'; ctx.fillRect(cx - 12, 16, 24, 4); // 모자 챙
+      ctx.fillStyle = '#78350f'; ctx.fillRect(cx - 8, 10, 16, 8); // 모자 본체
+      // 단안경
+      ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(cx + 4, 24, 3.5, 0, Math.PI*2); ctx.stroke();
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(cx + 3, 23, 2, 2);
     });
 
-    // 2차: 마공 트랩마스터 (스팀펑크 황동 고글 렌즈 반사, 화약 탄띠 & 대형 폭발 쇠뇌)
+    // 2차: 마공 트랩마스터 (황동 스팀펑크 고글, 발광 화학 앰플 탄띠, 레버 연사 쇠뇌) - 64x80
     this.heroSprites.archer_trapper_t2 = createHdCanvas(64, 80, (ctx, w, h) => {
       const cx = 32;
       ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(cx, 74, 18, 6, 0, 0, Math.PI*2); ctx.fill();
 
-      // 대형 폭발 쇠뇌
-      ctx.fillStyle = '#451a03'; ctx.fillRect(10, 38, 24, 8);
-      ctx.fillStyle = '#d97706'; ctx.fillRect(8, 28, 4, 28);
+      // 허리에 장착된 발광 화학 앰플 (Bioluminescent Vials)
+      ctx.fillStyle = '#10b981'; ctx.fillRect(cx - 14, 52, 4, 7); // 녹색 독 앰플
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(cx - 9, 52, 4, 7);  // 냉기 앰플
+      ctx.fillStyle = '#f97316'; ctx.fillRect(cx + 5, 52, 4, 7);  // 폭발 앰플
 
-      ctx.fillStyle = '#09090b'; ctx.fillRect(cx - 9, 54, 7, 18); ctx.fillRect(cx + 2, 54, 7, 18);
-      ctx.fillStyle = '#451a03'; ctx.fillRect(cx - 11, 34, 22, 22);
+      // 레버식 연사 쇠뇌 (Repeating Siege Crossbow)
+      ctx.fillStyle = '#18181b'; ctx.fillRect(10, 36, 26, 9);
+      ctx.fillStyle = '#d97706'; ctx.fillRect(8, 24, 5, 32);
+      ctx.fillStyle = '#f59e0b'; // 황동 톱니 기어 & 압력 게이지
+      ctx.beginPath(); ctx.arc(24, 34, 4, 0, Math.PI*2); ctx.fill();
 
-      // 스팀펑크 황동 고글 (푸른 렌즈 반사광)
+      // 모피 깃 트렌치코트
+      ctx.fillStyle = '#18181b'; ctx.fillRect(cx - 9, 54, 7, 18); ctx.fillRect(cx + 2, 54, 7, 18);
+      ctx.fillStyle = '#451a03'; ctx.fillRect(cx - 12, 34, 24, 24);
+      ctx.fillStyle = '#d4d4d8'; // 모피 깃털 카라
+      ctx.fillRect(cx - 14, 32, 28, 5);
+
+      // 스팀펑크 황동 다중 렌즈 고글 (Aether-optic eyepiece)
       ctx.fillStyle = '#fed7aa'; ctx.beginPath(); ctx.arc(cx, 22, 10, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#d97706'; ctx.fillRect(cx - 9, 19, 18, 6);
+      ctx.fillStyle = '#b45309'; ctx.fillRect(cx - 10, 18, 20, 7);
+      // 푸른 렌즈 유리 반사광
       ctx.fillStyle = '#38bdf8';
-      ctx.beginPath(); ctx.arc(cx - 4, 22, 3.5, 0, Math.PI*2); ctx.arc(cx + 4, 22, 3.5, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx - 5, 21.5, 4, 0, Math.PI*2); ctx.arc(cx + 5, 21.5, 4, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(cx - 5, 20, 1.5, 1.5); ctx.fillRect(cx + 3, 20, 1.5, 1.5);
+      ctx.fillRect(cx - 6, 20, 2, 2); ctx.fillRect(cx + 4, 20, 2, 2);
     });
 
-    // 3차: 👑 공성파괴의 아틸러리 (기계식 티타늄 외골격 아머, 어깨 미사일 포드 & 대구경 마도 거포)
+    // 3차: 👑 공성파괴의 아틸러리 (외골격 슈트, 어깨 미사일 포드, 초거대 공성 핸드캐논) - 72x88
     this.heroSprites.archer_trapper_t3 = createHdCanvas(72, 88, (ctx, w, h) => {
       const cx = 34;
-      // 화염/폭발 기계 아우라
+      // 화염/스팀 배출 기계 아우라
       const aura = ctx.createRadialGradient(cx, 44, 10, cx, 44, 36);
-      aura.addColorStop(0, 'rgba(249, 115, 22, 0.45)');
+      aura.addColorStop(0, 'rgba(249, 115, 22, 0.55)');
+      aura.addColorStop(0.7, 'rgba(239, 68, 68, 0.25)');
       aura.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = aura; ctx.fillRect(0, 0, w, h);
 
-      ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.beginPath(); ctx.ellipse(cx, 80, 22, 7, 0, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.beginPath(); ctx.ellipse(cx, 80, 22, 7, 0, 0, Math.PI*2); ctx.fill();
 
-      // 어깨 장착 다연장 미사일 포드
-      ctx.fillStyle = '#27272a'; ctx.fillRect(cx - 24, 24, 12, 16);
+      // 어깨 장착 다연장 마도 미사일 포드 (Missile Pods)
+      ctx.fillStyle = '#27272a'; ctx.fillRect(cx - 24, 22, 14, 18);
+      ctx.strokeStyle = '#f97316'; ctx.lineWidth = 1.5; ctx.strokeRect(cx - 24, 22, 14, 18);
+      // 4발 미사일 탄두
       ctx.fillStyle = '#ef4444';
-      ctx.beginPath(); ctx.arc(cx - 20, 28, 2, 0, Math.PI*2); ctx.arc(cx - 16, 28, 2, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(cx - 20, 34, 2, 0, Math.PI*2); ctx.arc(cx - 16, 34, 2, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(cx - 20, 27, 2.5, 0, Math.PI*2); ctx.arc(cx - 14, 27, 2.5, 0, Math.PI*2);
+      ctx.arc(cx - 20, 35, 2.5, 0, Math.PI*2); ctx.arc(cx - 14, 35, 2.5, 0, Math.PI*2);
+      ctx.fill();
 
-      // 대구경 마도 거포 (핸드 캐논 - 총구 화염 발광)
-      ctx.fillStyle = '#18181b'; ctx.fillRect(8, 38, 36, 14);
-      ctx.fillStyle = '#f97316'; ctx.fillRect(6, 36, 6, 18);
-      ctx.shadowColor = '#f97316'; ctx.shadowBlur = 12;
-      ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(6, 45, 5, 0, Math.PI*2); ctx.fill();
+      // 초거대 공성 핸드캐논 (Heavy Siege Cannon - 총구 내부 마그마 발광)
+      ctx.fillStyle = '#18181b'; ctx.fillRect(6, 36, 40, 16);
+      ctx.strokeStyle = '#d97706'; ctx.lineWidth = 2.5; ctx.strokeRect(6, 36, 40, 16);
+      // 총구 화염 발광 블룸
+      ctx.shadowColor = '#f97316'; ctx.shadowBlur = 14;
+      ctx.fillStyle = '#ea580c'; ctx.fillRect(4, 34, 6, 20);
+      ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(4, 44, 6, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(3, 44, 3, 0, Math.PI*2); ctx.fill();
       ctx.shadowBlur = 0;
 
-      // 티타늄 외골격 아머
+      // 증기 배출 파이프 (Steam Vents)
+      ctx.fillStyle = '#52525b'; ctx.fillRect(cx + 12, 18, 5, 14);
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.beginPath(); ctx.arc(cx + 14, 16, 4, 0, Math.PI*2); ctx.fill(); // 수증기
+
+      // 티타늄 & 황동 파워드 외골격 아머 (Exoskeleton)
       ctx.fillStyle = '#18181b'; ctx.fillRect(cx - 11, 56, 9, 20); ctx.fillRect(cx + 3, 56, 9, 20);
       ctx.fillStyle = '#27272a'; ctx.fillRect(cx - 13, 34, 26, 24);
-      ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2; ctx.strokeRect(cx - 13, 34, 26, 24);
+      ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2.5; ctx.strokeRect(cx - 13, 34, 26, 24);
 
-      // 바이저 헬름
+      // 바이저 헬름 & 오렌지 에너지 안광
       ctx.fillStyle = '#18181b'; ctx.beginPath(); ctx.arc(cx, 22, 12, 0, Math.PI*2); ctx.fill();
       ctx.shadowColor = '#f97316'; ctx.shadowBlur = 8;
       ctx.fillStyle = '#f97316'; ctx.fillRect(cx - 8, 21, 16, 4);
+      ctx.fillStyle = '#fef08a'; ctx.fillRect(cx - 6, 22, 5, 2); ctx.fillRect(cx + 1, 22, 5, 2);
       ctx.shadowBlur = 0;
     });
   }
