@@ -1423,11 +1423,11 @@
 
   <!-- Load Modules -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="js/data.js?v=20261014_1720"></script>
-  <script src="js/sprites.js?v=20261014_1720"></script>
-  <script src="js/render.js?v=20261014_1720"></script>
-  <script src="js/engine.js?v=20261014_1720"></script>
-  <script src="js/network.js?v=20261014_1720"></script>
+  <script src="js/data.js?v=20261014_1745"></script>
+  <script src="js/sprites.js?v=20261014_1745"></script>
+  <script src="js/render.js?v=20261014_1745"></script>
+  <script src="js/engine.js?v=20261014_1745"></script>
+  <script src="js/network.js?v=20261014_1745"></script>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -1723,6 +1723,9 @@
     }
 
     function selectHeroAndStart(classId, subId) {
+      if (engine && engine.audio) {
+        engine.audio.init();
+      }
       document.getElementById('pet-select-modal').style.display = 'none';
       document.getElementById('pet-detail-modal').style.display = 'none';
       engine.start(classId, subId, 'melee');
@@ -1828,6 +1831,23 @@
       if (autoBtn) {
         autoBtn.textContent = engine.autoPlay ? 'ON' : 'OFF';
         autoBtn.style.background = engine.autoPlay ? '#f59e0b' : '#334155';
+      }
+    }
+
+    function toggleSound() {
+      if (!engine || !engine.audio) return;
+      engine.audio.init();
+      const enabled = engine.audio.toggle();
+      const topBtn = document.getElementById('btn-sound');
+      if (topBtn) {
+        topBtn.textContent = enabled ? '🔊 사운드 ON' : '🔇 사운드 OFF';
+        topBtn.style.background = enabled ? '#0284c7' : '#334155';
+        topBtn.style.borderColor = enabled ? '#38bdf8' : '#64748b';
+      }
+      const cfgBtn = document.getElementById('cfg-btn-sound');
+      if (cfgBtn) {
+        cfgBtn.textContent = enabled ? 'ON' : 'OFF';
+        cfgBtn.style.background = enabled ? '#0284c7' : '#334155';
       }
     }
 
@@ -2093,6 +2113,18 @@
     window.addEventListener('DOMContentLoaded', () => {
       resizeCanvas();
       engine = new GameEngine(canvas);
+
+      // 브라우저 자동 재생 정책(Autoplay Policy) 해제: 사용자의 첫 상호작용 시 오디오 잠금 해제
+      function unlockAudioContext() {
+        if (engine && engine.audio) {
+          engine.audio.init();
+        }
+      }
+      window.addEventListener('click', unlockAudioContext, { passive: true });
+      window.addEventListener('touchstart', unlockAudioContext, { passive: true });
+      window.addEventListener('pointerdown', unlockAudioContext, { passive: true });
+      window.addEventListener('keydown', unlockAudioContext, { passive: true });
+
       openTitleMenuModal(); // Start at the Main Title Menu!
       lastTime = performance.now();
       requestAnimationFrame(loop);

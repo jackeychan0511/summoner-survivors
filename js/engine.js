@@ -7,101 +7,297 @@ class RetroAudio {
   constructor() {
     this.ctx = null;
     this.enabled = true;
+    this.bgmEnabled = true;
+    this.bgmInterval = null;
+    this.bgmStep = 0;
   }
+
   init() {
     if (!this.ctx) {
       try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (AudioContext) this.ctx = new AudioContext();
+        if (AudioContext) {
+          this.ctx = new AudioContext();
+        }
       } catch(e) {}
     }
     if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      this.ctx.resume().catch(() => {});
+    }
+    if (this.enabled && this.bgmEnabled && !this.bgmInterval) {
+      this.startBgm();
     }
   }
-  playShoot() {
-    if (!this.enabled || !this.ctx) return;
+
+  ensureContext() {
+    if (!this.enabled) return null;
+    if (!this.ctx) {
+      this.init();
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+    return this.ctx;
+  }
+
+  toggle() {
+    this.enabled = !this.enabled;
+    if (!this.enabled) {
+      this.stopBgm();
+    } else {
+      this.init();
+      this.startBgm();
+    }
+    return this.enabled;
+  }
+
+  // ⚔️ 검사 참격/베기 (날카로운 칼바람 소리)
+  playSlash() {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
     try {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const now = ctx.currentTime;
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(480, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.08);
-      gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+      osc.frequency.setValueAtTime(360, now);
+      osc.frequency.exponentialRampToValueAtTime(75, now + 0.12);
+      gain.gain.setValueAtTime(0.24, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.08);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.12);
     } catch(e) {}
   }
+
+  // 🏹 원거리 발사/마법탄 (슉!)
+  playShoot() {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const now = ctx.currentTime;
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(540, now);
+      osc.frequency.exponentialRampToValueAtTime(140, now + 0.09);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.09);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    } catch(e) {}
+  }
+
+  // 💥 타격/피격음 (찰진 퍽!)
   playHit() {
-    if (!this.enabled || !this.ctx) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
     try {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const now = ctx.currentTime;
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(160, this.ctx.currentTime);
-      osc.frequency.linearRampToValueAtTime(60, this.ctx.currentTime + 0.06);
-      gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.06);
+      osc.frequency.setValueAtTime(190, now);
+      osc.frequency.linearRampToValueAtTime(50, now + 0.07);
+      gain.gain.setValueAtTime(0.22, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.07);
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.06);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.07);
     } catch(e) {}
   }
+
+  // ✨ 경험치 보석 획득 (청량한 팅!)
   playGem() {
-    if (!this.enabled || !this.ctx) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
     try {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = 'sine';
-      const freqs = [659, 784, 987, 1318];
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const freqs = [784, 880, 988, 1046, 1175, 1318];
       const f = freqs[Math.floor(Math.random() * freqs.length)];
-      osc.frequency.setValueAtTime(f, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(f * 1.5, this.ctx.currentTime + 0.09);
-      gain.gain.setValueAtTime(0.09, this.ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.09);
+      const now = ctx.currentTime;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f, now);
+      osc.frequency.exponentialRampToValueAtTime(f * 1.4, now + 0.1);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.09);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.1);
     } catch(e) {}
   }
+
+  // 🎺 레벨업 축하 팡파레! (도-미-솔-도)
   playLevelUp() {
-    if (!this.enabled || !this.ctx) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
     try {
       const notes = [523.25, 659.25, 783.99, 1046.5];
+      const now = ctx.currentTime;
       notes.forEach((freq, idx) => {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
         osc.type = 'square';
-        osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
-        gain.gain.setValueAtTime(0.12, this.ctx.currentTime + idx * 0.08);
-        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.08 + 0.12);
+        osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+        gain.gain.setValueAtTime(0.22, now + idx * 0.09);
+        gain.gain.linearRampToValueAtTime(0.01, now + idx * 0.09 + 0.14);
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(this.ctx.currentTime + idx * 0.08);
-        osc.stop(this.ctx.currentTime + idx * 0.08 + 0.14);
+        gain.connect(ctx.destination);
+        osc.start(now + idx * 0.09);
+        osc.stop(now + idx * 0.09 + 0.15);
       });
     } catch(e) {}
   }
+
+  // 💣 폭발음 (콰광!)
   playExplosion() {
-    if (!this.enabled || !this.ctx) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
     try {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const now = ctx.currentTime;
       osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(90, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(20, this.ctx.currentTime + 0.25);
-      gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+      osc.frequency.setValueAtTime(110, now);
+      osc.frequency.exponentialRampToValueAtTime(25, now + 0.28);
+      gain.gain.setValueAtTime(0.32, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.28);
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.25);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.28);
     } catch(e) {}
+  }
+
+  // 👑 궁극기 발동음 (웅장한 폭발 콰아아!)
+  playUltimate() {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    try {
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const now = ctx.currentTime;
+      osc1.type = 'sawtooth';
+      osc2.type = 'square';
+      osc1.frequency.setValueAtTime(130, now);
+      osc1.frequency.exponentialRampToValueAtTime(32, now + 0.45);
+      osc2.frequency.setValueAtTime(260, now);
+      osc2.frequency.exponentialRampToValueAtTime(65, now + 0.45);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.45);
+      osc2.stop(now + 0.45);
+    } catch(e) {}
+  }
+
+  // 🔘 UI 클릭음
+  playClick() {
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const now = ctx.currentTime;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(700, now);
+      osc.frequency.exponentialRampToValueAtTime(350, now + 0.05);
+      gain.gain.setValueAtTime(0.16, now);
+      gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.05);
+    } catch(e) {}
+  }
+
+  // 🎵 드래곤퀘스트 정통 RPG 필드 모험 BGM (Web Audio 칩튠 신디사이저)
+  startBgm() {
+    if (!this.enabled || !this.bgmEnabled || this.bgmInterval) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+
+    // 드래곤퀘스트풍 경쾌한 모험 멜로디 (C장조 영웅적 행진곡)
+    const melody = [
+      523.25, 523.25, 587.33, 659.25, 659.25, 587.33, 523.25, 493.88,
+      440.00, 440.00, 523.25, 659.25, 587.33, 587.33, 523.25, 587.33,
+      659.25, 659.25, 783.99, 880.00, 783.99, 659.25, 587.33, 523.25,
+      587.33, 659.25, 587.33, 493.88, 523.25, 523.25, 0, 0
+    ];
+    // 둥둥거리는 베이스라인
+    const bass = [
+      130.81, 130.81, 146.83, 164.81, 164.81, 146.83, 130.81, 123.47,
+      110.00, 110.00, 130.81, 164.81, 146.83, 146.83, 130.81, 146.83,
+      164.81, 164.81, 196.00, 220.00, 196.00, 164.81, 146.83, 130.81,
+      146.83, 164.81, 146.83, 123.47, 130.81, 130.81, 130.81, 0
+    ];
+
+    const stepMs = 210; // ~142 BPM
+    this.bgmInterval = setInterval(() => {
+      if (!this.enabled || !this.bgmEnabled) {
+        this.stopBgm();
+        return;
+      }
+      const c = this.ensureContext();
+      if (!c || c.state !== 'running') return;
+
+      const step = this.bgmStep % melody.length;
+      const mFreq = melody[step];
+      const bFreq = bass[step];
+      const now = c.currentTime;
+
+      // 1. 리드 멜로디 (부드러운 사각파)
+      if (mFreq > 0) {
+        try {
+          const oscM = c.createOscillator();
+          const gainM = c.createGain();
+          oscM.type = 'square';
+          oscM.frequency.setValueAtTime(mFreq, now);
+          gainM.gain.setValueAtTime(0.065, now);
+          gainM.gain.linearRampToValueAtTime(0.005, now + 0.18);
+          oscM.connect(gainM);
+          gainM.connect(c.destination);
+          oscM.start(now);
+          oscM.stop(now + 0.19);
+        } catch(e) {}
+      }
+
+      // 2. 묵직한 베이스 (삼각파)
+      if (bFreq > 0) {
+        try {
+          const oscB = c.createOscillator();
+          const gainB = c.createGain();
+          oscB.type = 'triangle';
+          oscB.frequency.setValueAtTime(bFreq, now);
+          gainB.gain.setValueAtTime(0.11, now);
+          gainB.gain.linearRampToValueAtTime(0.01, now + 0.19);
+          oscB.connect(gainB);
+          gainB.connect(c.destination);
+          oscB.start(now);
+          oscB.stop(now + 0.2);
+        } catch(e) {}
+      }
+
+      this.bgmStep++;
+    }, stepMs);
+  }
+
+  stopBgm() {
+    if (this.bgmInterval) {
+      clearInterval(this.bgmInterval);
+      this.bgmInterval = null;
+    }
   }
 }
 
@@ -205,6 +401,7 @@ class GameEngine {
 
   // 👑 3대 직업군 (소환사 / 검사 / 궁수) 및 9대 세부 특화 시작
   start(classOrPetId = 'summoner', subclassId = 'ignis', combatStyle = 'ranged') {
+    this.audio.init();
     let heroClass = 'summoner';
     let subclass = subclassId;
     let subclassDef = null;
@@ -496,6 +693,7 @@ class GameEngine {
 
   // ⚔️ 검사 근접 부채꼴 검기 참격 효과 추가
   addSlashEffect(x, y, angle, range = 85, color = '#ef4444', arcSpan = Math.PI * 0.88, width = 18, duration = 0.16) {
+    if (this.audio) this.audio.playSlash();
     this.slashEffects.push({
       x, y, angle,
       range,
