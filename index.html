@@ -563,24 +563,17 @@
 
   <!-- Top Bar -->
   <div id="top-bar">
-    <div style="display:flex; align-items:center; gap: 14px;">
-      <button class="btn" style="background:#0f172a; border-color:#38bdf8; color:#38bdf8;" onclick="openTitleMenuModal()">🏠 메인</button>
+    <div style="display:flex; align-items:center; gap: 10px; overflow-x: auto; white-space: nowrap;">
+      <button class="btn" style="background:#0f172a; border-color:#38bdf8; color:#38bdf8; padding: 5px 10px;" onclick="openTitleMenuModal()">🏠 메인</button>
       <div class="hud-stat">생존: <span id="time-display">00:00</span></div>
       <div class="hud-stat">처치: <span id="kill-display">0</span></div>
       <div class="hud-stat">레벨: <span id="lvl-display">1</span></div>
-      <div class="hud-stat" id="net-badge" style="color:#a855f7; display:none;">🌐 <span id="net-status-text" style="color:#c084fc;">솔로 모드</span></div>
+      <div class="hud-stat" id="net-badge" style="color:#a855f7; display:none;">🌐 <span id="net-status-text" style="color:#c084fc;">솔로</span></div>
     </div>
-    <div style="display:flex; gap: 6px;">
-      <button id="btn-graphic-mode" class="btn" style="background:#047857; border-color:#10b981;" onclick="toggleGraphicMode()">🎨 도트: ON</button>
-      <button class="btn" style="background:#4338ca; border-color:#818cf8;" onclick="openSpriteGalleryModal()">🖼️ 샘플</button>
-      <button id="btn-speed" class="btn" style="background:#1e293b; border-color:#475569;" onclick="engine.toggleTimeScale()">⏩ 1x 배속</button>
-      <button id="btn-ai-team" class="btn" style="background:#7c3aed; border-color:#a78bfa;" onclick="engine.toggleAiTeammates()">🤖 AI 3인 파티: ON</button>
-      <button class="btn" style="background:#6d28d9; border-color:#a78bfa; color:#e9d5ff;" onclick="openAiJobModal()">👥 AI 직업 편성</button>
-      <button id="btn-auto-play" class="btn" style="background:#1e293b; border-color:#475569;" onclick="engine.toggleAutoPlay()">⚡ 오토 플레이: OFF</button>
-      <button class="btn" style="background:#0284c7; border-color:#38bdf8;" onclick="openMultiplayModal()">👨‍👧‍👦 4인 멀티</button>
-      <button class="btn" style="background:#d97706; border-color:#f59e0b; color:#fff;" onclick="openPetSelectModal()">👑 영웅/직업 선택</button>
-      <button class="btn" style="background:#334155; border-color:#64748b;" onclick="openSettingsModal()">⚙️ 설정</button>
-      <button id="btn-sound" class="btn" onclick="engine.audio.init(); toggleSound()">🔊 사운드 ON</button>
+    <div style="display:flex; gap: 6px; align-items:center; flex-shrink: 0;">
+      <button id="btn-top-test" class="btn" style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); border-color: #a78bfa; color: #fff; font-weight: bold; box-shadow: 0 0 10px rgba(167, 139, 250, 0.45); padding: 5px 10px;" onclick="openTestModal()">🧪 테스트</button>
+      <button class="btn" style="background:#334155; border-color:#64748b; padding: 5px 10px;" onclick="openSettingsModal()">⚙️ 설정</button>
+      <button id="btn-sound" class="btn" style="padding: 5px 10px;" onclick="engine.audio.init(); toggleSound()">🔊 ON</button>
     </div>
   </div>
 
@@ -829,6 +822,96 @@
 
       <button class="btn" style="background:#10b981; border-color:#34d399; color:#000; width:100%; justify-content:center; padding:10px; font-weight:bold; font-size:13px;" onclick="closeSettingsModal()">
         확인 및 저장
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       TEST / DEV TOOLS MODAL (테스트 도구 팝업 창)
+       ========================================================================= -->
+  <div id="test-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 520px; border-color: #a855f7; box-shadow: 0 0 45px rgba(168, 85, 247, 0.45); max-height: 85vh; display:flex; flex-direction:column;">
+      <button class="modal-back-btn" onclick="closeTestModal()">← 닫기</button>
+      <div class="modal-title" style="color: #c084fc; margin-top: 10px;">🧪 테스트 & 디버그 도구</div>
+      <div class="modal-sub">모바일 시야 확보를 위해 모든 테스트 버튼을 한곳에 통합했습니다.</div>
+
+      <div style="overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:12px; padding:4px; text-align:left;">
+        
+        <!-- 1. 게임 진행 모드 & 영웅 -->
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px;">
+          <div style="color:#38bdf8; font-weight:bold; font-size:13px; margin-bottom:8px;">👑 모드 & 영웅 변경</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <button class="btn" style="background:#d97706; border-color:#f59e0b; color:#fff; justify-content:center; padding:10px; font-weight:bold;" onclick="closeTestModal(); openPetSelectModal();">
+              👑 영웅/직업 선택
+            </button>
+            <button class="btn" style="background:#0284c7; border-color:#38bdf8; color:#fff; justify-content:center; padding:10px; font-weight:bold;" onclick="closeTestModal(); openMultiplayModal();">
+              👨‍👧‍👦 4인 멀티플레이
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. 게임 편의 기능 (배속 / 오토) -->
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px;">
+          <div style="color:#facc15; font-weight:bold; font-size:13px; margin-bottom:8px;">⚡ 배속 & 오토플레이</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <button id="btn-speed" class="btn" style="background:#1e293b; border-color:#475569; justify-content:center; padding:10px; font-weight:bold;" onclick="engine.toggleTimeScale(); updateTestUI();">
+              ⏩ 1x 배속
+            </button>
+            <button id="btn-auto-play" class="btn" style="background:#1e293b; border-color:#475569; justify-content:center; padding:10px; font-weight:bold;" onclick="engine.toggleAutoPlay(); updateTestUI();">
+              ⚡ 오토 플레이: OFF
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. AI 파티 편성 -->
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px;">
+          <div style="color:#a855f7; font-weight:bold; font-size:13px; margin-bottom:8px;">🤖 AI 가상 파티</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <button id="btn-ai-team" class="btn" style="background:#7c3aed; border-color:#a78bfa; justify-content:center; padding:10px; font-weight:bold;" onclick="engine.toggleAiTeammates(); updateTestUI();">
+              🤖 AI 3인 파티: ON
+            </button>
+            <button class="btn" style="background:#6d28d9; border-color:#a78bfa; color:#e9d5ff; justify-content:center; padding:10px; font-weight:bold;" onclick="closeTestModal(); openAiJobModal();">
+              👥 AI 직업 편성
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. 그래픽 & 비주얼 도구 -->
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px;">
+          <div style="color:#10b981; font-weight:bold; font-size:13px; margin-bottom:8px;">🎨 그래픽 모드</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <button id="btn-graphic-mode" class="btn" style="background:#047857; border-color:#10b981; justify-content:center; padding:10px; font-weight:bold;" onclick="toggleGraphicMode(); updateTestUI();">
+              🎨 도트: ON
+            </button>
+            <button class="btn" style="background:#4338ca; border-color:#818cf8; justify-content:center; padding:10px; font-weight:bold;" onclick="closeTestModal(); openSpriteGalleryModal();">
+              🖼️ 도트 샘플 도감
+            </button>
+          </div>
+        </div>
+
+        <!-- 5. 즉시 테스트 치트 (레벨업 / 전멸 / 무적 / 보스) -->
+        <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px;">
+          <div style="color:#f43f5e; font-weight:bold; font-size:13px; margin-bottom:8px;">🧪 빠른 테스트 치트 도구</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <button class="btn" style="background:#1e293b; border-color:#f59e0b; color:#facc15; justify-content:center; padding:8px; font-size:12px;" onclick="testAddExp()">
+              🌟 EXP +1000 (레벨업)
+            </button>
+            <button class="btn" style="background:#1e293b; border-color:#ef4444; color:#f87171; justify-content:center; padding:8px; font-size:12px;" onclick="testKillAllEnemies()">
+              💣 전체 몬스터 처치
+            </button>
+            <button class="btn" style="background:#1e293b; border-color:#38bdf8; color:#38bdf8; justify-content:center; padding:8px; font-size:12px;" onclick="testInvincibleBuff()">
+              🛡️ 15초 무적 보호막
+            </button>
+            <button class="btn" style="background:#1e293b; border-color:#a855f7; color:#c084fc; justify-content:center; padding:8px; font-size:12px;" onclick="testSpawnBoss()">
+              👹 보스 즉시 소환
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <button class="btn" style="background:#7c3aed; border-color:#a78bfa; color:#fff; width:100%; justify-content:center; padding:11px; font-weight:bold; font-size:14px; margin-top:10px;" onclick="closeTestModal()">
+        확인 및 게임 계속하기
       </button>
     </div>
   </div>
@@ -1443,11 +1526,11 @@
 
   <!-- Load Modules -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="js/data.js?v=20261015_0815"></script>
-  <script src="js/sprites.js?v=20261015_0815"></script>
-  <script src="js/render.js?v=20261015_0815"></script>
-  <script src="js/engine.js?v=20261015_0815"></script>
-  <script src="js/network.js?v=20261015_0815"></script>
+  <script src="js/data.js?v=20261015_1000"></script>
+  <script src="js/sprites.js?v=20261015_1000"></script>
+  <script src="js/render.js?v=20261015_1000"></script>
+  <script src="js/engine.js?v=20261015_1000"></script>
+  <script src="js/network.js?v=20261015_1000"></script>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -1801,6 +1884,105 @@
       }
     }
 
+    /* 3-1. Test & Dev Tools Modal Flow */
+    function openTestModal() {
+      if (engine && !networkManager.isConnected) engine.isPaused = true;
+      document.getElementById('test-modal').style.display = 'flex';
+      updateTestUI();
+    }
+
+    function closeTestModal() {
+      document.getElementById('test-modal').style.display = 'none';
+      if (engine && engine.pet && !isAnyModalOpen()) {
+        engine.isPaused = false;
+      }
+    }
+
+    function updateTestUI() {
+      if (!engine) return;
+      // 1. 배속 버튼 텍스트/스타일
+      const spdBtn = document.getElementById('btn-speed');
+      if (spdBtn) {
+        const sc = engine.timeScale || 1.0;
+        spdBtn.textContent = `⏩ ${sc}x 배속`;
+        spdBtn.style.background = (sc > 1.0) ? '#0284c7' : '#1e293b';
+        spdBtn.style.borderColor = (sc > 1.0) ? '#38bdf8' : '#475569';
+      }
+      // 2. AI 동료 버튼
+      const aiBtn = document.getElementById('btn-ai-team');
+      if (aiBtn) {
+        aiBtn.textContent = engine.aiTeammatesEnabled ? '🤖 AI 3인 파티: ON' : '🤖 AI 3인 파티: OFF';
+        aiBtn.style.background = engine.aiTeammatesEnabled ? '#7c3aed' : '#1e293b';
+        aiBtn.style.borderColor = engine.aiTeammatesEnabled ? '#a78bfa' : '#475569';
+      }
+      // 3. 오토 플레이 버튼
+      const autoBtn = document.getElementById('btn-auto-play');
+      if (autoBtn) {
+        autoBtn.textContent = engine.autoPlay ? '⚡ 오토 플레이: ON' : '⚡ 오토 플레이: OFF';
+        autoBtn.style.background = engine.autoPlay ? '#d97706' : '#1e293b';
+        autoBtn.style.borderColor = engine.autoPlay ? '#f59e0b' : '#475569';
+      }
+      // 4. 그래픽 모드 버튼
+      const gBtn = document.getElementById('btn-graphic-mode');
+      if (gBtn && typeof spriteManager !== 'undefined') {
+        gBtn.textContent = spriteManager.usePixelArt ? '🎨 도트: ON' : '🎨 도트: OFF';
+        gBtn.style.background = spriteManager.usePixelArt ? '#047857' : '#1e293b';
+        gBtn.style.borderColor = spriteManager.usePixelArt ? '#10b981' : '#475569';
+      }
+    }
+
+    // 치트 & 빠른 테스트 편의 함수
+    function testAddExp() {
+      if (!engine) return;
+      engine.currentExp += 1000;
+      if (engine.currentExp >= engine.neededExp) {
+        engine.levelUp();
+      }
+      engine.updateExpBar();
+      closeTestModal();
+    }
+
+    function testKillAllEnemies() {
+      if (!engine || !engine.enemies) return;
+      engine.audio.playExplosion();
+      engine.shakeScreen(12, 0.35);
+      const count = engine.enemies.length;
+      for (let i = engine.enemies.length - 1; i >= 0; i--) {
+        const e = engine.enemies[i];
+        e.takeDamage(99999);
+      }
+      alert(`💣 필드 몬스터 ${count}마리를 모두 처치했습니다!`);
+      closeTestModal();
+    }
+
+    function testInvincibleBuff() {
+      if (!engine || !engine.player) return;
+      engine.player.isInvincible = true;
+      engine.damageNumbers.push({
+        x: engine.player.x, y: engine.player.y - 30,
+        val: '🛡️ 15초간 절대 무적!', color: '#38bdf8', life: 2.5
+      });
+      setTimeout(() => {
+        if (engine && engine.player) engine.player.isInvincible = false;
+      }, 15000);
+      closeTestModal();
+    }
+
+    function testSpawnBoss() {
+      if (!engine) return;
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 280;
+      const bx = engine.player.x + Math.cos(angle) * dist;
+      const by = engine.player.y + Math.sin(angle) * dist;
+      const bossType = 'demon_king_diablo';
+      const mDef = GAME_DATA.monsters[bossType] || GAME_DATA.monsters.dragon_welp;
+      engine.enemies.push(new EngineEnemy(bx, by, bossType, mDef, engine));
+      engine.audio.playExplosion();
+      engine.shakeScreen(15, 0.4);
+      alert('👹 보스 [마왕 디아블로]가 소환되었습니다!');
+      closeTestModal();
+    }
+
     function setAiTeammatesCount(count) {
       window.aiTeammatesCount = count;
       if (engine) engine.setAiTeammatesCount(count);
@@ -1865,7 +2047,7 @@
       const enabled = engine.audio.toggle();
       const topBtn = document.getElementById('btn-sound');
       if (topBtn) {
-        topBtn.textContent = enabled ? '🔊 사운드 ON' : '🔇 사운드 OFF';
+        topBtn.textContent = enabled ? '🔊 ON' : '🔇 OFF';
         topBtn.style.background = enabled ? '#0284c7' : '#334155';
         topBtn.style.borderColor = enabled ? '#38bdf8' : '#64748b';
       }
@@ -2021,11 +2203,6 @@
       }
     }
 
-    function toggleSound() {
-      engine.audio.enabled = !engine.audio.enabled;
-      document.getElementById('btn-sound').textContent = engine.audio.enabled ? '🔊 사운드 ON' : '🔈 사운드 OFF';
-      updateSettingsUI();
-    }
 
     /* ==========================================================================
        VIRTUAL JOYSTICK CONTROLLER (Left Touch Pad)
