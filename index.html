@@ -734,6 +734,9 @@
         <div style="background:#0f172a; border:2px solid #facc15; border-radius:10px; padding:12px; margin-bottom:12px;">
           <div style="font-size:12px; color:#94a3b8;">가족/친구들에게 알려줄 방 코드</div>
           <div id="lobby-room-code-val" style="font-size:32px; font-weight:900; color:#facc15; letter-spacing:4px; font-family:monospace;">----</div>
+          <button class="btn" style="background:#4338ca; border-color:#818cf8; color:#fff; width:100%; justify-content:center; padding:8px; font-size:12px; margin-top:8px;" onclick="networkManager.copyInviteLink()">
+            📋 스마트폰 초대 링크 복사 (카톡/문자 전송)
+          </button>
         </div>
 
         <!-- 4 Slots Grid -->
@@ -1440,11 +1443,11 @@
 
   <!-- Load Modules -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="js/data.js?v=20261014_2050"></script>
-  <script src="js/sprites.js?v=20261014_2050"></script>
-  <script src="js/render.js?v=20261014_2050"></script>
-  <script src="js/engine.js?v=20261014_2050"></script>
-  <script src="js/network.js?v=20261014_2050"></script>
+  <script src="js/data.js?v=20261015_0815"></script>
+  <script src="js/sprites.js?v=20261015_0815"></script>
+  <script src="js/render.js?v=20261015_0815"></script>
+  <script src="js/engine.js?v=20261015_0815"></script>
+  <script src="js/network.js?v=20261015_0815"></script>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
@@ -2192,6 +2195,19 @@
       window.addEventListener('keydown', unlockAudioContext, { passive: true });
 
       openTitleMenuModal(); // Start at the Main Title Menu!
+
+      // URL 초대 파라미터(?room=XXXX) 감지 시 자동 멀티 참가 유도
+      const urlParams = new URLSearchParams(window.location.search);
+      const inviteRoom = urlParams.get('room');
+      if (inviteRoom && inviteRoom.length >= 4) {
+        document.getElementById('title-menu-modal').style.display = 'none';
+        openMultiplayModal();
+        const codeInput = document.getElementById('join-room-code');
+        if (codeInput) codeInput.value = inviteRoom;
+        const infoEl = document.getElementById('net-room-info');
+        if (infoEl) infoEl.textContent = `초대받은 방 코드 [${inviteRoom}]가 입력되었습니다! [참가] 버튼을 눌러주세요.`;
+      }
+
       lastTime = performance.now();
       requestAnimationFrame(loop);
     });

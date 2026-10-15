@@ -39,16 +39,28 @@ class GameRenderer {
     // 1. Ancient Ruins 4800x4800 Map Background & Landmarks
     this.renderBackground(player);
 
-    // 2. Multi-player Peers (Co-op Tamer Tether & Pet)
+    // 2. Multi-player Peers (Co-op Tamer Tether, Downed Revive & Pet)
     if (engine.peers) {
       for (const peerId in engine.peers) {
         const peer = engine.peers[peerId];
         if (peer.player) {
-          const isPeerSummoner = (peer.player.heroClass || 'summoner') === 'summoner';
+          const pp = peer.player;
+          const isPeerSummoner = (pp.heroClass || 'summoner') === 'summoner';
           if (isPeerSummoner && peer.pet) {
-            this.renderTether(peer.player, peer.pet, engine.gameTime);
+            this.renderTether(pp, peer.pet, engine.gameTime);
           }
-          this.renderTamer(peer.player, peer.name || '동료', '#a855f7');
+
+          // 기절(다운) 시 소생 링 및 빔 렌더링
+          if (pp.isDowned) {
+            this.renderReviveCircle(pp.x, pp.y, engine.gameTime, 0);
+            if (!player.isDowned && Math.hypot(player.x - pp.x, player.y - pp.y) < 85) {
+              this.renderReviveBeam(player, pp, engine.gameTime);
+            }
+          }
+
+          this.renderTamer(pp, peer.name || '동료', '#a855f7');
+          this.renderTeammateHpBar(pp);
+
           if (isPeerSummoner && peer.pet) {
             this.renderPet(peer.pet, engine.gameTime);
           }
@@ -93,7 +105,10 @@ class GameRenderer {
     }
 
     // 10. Local Tamer (Player)
-    const myName = (typeof networkManager !== 'undefined' && networkManager.isHost) ? '👑 아빠 (호스트)' : ((player.subclassDef && player.subclassDef.name) || '🧙 테이머');
+    if (player.isDowned) {
+      this.renderReviveCircle(player.x, player.y, engine.gameTime, player.reviveProgress);
+    }
+    const myName = (typeof networkManager !== 'undefined' && networkManager.isHost) ? '👑 아빠 (방장)' : ((player.subclassDef && player.subclassDef.name) || '🧙 테이머');
     this.renderTamer(player, myName, '#818cf8');
 
     // 11. Local Hero Pet (소환사만 해당)
@@ -506,6 +521,81 @@ class GameRenderer {
     ctx.moveTo(player.x, player.y);
     ctx.lineTo(pet.x, pet.y);
     ctx.stroke();
+    ctx.restore();
+  }
+
+  // 🚑 기절/소생 마법진 렌더링
+  renderReviveCircle(x, y, time, progress = 0) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.translate(x, y);
+
+    // 회전하는 녹색 소생 마법진
+    const pulse = Math.sin(time * 6) * 4;
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 2.5;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#22c55e';
+    ctx.beginPath();
+    ctx.arc(0, 0, 42 + pulse, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 소생 진행률 호 (Progress Arc)
+    if (progress > 0) {
+      const pct = Math.min(1.0, progress / 2.5);
+      ctx.strokeStyle = '#4ade80';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(0, 0, 48, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * pct);
+      ctx.stroke();
+
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillStyle = '#4ade80';
+      ctx.textAlign = 'center';
+      ctx.fillText(`소생 중... ${Math.round(pct * 100)}%`, 0, -50);
+    } else {
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillStyle = '#ef4444';
+      ctx.textAlign = 'center';
+      ctx.fillText('🚑 소생 대기 중 (근접)', 0, -48);
+    }
+
+    ctx.restore();
+  }
+
+  // 💚 소생 치유 광선 렌더링
+  renderReviveBeam(from, to, time) {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 3;
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = '#4ade80';
+    ctx.setLineDash([6, 6]);
+    ctx.lineDashOffset = -time * 30;
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 🛡️ 동료 미니 체력바
+  renderTeammateHpBar(p) {
+    if (!p || p.hp === undefined || p.maxHp === undefined) return;
+    const ctx = this.ctx;
+    ctx.save();
+    const barW = 32;
+    const barH = 4;
+    const bx = p.x - barW / 2;
+    const by = p.y - 38;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(bx - 1, by - 1, barW + 2, barH + 2);
+
+    const ratio = Math.max(0, Math.min(1, p.hp / p.maxHp));
+    ctx.fillStyle = ratio > 0.5 ? '#22c55e' : (ratio > 0.25 ? '#f59e0b' : '#ef4444');
+    ctx.fillRect(bx, by, barW * ratio, barH);
     ctx.restore();
   }
 

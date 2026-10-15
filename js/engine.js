@@ -569,6 +569,9 @@ class GameEngine {
       speed: heroClass === 'archer' ? 3.6 : (heroClass === 'warrior' ? 3.1 : 3.2),
       facing: 1,
       isInvincible: false,
+      isDowned: false,
+      downedTimer: 0,
+      reviveProgress: 0,
       shieldTimer: 0,
       dmgReduction: heroClass === 'warrior' ? 0.15 : 0,
       shieldBarrier: 0,
@@ -622,7 +625,10 @@ class GameEngine {
     this.isPaused = false;
     this.timeScale = 1.0;
     this.autoPlay = false;
-    this.aiTeammatesEnabled = true;
+
+    // 멀티플레이 중이면 실제 유저끼리만 플레이 (가상 봇 비활성화)
+    const isMulti = typeof networkManager !== 'undefined' && networkManager.isConnected;
+    this.aiTeammatesEnabled = !isMulti;
 
     // AI 동료 파티 초기화
     this.initAiTeammates();
@@ -639,7 +645,7 @@ class GameEngine {
 
   // 💥 9종 궁극기 시네마틱 발동 및 화면 연출
   triggerUltimate() {
-    if (!this.pet || !this.player || this.isPaused) return;
+    if (!this.pet || !this.player || this.isPaused || this.player.isDowned) return;
     if (this.ultimateTimer < this.ultimateMaxCd) return;
 
     const ult = (this.player.subclassDef && this.player.subclassDef.ultimate) ||
@@ -929,8 +935,10 @@ class GameEngine {
     if (curTerrain === 'swamp') terrainSpeedMul = 0.78; // 늪지대 발목 잡힘
     else if (curTerrain === 'forest') terrainSpeedMul = 0.92; // 숲 소폭 감속
 
-    const stepX = dx * this.player.speed * terrainSpeedMul * 60 * dt;
-    const stepY = dy * this.player.speed * terrainSpeedMul * 60 * dt;
+    const isDowned = !!this.player.isDowned;
+    const downedSpeedMul = isDowned ? 0.35 : 1.0;
+    const stepX = dx * this.player.speed * terrainSpeedMul * downedSpeedMul * 60 * dt;
+    const stepY = dy * this.player.speed * terrainSpeedMul * downedSpeedMul * 60 * dt;
 
     // ⛰️ 산지 및 🌊 물 지형 충돌 검사 & 벽면 슬라이딩(Wall Sliding)
     let movedX = false;
@@ -1036,6 +1044,61 @@ class GameEngine {
     // Update 2 Virtual AI Co-op Teammates
     if (this.aiTeammatesEnabled) {
       this.updateAiTeammates(dt);
+    }
+
+    // 🚑 멀티플레이 소생/부활 시스템 (동료가 85px 내에 머물면 2.5초 후 50% HP로 부활)
+    if (this.player.isDowned) {
+      let isBeingRevived = false;
+      if (this.peers) {
+        for (const pid in this.peers) {
+          const peer = this.peers[pid];
+          if (peer && peer.player && !peer.player.isDowned) {
+            const dist = Math.hypot(peer.player.x - this.player.x, peer.player.y - this.player.y);
+            if (dist < 85) {
+              isBeingRevived = true;
+              break;
+            }
+          }
+        }
+      }
+
+      if (isBeingRevived) {
+        this.player.reviveProgress = (this.player.reviveProgress || 0) + dt;
+        if (this.player.reviveProgress >= 2.5) {
+          this.player.isDowned = false;
+          this.player.hp = Math.round(this.player.maxHp * 0.5);
+          this.player.isInvincible = true;
+          this.player.reviveProgress = 0;
+          setTimeout(() => { if (this.player) this.player.isInvincible = false; }, 3000);
+          this.audio.playExplosion();
+          this.addShockwave(this.player.x, this.player.y, 160, '#22c55e', 0.5);
+          this.damageNumbers.push({
+            x: this.player.x, y: this.player.y - 30,
+            val: '💚 부활 성공! (체력 50% 회복)',
+            color: '#22c55e', life: 2.2
+          });
+          this.updateHpBar();
+        }
+      } else {
+        this.player.reviveProgress = Math.max(0, (this.player.reviveProgress || 0) - dt * 0.5);
+      }
+
+      // 파티 전멸 검사
+      let anyTeammateAlive = false;
+      if (this.peers) {
+        for (const pid in this.peers) {
+          const peer = this.peers[pid];
+          if (peer && peer.player && !peer.player.isDowned) {
+            anyTeammateAlive = true;
+            break;
+          }
+        }
+      }
+      if (!anyTeammateAlive && Object.keys(this.peers || {}).length > 0 && !this.teamDefeated) {
+        this.teamDefeated = true;
+        alert(`☠️ 파티원 전원 기절! 전멸했습니다.\n생존 시간: ${document.getElementById('time-display').textContent}\n처치 수: ${this.killCount}`);
+        openPetSelectModal();
+      }
     }
 
     // Passive Armor HP Regen
@@ -1250,6 +1313,7 @@ class GameEngine {
   }
 
   updatePetSkills(dt) {
+    if (this.player.isDowned) return;
     const pet = this.pet;
 
     for (const sId in pet.skills) {
@@ -2340,8 +2404,11 @@ class GameEngine {
     }
   }
 
-  collectGem(gem) {
+  collectGem(gem, isFromRpc = false) {
     this.audio.playGem();
+    if (!isFromRpc && typeof networkManager !== 'undefined' && networkManager.isConnected && !networkManager.isHost) {
+      networkManager.sendCollectGem(gem.id, gem.value);
+    }
     const bonus = 1 + (this.pet.expBonus || 0);
     this.currentExp += Math.round(gem.value * bonus);
     if (this.currentExp >= this.neededExp) {
@@ -2350,11 +2417,13 @@ class GameEngine {
     this.updateExpBar();
   }
 
-  levelUp() {
-    this.currentExp -= this.neededExp;
-    this.currentLvl++;
-    this.pet.level++;
-    this.neededExp = Math.floor(this.neededExp * 1.32 + 10);
+  levelUp(isSynchronized = false) {
+    if (!isSynchronized) {
+      this.currentExp -= this.neededExp;
+      this.currentLvl++;
+      this.pet.level++;
+      this.neededExp = Math.floor(this.neededExp * 1.32 + 10);
+    }
     this.audio.playLevelUp();
 
     // 1. 2차 전직 검사 (Lv.15 - 선택한 전투 스타일에 따른 전직)
@@ -2375,7 +2444,18 @@ class GameEngine {
   }
 
   showEvolutionModal(evo) {
-    this.isPaused = true;
+    const isMulti = typeof networkManager !== 'undefined' && networkManager.isConnected;
+    if (isMulti) {
+      this.isPaused = false;
+      this.player.isInvincible = true;
+      this.damageNumbers.push({
+        x: this.player.x, y: this.player.y - 30,
+        val: '👑 각성 선택 중 (무적 보호)', color: '#facc15', life: 2.5
+      });
+    } else {
+      this.isPaused = true;
+    }
+
     const modal = document.getElementById('evolution-modal');
     const isSummoner = (this.player.heroClass || 'summoner') === 'summoner';
     const heroName = isSummoner ? '펫' : (this.player.heroClass === 'warrior' ? '검사' : '궁수');
@@ -2406,6 +2486,9 @@ class GameEngine {
 
       modal.style.display = 'none';
       this.isPaused = false;
+      if (isMulti) {
+        this.player.isInvincible = false;
+      }
       this.updateHUD();
     };
 
@@ -2455,7 +2538,18 @@ class GameEngine {
   }
 
   showLevelUpModal() {
-    this.isPaused = true;
+    const isMulti = typeof networkManager !== 'undefined' && networkManager.isConnected;
+    if (isMulti) {
+      this.isPaused = false;
+      this.player.isInvincible = true;
+      this.damageNumbers.push({
+        x: this.player.x, y: this.player.y - 30,
+        val: '🌟 레벨업 선택 중 (무적 보호)', color: '#38bdf8', life: 2.5
+      });
+    } else {
+      this.isPaused = true;
+    }
+
     const modal = document.getElementById('level-up-modal');
     const container = document.getElementById('upgrade-options');
     container.innerHTML = '';
@@ -2558,6 +2652,9 @@ class GameEngine {
 
         modal.style.display = 'none';
         this.isPaused = false;
+        if (isMulti) {
+          this.player.isInvincible = false;
+        }
         this.updateHUD();
       };
       container.appendChild(card);
@@ -3320,6 +3417,30 @@ class GameEngine {
     }
   }
 
+  // 🚑 플레이어 사망/기절 처리 (멀티플레이 시 소생 대기, 솔로 시 게임오버)
+  handlePlayerDefeat() {
+    const isMulti = typeof networkManager !== 'undefined' && networkManager.isConnected;
+    if (isMulti) {
+      if (!this.player.isDowned) {
+        this.player.isDowned = true;
+        this.player.hp = 0;
+        this.player.downedTimer = 60;
+        this.player.reviveProgress = 0;
+        this.audio.playExplosion();
+        this.damageNumbers.push({
+          x: this.player.x,
+          y: this.player.y - 30,
+          val: '☠️ 기절! 동료의 소생(근접 3초)이 필요합니다!',
+          color: '#ef4444',
+          life: 3.5
+        });
+      }
+    } else {
+      alert(`☠️ 영웅이 쓰러졌습니다!\n생존 시간: ${document.getElementById('time-display').textContent}\n처치 수: ${this.killCount}`);
+      openPetSelectModal();
+    }
+  }
+
   hasSkill(sId) {
     return !!(this.pet && this.pet.skills && this.pet.skills[sId]);
   }
@@ -3486,6 +3607,8 @@ class EngineEnemy {
     this.flash = 0;
     this.slowTimer = 0;
     this.slowRate = 1.0;
+    if (!this.engine.enemyIdCounter) this.engine.enemyIdCounter = 1;
+    this.id = this.engine.enemyIdCounter++;
   }
 
   update(dt, player) {
@@ -3512,6 +3635,9 @@ class EngineEnemy {
     }
 
     if (dist < this.radius + 12) {
+      // 기절(다운) 상태인 플레이어는 공격 대상에서 제외
+      if (player.isDowned) return;
+
       // Invincibility check during Ultimate
       if (player.isInvincible) {
         // If Thunder Dash, damage enemy on hit!
@@ -3534,14 +3660,13 @@ class EngineEnemy {
       player.hp -= effectiveDmg * dt * 2.5;
       if (player.hp <= 0) {
         player.hp = 0;
-        alert(`☠️ 테이머가 쓰러졌습니다!\n생존 시간: ${document.getElementById('time-display').textContent}\n처치 수: ${this.engine.killCount}`);
-        openPetSelectModal();
+        this.engine.handlePlayerDefeat();
       }
       this.engine.updateHpBar();
     }
   }
 
-  takeDamage(amt) {
+  takeDamage(amt, fromGuest = false) {
     // Critical Hit Check from four_leaf_clover passive
     const critRate = this.engine.pet ? (this.engine.pet.critRate || 0.05) : 0.05;
     const isCrit = Math.random() < critRate;
@@ -3551,10 +3676,15 @@ class EngineEnemy {
     this.flash = 0.12;
     this.engine.audio.playHit();
 
+    // ⚔️ 게스트에서 발동한 타격이면 호스트로 RPC 전송
+    if (!fromGuest && typeof networkManager !== 'undefined' && networkManager.isConnected && !networkManager.isHost) {
+      networkManager.sendEnemyDamage(this.id, finalAmt);
+    }
+
     this.engine.damageNumbers.push({
       x: this.x + (Math.random() - 0.5) * 14,
       y: this.y - 12,
-      val: isCrit ? `💥${Math.round(finalAmt)}` : finalAmt,
+      val: isCrit ? `💥${Math.round(finalAmt)}` : Math.round(finalAmt),
       life: isCrit ? 0.65 : 0.5,
       color: isCrit ? '#f97316' : '#facc15'
     });
@@ -3615,12 +3745,13 @@ class EngineChest {
 }
 
 class EngineGem {
-  constructor(x, y, value) {
+  constructor(x, y, value, color) {
     this.x = x;
     this.y = y;
     this.value = value;
     this.radius = value >= 50 ? 8 : (value >= 5 ? 6 : 4);
-    this.color = value >= 50 ? '#facc15' : (value >= 5 ? '#ef4444' : '#38bdf8');
+    this.color = color || (value >= 50 ? '#facc15' : (value >= 5 ? '#ef4444' : '#38bdf8'));
+    this.id = Math.floor(Math.random() * 100000000);
   }
 
   update(dt, player, magnetRange, onCollect) {
